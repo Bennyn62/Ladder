@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // families/{familyCode}
+    //   - adminPinHash: string
+    //   profiles/{profileId}   - name, age, mode ("kid"|"adult"), level
+    //   sessions/{sessionId}   - profileId, date, category, correctCount, wrongCount, wordsShown[]
+    //   progress/{wordId}      - box (Leitner) or easeFactor/interval (SM-2/FSRS), lastSeen, nextReview
+
+    match /families/{familyCode} {
+      // Anyone with the family code can read/write their own family's data.
+      // This mirrors the simple-code pattern used in eWay (no full Auth).
+      allow read, write: if true;
+
+      match /profiles/{profileId} {
+        allow read, write: if true;
+      }
+
+      match /sessions/{sessionId} {
+        // Sessions are append-only from the client: create allowed, no edits/deletes.
+        allow read, create: if true;
+        allow update, delete: if false;
+      }
+
+      match /progress/{docId} {
+        allow read, write: if true;
+      }
+    }
+  }
+}
+
+// NOTE - IMPORTANT:
+// This is intentionally permissive (matches the simple family-code model),
+// same tradeoff as eWay. It is NOT Firebase's default test-mode rule
+// (which expires automatically ~30 days after project creation).
+// These are permanent rules you deploy explicitly, so they will not expire.
+//
+// If you're adding this app's collections into the SAME Firebase project
+// as eWay (b2ft-19e16), deploying this ruleset also replaces eWay's
+// expiring test-mode rules - worth doing before early August regardless.
+//
+// If eWay already has its own /users/{familyCode}/... rules defined,
+// merge the two rule blocks into one firestore.rules file rather than
+// deploying this file alone (deploy replaces the whole ruleset).

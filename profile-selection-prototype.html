@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>eWay Vocab - בחירת פרופיל</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Heebo:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#F5F7FB; --card:#FFFFFF; --ink:#1B2430; --ink-soft:#6B7688; --ink-faint:#9AA3B2;
+    --line:#E7EAF1; --primary:#4F6BFF; --primary-soft:#EEF1FF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); font-family:'Heebo', sans-serif; color:var(--ink);
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;}
+  .rubik{font-family:'Rubik', sans-serif;}
+  .hidden{display:none !important;}
+  .app{width:100%; max-width:420px;}
+
+  #codeScreen{display:flex; flex-direction:column; align-items:center; text-align:center; padding-top:40px;}
+  .logo{font-family:'Rubik'; font-weight:800; font-size:30px; margin-bottom:4px;}
+  .logo .e{color:#B5482D; font-style:italic; font-weight:700;}
+  .logo-sub{color:var(--ink-soft); font-size:13px; font-weight:600; margin-bottom:36px;}
+  .code-input{
+    width:100%; max-width:260px; text-align:center; font-family:'Rubik'; font-weight:700; font-size:20px;
+    letter-spacing:3px; padding:14px; border:2px solid var(--line); border-radius:14px; outline:none; margin-bottom:14px;
+  }
+  .code-input:focus{border-color:var(--primary);}
+  .enter-btn{
+    font-family:'Rubik'; font-weight:700; font-size:15px; color:#fff; background:var(--primary);
+    border:none; padding:13px 36px; border-radius:14px; cursor:pointer; width:100%; max-width:260px;
+  }
+  .code-hint{margin-top:16px; font-size:12px; color:var(--ink-faint);}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px;}
+  .topbar h1{font-size:19px; font-weight:700; margin:0;}
+  .topbar .fam{font-size:12.5px; color:var(--ink-soft); font-weight:500;}
+  .parent-link{font-size:12.5px; color:var(--primary); font-weight:700; cursor:pointer; background:none; border:none;}
+
+  .profile-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .profile-card{
+    background:var(--card); border:1px solid var(--line); border-radius:20px;
+    padding:20px 12px 16px; text-align:center; cursor:pointer; transition:transform .1s;
+  }
+  .profile-card:active{transform:scale(.96);}
+  .p-avatar{
+    width:64px; height:64px; border-radius:20px; margin:0 auto 10px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Rubik'; font-weight:700; font-size:24px; color:#fff;
+  }
+  .p-name{font-weight:700; font-size:15px; margin-bottom:2px;}
+  .p-meta{font-size:11.5px; color:var(--ink-soft); font-weight:600;}
+  .p-mode-tag{
+    display:inline-block; margin-top:8px; font-size:10px; font-weight:700; padding:3px 8px; border-radius:7px;
+  }
+  .p-mode-tag.kid{background:#FFF3E0; color:#B8720C;}
+  .p-mode-tag.adult{background:var(--primary-soft); color:var(--primary);}
+
+  .add-card{
+    background:var(--card); border:2px dashed var(--line); border-radius:20px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:20px 12px; cursor:pointer; color:var(--ink-faint); min-height:150px;
+  }
+  .add-card .plus{font-size:28px; font-weight:300; line-height:1;}
+  .add-card .add-label{font-size:12.5px; font-weight:700; margin-top:6px;}
+
+  .sheet-overlay{
+    position:fixed; inset:0; background:rgba(27,36,48,.4); display:flex; align-items:flex-end; justify-content:center; z-index:10;
+  }
+  .sheet{
+    background:var(--card); width:100%; max-width:420px; border-radius:24px 24px 0 0; padding:24px 22px 28px;
+  }
+  .sheet-title{font-family:'Rubik'; font-weight:800; font-size:19px; margin-bottom:18px;}
+  .field-label{font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:6px; display:block;}
+  .field-input{
+    width:100%; border:2px solid var(--line); border-radius:12px; padding:11px 14px; font-size:15px;
+    font-family:'Heebo'; outline:none; margin-bottom:16px;
+  }
+  .field-input:focus{border-color:var(--primary);}
+  .age-row{display:flex; gap:8px; margin-bottom:8px;}
+  .age-chip{
+    flex:1; text-align:center; padding:10px 4px; border-radius:10px; border:2px solid var(--line);
+    font-size:12.5px; font-weight:700; cursor:pointer; color:var(--ink-soft);
+  }
+  .age-chip.selected{border-color:var(--primary); background:var(--primary-soft); color:var(--primary);}
+  .suggested-mode{
+    background:var(--primary-soft); border-radius:12px; padding:10px 14px; font-size:12.5px; font-weight:600;
+    color:var(--primary); margin-bottom:18px;
+  }
+  .mode-toggle{font-size:11.5px; text-decoration:underline; cursor:pointer; font-weight:700;}
+  .sheet-actions{display:flex; gap:10px;}
+  .cancel-btn{
+    flex:1; background:var(--bg); color:var(--ink-soft); border:none; border-radius:14px; padding:13px; font-weight:700;
+    font-family:'Rubik'; cursor:pointer;
+  }
+  .save-btn{
+    flex:2; background:var(--primary); color:#fff; border:none; border-radius:14px; padding:13px; font-weight:700;
+    font-family:'Rubik'; cursor:pointer;
+  }
+
+  .launch-screen{
+    display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    min-height:70vh;
+  }
+  .launch-avatar{
+    width:90px; height:90px; border-radius:26px; display:flex; align-items:center; justify-content:center;
+    font-family:'Rubik'; font-weight:800; font-size:32px; color:#fff; margin-bottom:18px;
+  }
+  .launch-name{font-family:'Rubik'; font-weight:800; font-size:20px; margin-bottom:4px;}
+  .launch-sub{color:var(--ink-soft); font-size:13.5px; margin-bottom:22px;}
+  .launch-target{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:12px 18px;
+    font-size:12.5px; color:var(--ink-soft); max-width:280px; line-height:1.6;
+  }
+  .back-link{margin-top:22px; font-size:13px; color:var(--primary); font-weight:700; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div id="codeScreen">
+    <div class="logo"><span class="e">e</span>Way</div>
+    <div class="logo-sub">אוצר מילים למשפחה</div>
+    <input type="text" class="code-input" id="codeInput" placeholder="קוד משפחה" maxlength="12">
+    <button class="enter-btn rubik" id="enterBtn">כניסה</button>
+    <div class="code-hint">קוד לדוגמה: BENNY</div>
+  </div>
+
+  <div id="gridScreen" class="hidden">
+    <div class="topbar">
+      <div>
+        <h1 class="rubik">מי לומד היום?</h1>
+        <div class="fam" id="famLabel"></div>
+      </div>
+      <button class="parent-link" id="parentLink">אזור הורים</button>
+    </div>
+    <div class="profile-grid" id="profileGrid"></div>
+  </div>
+
+  <div id="launchScreen" class="hidden">
+    <div class="launch-screen">
+      <div class="launch-avatar" id="launchAvatar"></div>
+      <div class="launch-name" id="launchName"></div>
+      <div class="launch-sub" id="launchSub"></div>
+      <div class="launch-target" id="launchTarget"></div>
+      <div class="back-link" id="backLink">← חזרה לבחירת פרופיל</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="sheet-overlay hidden" id="sheetOverlay">
+  <div class="sheet">
+    <div class="sheet-title rubik">פרופיל חדש</div>
+    <label class="field-label">שם</label>
+    <input type="text" class="field-input" id="nameInput" placeholder="לדוגמה: נועה">
+
+    <label class="field-label">גיל</label>
+    <div class="age-row">
+      <div class="age-chip" data-age="7">6-8</div>
+      <div class="age-chip" data-age="10">9-11</div>
+      <div class="age-chip" data-age="12">12+</div>
+      <div class="age-chip" data-age="30">מבוגר/ת</div>
+    </div>
+
+    <div class="suggested-mode" id="suggestedMode">
+      <span id="suggestedModeText">בחר/י גיל כדי לראות המלצה</span>
+    </div>
+
+    <div class="sheet-actions">
+      <button class="cancel-btn rubik" id="cancelBtn">ביטול</button>
+      <button class="save-btn rubik" id="saveBtn">שמור/י פרופיל</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = ['#FF6B5B','#4F6BFF','#8B7FE8','#22B573','#FF9F1C','#3FA0A0'];
+
+let profiles = [
+  { id:'noa', name:'נועה', age:8, mode:'kid', level:2, color:'#FF6B5B' },
+  { id:'eitan', name:'איתן', age:10, mode:'kid', level:3, color:'#4F6BFF' },
+  { id:'benny', name:'בני', age:35, mode:'adult', level:1, color:'#22B573' }
+];
+
+let selectedAge = null;
+
+document.getElementById('enterBtn').addEventListener('click', () => {
+  const code = document.getElementById('codeInput').value.trim();
+  if(!code) return;
+  currentFamilyCode = code;
+  document.getElementById('famLabel').textContent = 'משפחת ' + code;
+  document.getElementById('codeScreen').classList.add('hidden');
+  document.getElementById('gridScreen').classList.remove('hidden');
+  renderGrid();
+});
+
+function renderGrid(){
+  const grid = document.getElementById('profileGrid');
+  grid.innerHTML = '';
+  profiles.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'profile-card';
+    card.innerHTML =
+      '<div class="p-avatar" style="background:' + p.color + '">' + p.name[0] + '</div>' +
+      '<div class="p-name">' + p.name + '</div>' +
+      '<div class="p-meta">גיל ' + p.age + '</div>' +
+      '<div class="p-mode-tag ' + p.mode + '">' + (p.mode === 'kid' ? 'מצב ילדים' : 'מצב מבוגרים') + '</div>';
+    card.addEventListener('click', () => launchProfile(p));
+    grid.appendChild(card);
+  });
+  const addCard = document.createElement('div');
+  addCard.className = 'add-card';
+  addCard.innerHTML = '<div class="plus">+</div><div class="add-label">הוסף/י פרופיל</div>';
+  addCard.addEventListener('click', openSheet);
+  grid.appendChild(addCard);
+}
+
+let currentFamilyCode = '';
+
+function launchProfile(p){
+  document.getElementById('gridScreen').classList.add('hidden');
+  document.getElementById('launchScreen').classList.remove('hidden');
+  document.getElementById('launchAvatar').style.background = p.color;
+  document.getElementById('launchAvatar').textContent = p.name[0];
+  document.getElementById('launchName').textContent = p.name;
+  document.getElementById('launchSub').textContent = p.mode === 'kid'
+    ? ('רמה ' + p.level + ' · מצב משחק')
+    : ('רמה ' + p.level + ' · תרגול שליפה פעילה');
+
+  const target = p.mode === 'kid' ? 'vocab-game-prototype.html' : 'adult-flashcards-live.html';
+  const url = target + '?family=' + encodeURIComponent(currentFamilyCode) + '&profile=' + encodeURIComponent(p.id);
+
+  document.getElementById('launchTarget').textContent = 'עובר אל ' + target + ' ...';
+
+  setTimeout(() => { window.location.href = url; }, 900);
+}
+
+document.getElementById('backLink').addEventListener('click', () => {
+  document.getElementById('launchScreen').classList.add('hidden');
+  document.getElementById('gridScreen').classList.remove('hidden');
+});
+
+document.getElementById('parentLink').addEventListener('click', () => {
+  window.location.href = 'admin-dashboard-prototype.html?family=' + encodeURIComponent(currentFamilyCode);
+});
+
+function openSheet(){
+  document.getElementById('sheetOverlay').classList.remove('hidden');
+  document.getElementById('nameInput').value = '';
+  selectedAge = null;
+  document.querySelectorAll('.age-chip').forEach(c => c.classList.remove('selected'));
+  document.getElementById('suggestedModeText').textContent = 'בחר/י גיל כדי לראות המלצה';
+}
+document.getElementById('cancelBtn').addEventListener('click', () => {
+  document.getElementById('sheetOverlay').classList.add('hidden');
+});
+
+document.querySelectorAll('.age-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.age-chip').forEach(c => c.classList.remove('selected'));
+    chip.classList.add('selected');
+    selectedAge = parseInt(chip.dataset.age);
+    updateSuggestedMode();
+  });
+});
+
+function updateSuggestedMode(forceMode){
+  const mode = forceMode || (selectedAge < 13 ? 'kid' : 'adult');
+  const level = selectedAge <= 8 ? 1 : selectedAge <= 11 ? 2 : selectedAge < 13 ? 3 : 1;
+  const modeLabel = mode === 'kid' ? 'מצב ילדים (משחקי)' : 'מצב מבוגרים (פלאשקארד)';
+  const sm = document.getElementById('suggestedMode');
+  sm.dataset.mode = mode;
+  sm.dataset.level = level;
+  document.getElementById('suggestedModeText').innerHTML =
+    'מומלץ: <b>' + modeLabel + '</b>, רמה ' + level + ' &nbsp;·&nbsp; <span class="mode-toggle" id="toggleModeLink">שנה/י ידנית</span>';
+  document.getElementById('toggleModeLink').addEventListener('click', (e) => {
+    e.stopPropagation();
+    updateSuggestedMode(mode === 'kid' ? 'adult' : 'kid');
+  });
+}
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const name = document.getElementById('nameInput').value.trim();
+  const sm = document.getElementById('suggestedMode');
+  if(!name || !selectedAge || !sm.dataset.mode){ return; }
+  const color = COLORS[profiles.length % COLORS.length];
+  profiles.push({
+    id: 'p' + Date.now(),
+    name: name, age: selectedAge,
+    mode: sm.dataset.mode,
+    level: parseInt(sm.dataset.level),
+    color: color
+  });
+  document.getElementById('sheetOverlay').classList.add('hidden');
+  renderGrid();
+});
+</script>
+</body>
+</html>

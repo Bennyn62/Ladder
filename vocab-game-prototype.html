@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>מילים חדשות - חיות</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Assistant:wght@500;700;800&display=swap');
+
+  :root{
+    --sky-top:#7DD3FC;
+    --sky-bottom:#BAE6FD;
+    --sun:#FFC93C;
+    --grass:#3FA34D;
+    --coral:#FF6B5B;
+    --card:#FFFDF7;
+    --ink:#1E3A5F;
+    --ink-soft:#4A6484;
+    --lilac:#8B7FE8;
+  }
+
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 55%, #E0F6E9 100%);
+    font-family:'Assistant', sans-serif;
+    color:var(--ink);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px 14px 40px;
+    overflow-x:hidden;
+  }
+
+  /* floating background clouds */
+  .cloud{position:fixed; opacity:.8; z-index:0; animation:drift 40s linear infinite;}
+  .cloud.c1{top:6%; left:-10%; width:120px; animation-duration:55s;}
+  .cloud.c2{top:16%; right:-15%; width:90px; animation-duration:70s; animation-direction:reverse;}
+  .cloud.c3{top:2%; left:40%; width:70px; animation-duration:48s;}
+  @keyframes drift{ from{transform:translateX(0);} to{transform:translateX(120vw);} }
+
+  .app{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:420px;
+  }
+
+  /* progress dots */
+  .progress{
+    display:flex;
+    justify-content:center;
+    gap:7px;
+    margin-bottom:16px;
+  }
+  .dot{
+    width:12px; height:12px; border-radius:50%;
+    background:rgba(255,255,255,.6);
+    border:2px solid rgba(30,58,95,.15);
+    transition:all .3s;
+  }
+  .dot.done{background:var(--grass); border-color:var(--grass);}
+  .dot.current{background:var(--sun); border-color:var(--sun); transform:scale(1.25);}
+
+  /* score */
+  .scorebar{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:15px;
+    color:var(--ink); margin-bottom:14px;
+  }
+  .star-icon{width:20px; height:20px;}
+
+  /* card */
+  .card{
+    background:var(--card);
+    border-radius:32px;
+    padding:26px 22px 24px;
+    box-shadow:0 16px 0 rgba(30,58,95,.10), 0 20px 40px rgba(30,58,95,.18);
+    text-align:center;
+    position:relative;
+  }
+
+  .mascot{
+    width:86px; height:86px;
+    margin:-58px auto 6px;
+    filter:drop-shadow(0 8px 10px rgba(30,58,95,.25));
+    transition:transform .25s;
+  }
+  .mascot.happy{animation:bounce .6s ease;}
+  .mascot.sad{animation:shake .5s ease;}
+  @keyframes bounce{ 0%,100%{transform:translateY(0) rotate(0);} 30%{transform:translateY(-14px) rotate(-6deg);} 60%{transform:translateY(0) rotate(4deg);} }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);} }
+
+  .icon-frame{
+    width:150px; height:150px;
+    margin:6px auto 10px;
+    background:linear-gradient(160deg, #FFF6DD, #FFEAAF);
+    border-radius:28px;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:inset 0 0 0 4px rgba(255,201,60,.35);
+  }
+  .icon-frame svg{width:104px; height:104px;}
+
+  .word-row{
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    margin-bottom:4px;
+  }
+  .en-word{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:800;
+    font-size:34px;
+    letter-spacing:.5px;
+    color:var(--ink);
+    direction:ltr;
+  }
+  .speak-btn{
+    width:42px; height:42px; border-radius:50%;
+    border:none; background:var(--lilac); color:white;
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; flex-shrink:0;
+    box-shadow:0 4px 0 #6B5FC7;
+    transition:transform .1s;
+  }
+  .speak-btn:active{transform:translateY(3px); box-shadow:0 1px 0 #6B5FC7;}
+  .speak-btn svg{width:20px; height:20px;}
+
+  .prompt{
+    font-size:15px; color:var(--ink-soft); font-weight:700; margin:6px 0 18px;
+  }
+
+  .options{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .opt{
+    font-family:'Assistant', sans-serif;
+    font-weight:800;
+    font-size:19px;
+    color:var(--ink);
+    background:#F3F1FF;
+    border:3px solid #E4E0FA;
+    border-radius:18px;
+    padding:16px 8px;
+    cursor:pointer;
+    box-shadow:0 5px 0 #DCD7F5;
+    transition:transform .08s, box-shadow .08s;
+  }
+  .opt:active{transform:translateY(4px); box-shadow:0 1px 0 #DCD7F5;}
+  .opt.correct{
+    background:#E3F6E7; border-color:var(--grass); color:#1E6B34;
+    box-shadow:0 5px 0 #2E8B3F;
+    animation:pop .35s ease;
+  }
+  .opt.wrong{
+    background:#FDE6E3; border-color:var(--coral); color:#B23A2D;
+    box-shadow:0 5px 0 #D9503F;
+    animation:shake .4s ease;
+  }
+  .opt.disabled{pointer-events:none; opacity:.55;}
+  @keyframes pop{ 0%{transform:scale(1);} 50%{transform:scale(1.08);} 100%{transform:scale(1);} }
+
+  .footer-hint{
+    text-align:center; margin-top:16px; font-size:13px; color:var(--ink-soft); font-weight:700;
+  }
+
+  /* end screen */
+  .end-card{
+    background:var(--card);
+    border-radius:32px;
+    padding:40px 26px 32px;
+    text-align:center;
+    box-shadow:0 16px 0 rgba(30,58,95,.10), 0 20px 40px rgba(30,58,95,.18);
+  }
+  .end-mascot{width:120px; margin-bottom:6px; animation:bounce 1s ease infinite;}
+  .end-title{font-family:'Baloo 2'; font-weight:800; font-size:26px; margin:8px 0 4px;}
+  .end-sub{color:var(--ink-soft); font-weight:700; margin-bottom:22px;}
+  .big-stars{display:flex; justify-content:center; gap:10px; margin-bottom:26px;}
+  .big-stars svg{width:40px; height:40px;}
+  .again-btn{
+    font-family:'Baloo 2'; font-weight:700; font-size:18px;
+    background:var(--sun); border:none; color:#5C3D00;
+    padding:14px 34px; border-radius:20px;
+    box-shadow:0 6px 0 #D9A422; cursor:pointer;
+  }
+  .again-btn:active{transform:translateY(4px); box-shadow:0 2px 0 #D9A422;}
+
+  .hidden{display:none;}
+</style>
+</head>
+<body>
+
+<svg class="cloud c1" viewBox="0 0 100 60"><ellipse cx="30" cy="35" rx="28" ry="18" fill="#fff"/><ellipse cx="55" cy="28" rx="22" ry="16" fill="#fff"/><ellipse cx="70" cy="38" rx="20" ry="14" fill="#fff"/></svg>
+<svg class="cloud c2" viewBox="0 0 100 60"><ellipse cx="30" cy="35" rx="28" ry="18" fill="#fff"/><ellipse cx="55" cy="28" rx="22" ry="16" fill="#fff"/><ellipse cx="70" cy="38" rx="20" ry="14" fill="#fff"/></svg>
+<svg class="cloud c3" viewBox="0 0 100 60"><ellipse cx="30" cy="35" rx="28" ry="18" fill="#fff"/><ellipse cx="55" cy="28" rx="22" ry="16" fill="#fff"/></svg>
+
+<div class="app">
+
+  <div id="game">
+    <div class="progress" id="progress"></div>
+    <div class="scorebar">
+      <svg class="star-icon" viewBox="0 0 24 24" fill="#FFC93C" stroke="#B8860B" stroke-width="1"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z"/></svg>
+      <span id="scoreText">0 / 8</span>
+    </div>
+
+    <div class="card">
+      <svg class="mascot" id="mascot" viewBox="0 0 100 100">
+        <ellipse cx="50" cy="58" rx="34" ry="30" fill="#FF9F5A"/>
+        <path d="M20 40 L32 15 L42 38 Z" fill="#FF9F5A"/>
+        <path d="M80 40 L68 15 L58 38 Z" fill="#FF9F5A"/>
+        <path d="M24 38 L32 22 L38 37 Z" fill="#FFD9B3"/>
+        <path d="M76 38 L68 22 L62 37 Z" fill="#FFD9B3"/>
+        <ellipse cx="50" cy="66" rx="16" ry="13" fill="#FFF6EA"/>
+        <circle class="eye" cx="38" cy="52" r="5" fill="#1E3A5F"/>
+        <circle class="eye" cx="62" cy="52" r="5" fill="#1E3A5F"/>
+        <path id="mouth" d="M42 68 Q50 74 58 68" stroke="#1E3A5F" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <ellipse cx="50" cy="60" rx="4" ry="3" fill="#1E3A5F"/>
+      </svg>
+
+      <div class="icon-frame" id="iconFrame"></div>
+
+      <div class="word-row">
+        <button class="speak-btn" id="speakBtn" aria-label="השמע מילה">
+          <svg viewBox="0 0 24 24" fill="white"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
+        </button>
+        <div class="en-word" id="enWord">cat</div>
+      </div>
+
+      <div class="prompt">מה זה בעברית?</div>
+
+      <div class="options" id="options"></div>
+    </div>
+
+    <div class="footer-hint">בחר/י את התשובה הנכונה 🐾</div>
+  </div>
+
+  <div id="end" class="hidden">
+    <div class="end-card">
+      <svg class="end-mascot" viewBox="0 0 100 100">
+        <ellipse cx="50" cy="58" rx="34" ry="30" fill="#FF9F5A"/>
+        <path d="M20 40 L32 15 L42 38 Z" fill="#FF9F5A"/>
+        <path d="M80 40 L68 15 L58 38 Z" fill="#FF9F5A"/>
+        <path d="M24 38 L32 22 L38 37 Z" fill="#FFD9B3"/>
+        <path d="M76 38 L68 22 L62 37 Z" fill="#FFD9B3"/>
+        <ellipse cx="50" cy="66" rx="16" ry="13" fill="#FFF6EA"/>
+        <circle cx="38" cy="51" r="5" fill="#1E3A5F"/>
+        <circle cx="62" cy="51" r="5" fill="#1E3A5F"/>
+        <path d="M40 66 Q50 78 60 66" stroke="#1E3A5F" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <ellipse cx="50" cy="60" rx="4" ry="3" fill="#1E3A5F"/>
+      </svg>
+      <div class="end-title">כל הכבוד!</div>
+      <div class="end-sub" id="endSub">סיימת את כל המילים</div>
+      <div class="big-stars" id="bigStars"></div>
+      <button class="again-btn" id="againBtn">שחק שוב</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WORDS = [
+  {en:"cat", he:"חתול", icon:`<circle cx="52" cy="60" r="34" fill="#F2A65A"/><path d="M28 38 L36 14 L46 36 Z" fill="#F2A65A"/><path d="M76 38 L68 14 L58 36 Z" fill="#F2A65A"/><circle cx="42" cy="55" r="4.5" fill="#1E3A5F"/><circle cx="62" cy="55" r="4.5" fill="#1E3A5F"/><path d="M46 68 Q52 72 58 68" stroke="#1E3A5F" stroke-width="2.5" fill="none" stroke-linecap="round"/><line x1="20" y1="62" x2="38" y2="60" stroke="#1E3A5F" stroke-width="2"/><line x1="20" y1="70" x2="38" y2="66" stroke="#1E3A5F" stroke-width="2"/><line x1="84" y1="62" x2="66" y2="60" stroke="#1E3A5F" stroke-width="2"/><line x1="84" y1="70" x2="66" y2="66" stroke="#1E3A5F" stroke-width="2"/>`},
+  {en:"dog", he:"כלב", icon:`<ellipse cx="52" cy="62" rx="34" ry="30" fill="#C98A4B"/><ellipse cx="26" cy="46" rx="12" ry="20" fill="#A8672E" transform="rotate(-20 26 46)"/><ellipse cx="78" cy="46" rx="12" ry="20" fill="#A8672E" transform="rotate(20 78 46)"/><circle cx="42" cy="58" r="4.5" fill="#1E3A5F"/><circle cx="62" cy="58" r="4.5" fill="#1E3A5F"/><ellipse cx="52" cy="70" rx="7" ry="5" fill="#1E3A5F"/><path d="M52 75 Q52 82 60 82" stroke="#1E3A5F" stroke-width="2.5" fill="none" stroke-linecap="round"/>`},
+  {en:"lion", he:"אריה", icon:`<circle cx="52" cy="58" r="26" fill="#E8A33D"/><circle cx="52" cy="58" r="38" fill="none" stroke="#C97A1E" stroke-width="12" stroke-dasharray="6 5"/><circle cx="44" cy="54" r="4" fill="#1E3A5F"/><circle cx="60" cy="54" r="4" fill="#1E3A5F"/><ellipse cx="52" cy="64" rx="6" ry="4" fill="#8C4A1E"/><path d="M46 70 Q52 75 58 70" stroke="#1E3A5F" stroke-width="2.5" fill="none" stroke-linecap="round"/>`},
+  {en:"elephant", he:"פיל", icon:`<ellipse cx="50" cy="55" rx="32" ry="26" fill="#9FB3C8"/><ellipse cx="22" cy="50" rx="14" ry="18" fill="#8CA1B8"/><ellipse cx="78" cy="50" rx="14" ry="18" fill="#8CA1B8"/><path d="M50 66 Q46 90 58 92 Q66 92 62 82" stroke="#9FB3C8" stroke-width="10" fill="none" stroke-linecap="round"/><circle cx="40" cy="50" r="3.5" fill="#1E3A5F"/><circle cx="60" cy="50" r="3.5" fill="#1E3A5F"/>`},
+  {en:"bird", he:"ציפור", icon:`<ellipse cx="50" cy="60" rx="26" ry="22" fill="#6FB6E8"/><path d="M50 44 L64 34 L58 50 Z" fill="#6FB6E8"/><circle cx="66" cy="52" r="4" fill="#1E3A5F"/><path d="M84 56 L96 52 L86 62 Z" fill="#F2B33D"/><path d="M28 66 Q18 74 26 80" stroke="#4A96C9" stroke-width="4" fill="none" stroke-linecap="round"/>`},
+  {en:"fish", he:"דג", icon:`<ellipse cx="46" cy="55" rx="30" ry="20" fill="#5AC4C4"/><path d="M76 55 L96 42 L96 68 Z" fill="#3FA0A0"/><circle cx="30" cy="50" r="4" fill="#1E3A5F"/><path d="M20 55 Q10 55 8 46" stroke="#3FA0A0" stroke-width="4" fill="none" stroke-linecap="round"/>`},
+  {en:"rabbit", he:"ארנב", icon:`<ellipse cx="50" cy="66" rx="26" ry="22" fill="#F0EDE6"/><ellipse cx="38" cy="26" rx="8" ry="26" fill="#F0EDE6"/><ellipse cx="62" cy="26" rx="8" ry="26" fill="#F0EDE6"/><ellipse cx="38" cy="26" rx="4" ry="18" fill="#F5B8C4"/><ellipse cx="62" cy="26" rx="4" ry="18" fill="#F5B8C4"/><circle cx="42" cy="62" r="4" fill="#1E3A5F"/><circle cx="58" cy="62" r="4" fill="#1E3A5F"/><circle cx="50" cy="70" r="3" fill="#F5B8C4"/>`},
+  {en:"bear", he:"דוב", icon:`<circle cx="50" cy="60" r="30" fill="#8B5E3C"/><circle cx="24" cy="34" r="10" fill="#8B5E3C"/><circle cx="76" cy="34" r="10" fill="#8B5E3C"/><circle cx="42" cy="56" r="4" fill="#1E3A5F"/><circle cx="58" cy="56" r="4" fill="#1E3A5F"/><ellipse cx="50" cy="68" rx="10" ry="7" fill="#C9A47E"/><ellipse cx="50" cy="66" rx="3.5" ry="3" fill="#1E3A5F"/>`}
+];
+
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+let order = shuffle(WORDS);
+let idx = 0;
+let score = 0;
+let locked = false;
+
+const progressEl = document.getElementById('progress');
+const scoreText = document.getElementById('scoreText');
+const iconFrame = document.getElementById('iconFrame');
+const enWord = document.getElementById('enWord');
+const optionsEl = document.getElementById('options');
+const mascot = document.getElementById('mascot');
+const mouth = document.getElementById('mouth');
+const speakBtn = document.getElementById('speakBtn');
+
+function buildProgress(){
+  progressEl.innerHTML = '';
+  order.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i < idx ? ' done' : i === idx ? ' current' : '');
+    progressEl.appendChild(d);
+  });
+}
+
+function speak(word){
+  if(!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = 'en-US';
+  u.rate = 0.85;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+function setMascot(state){
+  mascot.classList.remove('happy','sad');
+  if(state === 'happy'){
+    mascot.classList.add('happy');
+    mouth.setAttribute('d','M42 66 Q50 78 58 66');
+  } else if(state === 'sad'){
+    mascot.classList.add('sad');
+    mouth.setAttribute('d','M42 72 Q50 64 58 72');
+  } else {
+    mouth.setAttribute('d','M42 68 Q50 74 58 68');
+  }
+}
+
+function loadRound(){
+  if(idx >= order.length){
+    showEnd();
+    return;
+  }
+  locked = false;
+  const item = order[idx];
+  buildProgress();
+  scoreText.textContent = `${score} / ${order.length}`;
+  iconFrame.innerHTML = `<svg viewBox="0 0 100 100">${item.icon}</svg>`;
+  enWord.textContent = item.en;
+  setMascot('idle');
+
+  const wrongPool = shuffle(WORDS.filter(w => w.en !== item.en)).slice(0,3);
+  const opts = shuffle([item, ...wrongPool]);
+
+  optionsEl.innerHTML = '';
+  opts.forEach(o => {
+    const btn = document.createElement('button');
+    btn.className = 'opt';
+    btn.textContent = o.he;
+    btn.addEventListener('click', () => handleAnswer(btn, o.en === item.en));
+    optionsEl.appendChild(btn);
+  });
+
+  setTimeout(() => speak(item.en), 350);
+}
+
+function handleAnswer(btn, isCorrect){
+  if(locked) return;
+  locked = true;
+  const allBtns = optionsEl.querySelectorAll('.opt');
+  allBtns.forEach(b => b.classList.add('disabled'));
+
+  if(isCorrect){
+    btn.classList.add('correct');
+    score++;
+    setMascot('happy');
+  } else {
+    btn.classList.add('wrong');
+    setMascot('sad');
+    const correctText = order[idx].he;
+    allBtns.forEach(b => { if(b.textContent === correctText) b.classList.add('correct'); });
+  }
+
+  setTimeout(() => {
+    idx++;
+    loadRound();
+  }, 1100);
+}
+
+speakBtn.addEventListener('click', () => speak(order[idx].en));
+
+function showEnd(){
+  document.getElementById('game').classList.add('hidden');
+  const endEl = document.getElementById('end');
+  endEl.classList.remove('hidden');
+  document.getElementById('endSub').textContent = `${score} מתוך ${order.length} תשובות נכונות`;
+  const starsEl = document.getElementById('bigStars');
+  starsEl.innerHTML = '';
+  const starCount = score >= order.length ? 3 : score >= order.length*0.6 ? 2 : 1;
+  for(let i=0;i<3;i++){
+    const filled = i < starCount;
+    starsEl.innerHTML += `<svg viewBox="0 0 24 24" fill="${filled ? '#FFC93C':'#E4E0D8'}" stroke="${filled ? '#B8860B':'#C9C3B6'}" stroke-width="1"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.7 7-6.3-3.8-6.3 3.8 1.7-7L2 9.2l7.1-.6z"/></svg>`;
+  }
+}
+
+document.getElementById('againBtn').addEventListener('click', () => {
+  order = shuffle(WORDS);
+  idx = 0; score = 0;
+  document.getElementById('end').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  loadRound();
+});
+
+loadRound();
+</script>
+</body>
+</html>

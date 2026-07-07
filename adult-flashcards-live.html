@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>אוצר מילים - 1000 המילים הנפוצות</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@500;600;700;800&family=Heebo:wght@400;500;600;700&display=swap');
+
+  :root{
+    --bg:#F5F7FB;
+    --card:#FFFFFF;
+    --ink:#1B2430;
+    --ink-soft:#6B7688;
+    --ink-faint:#9AA3B2;
+    --line:#E7EAF1;
+    --primary:#4F6BFF;
+    --primary-soft:#EEF1FF;
+    --amber-soft:#FFF7E0;
+    --again:#E5484D;   --again-soft:#FDEAEB;
+    --hard:#FF9F1C;    --hard-soft:#FFF3E0;
+    --good:#4F6BFF;    --good-soft:#EEF1FF;
+    --easy:#22B573;    --easy-soft:#E4F7EE;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); font-family:'Heebo', sans-serif; color:var(--ink);
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:18px;
+  }
+  .rubik{font-family:'Rubik', sans-serif;}
+  .app{width:100%; max-width:420px;}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;}
+  .level-tag{font-size:12px; font-weight:700; color:var(--primary); background:var(--primary-soft); padding:4px 10px; border-radius:8px;}
+  .session-count{font-size:13px; color:var(--ink-soft); font-weight:600;}
+
+  .progress-track{height:6px; background:var(--line); border-radius:4px; overflow:hidden; margin-bottom:22px;}
+  .progress-fill{height:100%; background:var(--primary); border-radius:4px; transition:width .3s;}
+
+  .card-zone{perspective:1200px; height:380px; margin-bottom:18px;}
+  .card{
+    position:relative; width:100%; height:100%;
+    transform-style:preserve-3d; transition:transform .45s cubic-bezier(.4,.2,.2,1);
+    cursor:pointer;
+  }
+  .card.flipped{transform:rotateY(180deg);}
+  .face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    background:var(--card); border:1px solid var(--line); border-radius:22px;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    padding:20px 22px; text-align:center; overflow:hidden;
+    box-shadow:0 2px 10px rgba(27,36,48,.05);
+  }
+  .face.back{transform:rotateY(180deg);}
+
+  .icon-frame{
+    width:56px; height:56px; border-radius:16px; background:var(--primary-soft);
+    display:flex; align-items:center; justify-content:center; margin:4px auto 10px; flex-shrink:0;
+  }
+  .icon-frame svg{width:30px; height:30px; stroke:var(--primary);}
+
+  .pos-tag{
+    font-size:11px; font-weight:700; color:var(--ink-faint); text-transform:uppercase;
+    letter-spacing:.5px; margin-bottom:6px;
+  }
+  .en-word{font-family:'Rubik'; font-weight:800; font-size:32px; direction:ltr; margin-bottom:4px;}
+  .speak-mini{
+    width:32px; height:32px; border-radius:50%; border:none; background:var(--primary-soft); color:var(--primary);
+    display:flex; align-items:center; justify-content:center; cursor:pointer; margin-bottom:12px;
+  }
+  .speak-mini svg{width:15px; height:15px;}
+  .example-en{font-size:13.5px; color:var(--ink-soft); direction:ltr; line-height:1.5; max-width:280px;}
+  .tap-hint{position:absolute; bottom:14px; font-size:11.5px; color:var(--ink-faint); font-weight:600;}
+
+  .he-word{font-family:'Rubik'; font-weight:800; font-size:26px; margin-bottom:6px;}
+  .example-he{font-size:13px; color:var(--ink-soft); line-height:1.5; max-width:280px;}
+  .divider{width:28px; height:2px; background:var(--line); margin:8px 0;}
+
+  .direction-tag{font-size:11px; font-weight:700; color:var(--ink-faint); margin-bottom:10px;}
+  .recall-row{display:flex; gap:8px; width:100%; max-width:280px; margin-bottom:8px;}
+  .recall-input{
+    flex:1; border:2px solid var(--line); border-radius:12px; padding:10px 12px;
+    font-family:'Heebo'; font-size:15px; color:var(--ink); outline:none; min-width:0;
+  }
+  .recall-input:focus{border-color:var(--primary);}
+  .recall-input.en{direction:ltr; text-align:left; font-family:'Rubik';}
+  .check-btn{
+    background:var(--primary); color:#fff; border:none; border-radius:12px; padding:0 16px;
+    font-family:'Rubik'; font-weight:700; font-size:13px; cursor:pointer; flex-shrink:0;
+  }
+  .feedback{font-size:13px; font-weight:700; margin-bottom:6px; min-height:18px;}
+  .feedback.correct{color:var(--easy);}
+  .feedback.wrong{color:var(--again);}
+  .skip-hint{font-size:11.5px; color:var(--ink-faint); font-weight:600; margin-top:2px; cursor:pointer; text-decoration:underline;}
+
+  .assoc-box{
+    margin-top:10px; background:var(--amber-soft); border-radius:12px; padding:9px 12px;
+    font-size:12px; line-height:1.5; color:#7A5A00; text-align:right; max-width:290px;
+  }
+  .assoc-label{font-weight:700; font-size:11px; margin-bottom:2px; display:block;}
+
+  .ratings{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .rate-btn{
+    border:none; border-radius:14px; padding:12px 4px; cursor:pointer;
+    font-family:'Heebo'; font-weight:700; font-size:13px; text-align:center;
+    display:flex; flex-direction:column; gap:3px; align-items:center;
+  }
+  .rate-btn .interval{font-size:10.5px; font-weight:600; opacity:.75;}
+  .rate-btn.again{background:var(--again-soft); color:var(--again);}
+  .rate-btn.hard{background:var(--hard-soft); color:var(--hard);}
+  .rate-btn.good{background:var(--good-soft); color:var(--good);}
+  .rate-btn.easy{background:var(--easy-soft); color:var(--easy);}
+  .ratings.hidden{visibility:hidden; pointer-events:none;}
+
+  .flip-hint{text-align:center; font-size:13px; color:var(--ink-faint); font-weight:600; margin-bottom:14px;}
+  .flip-hint.hide{visibility:hidden;}
+
+  .done-card{background:var(--card); border:1px solid var(--line); border-radius:22px; padding:44px 26px; text-align:center;}
+  .done-emoji{font-size:40px; margin-bottom:10px;}
+  .done-title{font-family:'Rubik'; font-weight:800; font-size:21px; margin-bottom:6px;}
+  .done-sub{color:var(--ink-soft); font-size:14px; margin-bottom:22px;}
+  .done-stats{display:flex; justify-content:center; gap:22px; margin-bottom:26px;}
+  .done-stat-num{font-family:'Rubik'; font-weight:800; font-size:22px;}
+  .done-stat-label{font-size:11.5px; color:var(--ink-soft); font-weight:600;}
+  .restart-btn{
+    font-family:'Rubik'; font-weight:700; font-size:15px; color:#fff; background:var(--primary);
+    border:none; padding:13px 30px; border-radius:14px; cursor:pointer;
+  }
+  .level-panel{
+    display:flex; align-items:center; gap:12px; text-align:right;
+    background:var(--bg); border-radius:16px; padding:12px 14px; margin:22px 0 18px;
+  }
+  .level-ring-wrap{position:relative; width:52px; height:52px; flex-shrink:0;}
+  .level-ring-wrap svg{transform:rotate(-90deg);}
+  .level-ring-pct{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Rubik'; font-weight:800; font-size:12px;}
+  .level-panel-text{flex:1;}
+  .level-panel-title{font-weight:700; font-size:13.5px; margin-bottom:2px;}
+  .level-panel-sub{font-size:11.5px; color:var(--ink-soft); line-height:1.4;}
+  .levelup-btn{
+    font-family:'Rubik'; font-weight:700; font-size:15px; color:#fff; background:var(--easy);
+    border:none; padding:13px 30px; border-radius:14px; cursor:pointer; width:100%; margin-top:10px;
+  }
+  .restart-btn{width:100%;}
+
+  .hidden{display:none !important;}
+
+  .conn-banner{
+    font-size:11.5px; font-weight:700; text-align:center; padding:6px; border-radius:8px; margin-bottom:10px;
+  }
+  .conn-banner.offline{background:#FFF3E0; color:#B8720C;}
+  .conn-banner.online{background:var(--easy-soft); color:var(--easy);}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="conn-banner offline" id="connBanner">מצב הדגמה - לא מחובר ל-Firebase (התקדמות לא נשמרת)</div>
+
+
+  <div id="studyScreen">
+    <div class="topbar">
+      <span class="level-tag rubik" id="levelTag">רמה 1 · 200 המילים הנפוצות ביותר</span>
+      <span class="session-count" id="sessionCount">1 / 40</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="card-zone">
+      <div class="card" id="card">
+        <div class="face front">
+          <div class="direction-tag" id="directionTag"></div>
+          <div class="icon-frame" id="iconFrame"></div>
+          <div class="pos-tag" id="posTag"></div>
+          <div class="en-word" id="promptWord"></div>
+          <button class="speak-mini hidden" id="speakBtn" aria-label="השמע">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 9v6h4l5 5V4L7 9H3z"/><path d="M16.5 12a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4z"/></svg>
+          </button>
+          <div class="feedback" id="feedback"></div>
+          <div class="recall-row" id="recallRow">
+            <input type="text" class="recall-input" id="recallInput" autocomplete="off" placeholder="הקלד/י את התשובה...">
+            <button class="check-btn" id="checkBtn">בדוק</button>
+          </div>
+          <div class="skip-hint" id="skipHint">לא זוכר/ת - הצג/י תשובה</div>
+        </div>
+        <div class="face back">
+          <div class="icon-frame" id="iconFrameBack"></div>
+          <div class="pos-tag" id="posTagBack"></div>
+          <div class="he-word" id="heWord"></div>
+          <div class="divider"></div>
+          <div class="example-he" id="exampleHe"></div>
+          <div class="assoc-box" id="assocBox">
+            <span class="assoc-label">💡 אסוציאציה לזכירה</span>
+            <span id="assocText"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flip-hint" id="flipHint">הקש/י על הכרטיס כדי להפוך</div>
+
+    <div class="ratings hidden" id="ratings">
+      <button class="rate-btn again" data-rate="again">שוב<span class="interval">&lt;10 דק׳</span></button>
+      <button class="rate-btn hard" data-rate="hard">קשה<span class="interval">1 יום</span></button>
+      <button class="rate-btn good" data-rate="good">טוב<span class="interval">3 ימים</span></button>
+      <button class="rate-btn easy" data-rate="easy">קל<span class="interval">7 ימים</span></button>
+    </div>
+  </div>
+
+  <div id="doneScreen" class="hidden">
+    <div class="done-card">
+      <div class="done-emoji" id="doneEmoji">🎉</div>
+      <div class="done-title rubik" id="doneTitle">סיימת את הסבב!</div>
+      <div class="done-sub" id="doneSub">40 מילים תורגלו היום</div>
+      <div class="done-stats">
+        <div><div class="done-stat-num" style="color:var(--easy)" id="statEasy">0</div><div class="done-stat-label">קל</div></div>
+        <div><div class="done-stat-num" style="color:var(--good)" id="statGood">0</div><div class="done-stat-label">טוב</div></div>
+        <div><div class="done-stat-num" style="color:var(--hard)" id="statHard">0</div><div class="done-stat-label">קשה</div></div>
+        <div><div class="done-stat-num" style="color:var(--again)" id="statAgain">0</div><div class="done-stat-label">שוב</div></div>
+      </div>
+
+      <div class="level-panel" id="levelPanel">
+        <div class="level-ring-wrap" id="levelRingWrap"></div>
+        <div class="level-panel-text">
+          <div class="level-panel-title" id="levelPanelTitle"></div>
+          <div class="level-panel-sub" id="levelPanelSub"></div>
+        </div>
+      </div>
+
+      <button class="restart-btn rubik" id="restartBtn">התחל/י סבב חדש</button>
+      <button class="levelup-btn rubik hidden" id="levelUpBtn">המשך לרמה 2 →</button>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { ALL_WORDS, iconSvg } from './vocab-data.js';
+import { updateWordProgress, logSession } from './vocab-firebase.js';
+import './firebase-init.js';
+
+const params = new URLSearchParams(location.search);
+const familyCode = params.get('family') || 'DEMO';
+const profileId = params.get('profile') || 'demo-user';
+const sessionStartTime = Date.now();
+let firebaseOnline = false;
+
+const WORDS = ALL_WORDS; // level-1 deck (123 words), each pre-tagged with a stable .id
+
+const LEVEL2_WORDS = [
+  {en:"achieve", pos:"verb", he:"להשיג", icon:"target", exEn:"She worked hard to achieve her goal.", exHe:"היא עבדה קשה כדי להשיג את המטרה שלה.", assoc:"מכיל \"chief\" (ראש/מנהיג) - להשיג (achieve) הישג בראש הפירמידה."},
+  {en:"approach", pos:"noun / verb", he:"גישה / להתקרב", icon:"arrowup", exEn:"We need a new approach to this problem.", exHe:"אנחנו צריכים גישה חדשה לבעיה הזו.", assoc:"מכיל \"coach\" (מאמן) - גישה (approach) טובה מגיעה עם אימון."},
+  {en:"aspect", pos:"noun", he:"היבט", icon:"grid", exEn:"Consider every aspect of the plan.", exHe:"שקול/י כל היבט של התוכנית.", assoc:"מכיל \"spec\" (מפרט) - היבט (aspect) הוא זווית ספציפית של דבר."},
+  {en:"concept", pos:"noun", he:"מושג / רעיון", icon:"bulb", exEn:"It's a difficult concept to explain.", exHe:"זה מושג קשה להסביר.", assoc:"מכיל \"con\" + \"cept\" (לתפוס) - מושג (concept) הוא רעיון שתפסת."},
+  {en:"factor", pos:"noun", he:"גורם", icon:"system", exEn:"Price is an important factor here.", exHe:"המחיר הוא גורם חשוב כאן.", assoc:"מכיל \"act\" (לפעול) - גורם (factor) שפועל על התוצאה."},
+  {en:"individual", pos:"noun / adj", he:"יחיד / אינדיבידואלי", icon:"person", exEn:"Each individual has different needs.", exHe:"לכל יחיד יש צרכים שונים.", assoc:"מכיל \"divide\" (לחלק) - individual = לא ניתן לחלוקה (in-divid-ual), יחיד."},
+  {en:"particular", pos:"adj", he:"מסוים / ספציפי", icon:"grid", exEn:"I'm looking for a particular book.", exHe:"אני מחפש ספר מסוים.", assoc:"מכיל \"part\" (חלק) - מסוים (particular) = חלק ספציפי מתוך הכלל."},
+  {en:"potential", pos:"noun / adj", he:"פוטנציאל", icon:"trending", exEn:"This student has great potential.", exHe:"לתלמיד הזה יש פוטנציאל גדול.", assoc:"מילה כמעט זהה - \"פוטנציאל\" = potential, כבר מוכר בעברית."},
+  {en:"significant", pos:"adj", he:"משמעותי", icon:"star", exEn:"There was a significant change this year.", exHe:"היה שינוי משמעותי השנה.", assoc:"מכיל \"sign\" (סימן) - דבר משמעותי (significant) משאיר סימן."},
+  {en:"various", pos:"adj", he:"שונים / מגוונים", icon:"overlap", exEn:"We tried various methods.", exHe:"ניסינו שיטות שונות.", assoc:"מכיל \"vary\" (להשתנות) - מגוון (various) = דברים שמשתנים ביניהם."}
+];
+LEVEL2_WORDS.forEach(w => { w.id = 'l2_' + w.en.toLowerCase().replace(/[^a-z]/g, ''); });
+
+function shuffle(a){ const arr=[...a]; for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+let currentLevel = 1;
+let deck = shuffle(WORDS);
+let idx = 0;
+let flipped = false;
+let direction = 'en2he';
+let answered = false;
+const stats = {again:0, hard:0, good:0, easy:0};
+
+const cardEl = document.getElementById('card');
+const sessionCount = document.getElementById('sessionCount');
+const progressFill = document.getElementById('progressFill');
+const ratingsEl = document.getElementById('ratings');
+const flipHint = document.getElementById('flipHint');
+const recallRow = document.getElementById('recallRow');
+const recallInput = document.getElementById('recallInput');
+const feedbackEl = document.getElementById('feedback');
+const skipHint = document.getElementById('skipHint');
+const speakBtn = document.getElementById('speakBtn');
+const directionTag = document.getElementById('directionTag');
+
+function normalize(s){
+  return s.trim().toLowerCase().replace(/[.,!?׳"']/g,'').replace(/\s+/g,' ');
+}
+
+function loadCard(){
+  if(idx >= deck.length){ showDone(); return; }
+  flipped = false; answered = false;
+  cardEl.classList.remove('flipped');
+  ratingsEl.classList.add('hidden');
+  flipHint.classList.add('hide');
+  recallRow.classList.remove('hidden');
+  skipHint.classList.remove('hidden');
+  feedbackEl.textContent = '';
+  feedbackEl.className = 'feedback';
+  recallInput.value = '';
+  recallInput.disabled = false;
+
+  direction = Math.random() < 0.5 ? 'en2he' : 'he2en';
+  const w = deck[idx];
+
+  document.getElementById('iconFrame').innerHTML = iconSvg(w.icon);
+  document.getElementById('iconFrameBack').innerHTML = iconSvg(w.icon);
+  document.getElementById('posTag').textContent = w.pos;
+  document.getElementById('posTagBack').textContent = w.pos;
+  document.getElementById('exampleEn').textContent = w.exEn;
+  document.getElementById('heWord').textContent = w.he;
+  document.getElementById('exampleHe').textContent = w.exHe;
+  document.getElementById('assocText').textContent = w.assoc;
+
+  const promptWord = document.getElementById('promptWord');
+  if(direction === 'en2he'){
+    directionTag.textContent = 'אנגלית → עברית';
+    promptWord.textContent = w.en;
+    promptWord.style.direction = 'ltr';
+    promptWord.style.fontFamily = "'Rubik', sans-serif";
+    recallInput.className = 'recall-input';
+    recallInput.placeholder = 'מה התרגום בעברית?';
+    speakBtn.classList.remove('hidden');
+  } else {
+    directionTag.textContent = 'עברית → אנגלית';
+    promptWord.textContent = w.he;
+    promptWord.style.direction = 'rtl';
+    promptWord.style.fontFamily = "'Heebo', sans-serif";
+    recallInput.className = 'recall-input en';
+    recallInput.placeholder = 'What is it in English?';
+    speakBtn.classList.add('hidden');
+  }
+
+  sessionCount.textContent = (idx+1) + ' / ' + deck.length;
+  progressFill.style.width = ((idx/deck.length)*100) + '%';
+  setTimeout(() => recallInput.focus(), 400);
+}
+
+function speak(word){
+  if(!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(word);
+  u.lang = 'en-US'; u.rate = 0.9;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+function revealCard(){
+  if(answered) return;
+  answered = true;
+  flipped = true;
+  cardEl.classList.add('flipped');
+  ratingsEl.classList.remove('hidden');
+  recallInput.disabled = true;
+}
+
+function checkAnswer(){
+  if(answered) return;
+  const w = deck[idx];
+  const target = direction === 'en2he' ? w.he : w.en;
+  const userVal = normalize(recallInput.value);
+  const correctVariants = target.split('/').map(t => normalize(t));
+  const isCorrect = userVal.length > 0 && correctVariants.some(v => v === userVal || (v.includes(userVal) && userVal.length > 2));
+
+  feedbackEl.textContent = isCorrect ? '✓ נכון!' : '✗ לא בדיוק - הנה התשובה';
+  feedbackEl.className = 'feedback ' + (isCorrect ? 'correct' : 'wrong');
+  setTimeout(revealCard, 500);
+}
+
+document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+recallInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') checkAnswer(); });
+skipHint.addEventListener('click', () => { feedbackEl.textContent=''; feedbackEl.className='feedback'; revealCard(); });
+
+speakBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  speak(deck[idx].en);
+});
+
+ratingsEl.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.rate-btn');
+  if(!btn) return;
+  const rating = btn.dataset.rate;
+  stats[rating]++;
+  const wordId = deck[idx].id;
+
+  try {
+    await updateWordProgress(familyCode, profileId, wordId, rating);
+    if(!firebaseOnline){
+      firebaseOnline = true;
+      const banner = document.getElementById('connBanner');
+      banner.textContent = 'מחובר ל-Firebase - ההתקדמות נשמרת';
+      banner.classList.remove('offline');
+      banner.classList.add('online');
+    }
+  } catch(err) {
+    // No real config yet (or offline) - demo continues locally, banner stays "offline".
+    console.warn('Progress not saved (Firebase not configured yet):', err.message);
+  }
+
+  idx++;
+  loadCard();
+});
+
+function ringSvg(pct, color, size, stroke){
+  const r = (size - stroke)/2;
+  const c = 2 * Math.PI * r;
+  const off = c * (1 - pct/100);
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '">' +
+    '<circle cx="' + size/2 + '" cy="' + size/2 + '" r="' + r + '" fill="none" stroke="#E7EAF1" stroke-width="' + stroke + '"/>' +
+    '<circle cx="' + size/2 + '" cy="' + size/2 + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="' + stroke + '" stroke-dasharray="' + c + '" stroke-dashoffset="' + off + '" stroke-linecap="round"/>' +
+    '</svg>';
+}
+
+function showDone(){
+  document.getElementById('studyScreen').classList.add('hidden');
+  document.getElementById('doneScreen').classList.remove('hidden');
+
+  logSession(familyCode, profileId, {
+    category: 'level-' + currentLevel,
+    correctCount: stats.good + stats.easy,
+    wrongCount: stats.hard + stats.again,
+    wordsShown: deck.map(w => w.id),
+    durationSeconds: Math.round((Date.now() - sessionStartTime) / 1000)
+  }).catch(err => console.warn('Session not logged (Firebase not configured yet):', err.message));
+  document.getElementById('statEasy').textContent = stats.easy;
+  document.getElementById('statGood').textContent = stats.good;
+  document.getElementById('statHard').textContent = stats.hard;
+  document.getElementById('statAgain').textContent = stats.again;
+
+  const totalAnswered = stats.easy + stats.good + stats.hard + stats.again;
+  const masteryPct = totalAnswered ? Math.round(((stats.easy + stats.good) / totalAnswered) * 100) : 0;
+  const ringColor = masteryPct >= 80 ? 'var(--easy)'.replace('var(--easy)', '#22B573') : '#4F6BFF';
+
+  document.getElementById('levelRingWrap').innerHTML = ringSvg(masteryPct, ringColor, 52, 6) +
+    '<div class="level-ring-pct">' + masteryPct + '%</div>';
+
+  const levelUpBtn = document.getElementById('levelUpBtn');
+  const restartBtn = document.getElementById('restartBtn');
+
+  if(currentLevel === 1 && masteryPct >= 80){
+    document.getElementById('doneEmoji').textContent = '🌟';
+    document.getElementById('doneTitle').textContent = 'רמה 1 בשליטה מלאה!';
+    document.getElementById('doneSub').textContent = totalAnswered + ' מילים תורגלו בסבב הזה';
+    document.getElementById('levelPanelTitle').textContent = 'מוכן/ה לרמה 2';
+    document.getElementById('levelPanelSub').textContent = '80%+ הצלחה בסבב האחרון - הזמן לעבור ל-200 המילים הבאות (מדגם: 10 מילים לדוגמה).';
+    levelUpBtn.classList.remove('hidden');
+    restartBtn.textContent = 'תרגל/י רמה 1 עוד פעם';
+  } else if(currentLevel === 1){
+    document.getElementById('doneEmoji').textContent = '🎉';
+    document.getElementById('doneTitle').textContent = 'סיימת את הסבב!';
+    document.getElementById('doneSub').textContent = totalAnswered + ' מילים תורגלו בסבב הזה';
+    document.getElementById('levelPanelTitle').textContent = 'עוד לא ברמה של מעבר';
+    document.getElementById('levelPanelSub').textContent = 'צריך 80%+ הצלחה בסבב כדי לפתוח את רמה 2. עוד קצת תרגול!';
+    levelUpBtn.classList.add('hidden');
+    restartBtn.textContent = 'תרגל/י שוב';
+  } else {
+    document.getElementById('doneEmoji').textContent = '🏆';
+    document.getElementById('doneTitle').textContent = 'כל הכבוד!';
+    document.getElementById('doneSub').textContent = totalAnswered + ' מילים תורגלו ברמה 2';
+    document.getElementById('levelPanelTitle').textContent = 'רמה 2 - מדגם הדגמה';
+    document.getElementById('levelPanelSub').textContent = 'ב-1000 המילים המלאות, רמה 2 תכלול 200 מילים - כרגע יש 10 לדוגמה.';
+    levelUpBtn.classList.add('hidden');
+    restartBtn.textContent = 'תרגל/י רמה 2 עוד פעם';
+  }
+}
+
+document.getElementById('restartBtn').addEventListener('click', () => {
+  deck = shuffle(currentLevel === 1 ? WORDS : LEVEL2_WORDS);
+  idx = 0;
+  stats.again = stats.hard = stats.good = stats.easy = 0;
+  document.getElementById('doneScreen').classList.add('hidden');
+  document.getElementById('studyScreen').classList.remove('hidden');
+  loadCard();
+});
+
+document.getElementById('levelUpBtn').addEventListener('click', () => {
+  currentLevel = 2;
+  deck = shuffle(LEVEL2_WORDS);
+  idx = 0;
+  stats.again = stats.hard = stats.good = stats.easy = 0;
+  document.getElementById('levelTag').textContent = 'רמה 2 · מדגם 10 מילים (מתוך 200)';
+  document.getElementById('doneScreen').classList.add('hidden');
+  document.getElementById('studyScreen').classList.remove('hidden');
+  loadCard();
+});
+
+loadCard();
+</script>
+</body>
+</html>
