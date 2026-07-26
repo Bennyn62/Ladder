@@ -284,13 +284,13 @@ h2{font-size:19px;font-weight:700;margin:0 0 6px}
 const LEVELS = [
  {id:0,nm:'האותיות',   dsc:'שמות האותיות, צורה גדולה וקטנה',            need:0},
  {id:1,nm:'הצלילים',   dsc:'פונטיקה — לחבר אותיות למילה',                need:75},
- {id:2,nm:'מילים ראשונות',dsc:'250 המילים הכי שימושיות באנגלית',        need:75},
+ {id:2,nm:'מילים ראשונות',dsc:'מילות הליבה + הצלילים שאין בעברית',       need:75},
  {id:3,nm:'משפט ראשון',dsc:'to be, הווה פשוט, סדר המילים',              need:75},
  {id:4,nm:'שאלות ושלילה',dsc:'שאלות, שלילה, הווה ממושך',                need:75},
  {id:5,nm:'עבר ועתיד', dsc:'זמנים בסיסיים ופעלים חריגים',               need:75},
  {id:6,nm:'קישור והרחבה',dsc:'מילות יחס, קישור, השוואה',                need:75},
  {id:7,nm:'זמנים מורכבים',dsc:'Perfect, תנאי, סביל, דיבור עקיף',        need:75},
- {id:8,nm:'שטף ילידי',  dsc:'Phrasal verbs, ניבים, ניואנס ושיחה',       need:75}
+ {id:8,nm:'שטף ילידי',  dsc:'Phrasal verbs, ניבים, דיבור מהיר ושיחה',   need:75}
 ];
 
 const LETTERS = 'A,eɪ,apple,תפוח,æ|B,biː,ball,כדור,b|C,siː,cat,חתול,k|D,diː,dog,כלב,d|E,iː,egg,ביצה,ɛ|F,ɛf,fish,דג,f|G,dʒiː,goat,עז,ɡ|H,eɪtʃ,hat,כובע,h|I,aɪ,ink,דיו,ɪ|J,dʒeɪ,jam,ריבה,dʒ|K,keɪ,key,מפתח,k|L,ɛl,lion,אריה,l|M,ɛm,moon,ירח,m|N,ɛn,nose,אף,n|O,oʊ,orange,תפוז,ɒ|P,piː,pen,עט,p|Q,kjuː,queen,מלכה,kw|R,ɑːr,rain,גשם,r|S,ɛs,sun,שמש,s|T,tiː,tree,עץ,t|U,juː,umbrella,מטריה,ʌ|V,viː,van,טנדר,v|W,ˈdʌbəljuː,water,מים,w|X,ɛks,box,קופסה,ks|Y,waɪ,yellow,צהוב,j|Z,ziː,zebra,זברה,z'
@@ -793,6 +793,99 @@ const TALK = `
 8|Tell me about a time you had to change your mind about something.|ספר על פעם שהיית צריך לשנות את דעתך|I used to think ___, but then ___|I used to think speed mattered most, but then I saw the cost of bugs.
 8|How would you explain your job to a ten-year-old?|איך היית מסביר את עבודתך לילד בן עשר?|Imagine ___. That is basically what I do.|Imagine a plane that flies itself. I make sure it does not get lost.
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],q:p[1],he:p[2],hint:p[3],ans:p[4]}});
+/* ---------------- זוגות מינימליים ---------------- */
+/* רמה | מילה א | מילה ב | ipa א | ipa ב | עברית א | עברית ב | הניגוד | טיפ הגייה */
+const MINPAIRS = `
+2|ship|sheep|ʃɪp|ʃiːp|ספינה|כבשה|ɪ מול iː|ɪ קצרה ורפויה, הלסת כמעט סגורה. iː ארוכה ומתוחה, כמו חיוך. בעברית יש רק צליל אחד — לכן זו הטעות מספר אחת
+2|sit|seat|sɪt|siːt|לשבת|מושב|ɪ מול iː|קצרה מול ארוכה. אם אתם לא מותחים את השפתיים — יצא sit
+2|bad|bed|bæd|bɛd|רע|מיטה|æ מול ɛ|æ פותחת את הפה רחב כלפי מטה. ɛ צרה יותר, כמו סגול בעברית
+2|man|men|mæn|mɛn|איש|אנשים|æ מול ɛ|ההבדל היחיד בין יחיד לרבים כאן הוא התנועה
+2|think|sink|θɪŋk|sɪŋk|לחשוב|כיור|θ מול s|הלשון יוצאת בין השיניים ונושפים. בעברית אין θ ולכן היא הופכת ל־s או ל־t
+2|three|tree|θriː|triː|שלוש|עץ|θ מול t|אל תיגעו בחך. הלשון בין השיניים, אוויר עובר
+2|thin|sin|θɪn|sɪn|דק|חטא|θ מול s|אותה בעיה. אם השיניים לא נראות — זה יצא sin
+2|vest|west|vɛst|wɛst|אפודה|מערב|v מול w|v: שיניים עליונות על השפה התחתונה. w: שתי השפתיים מעוגלות, בלי מגע בשיניים
+2|vine|wine|vaɪn|waɪn|גפן|יין|v מול w|בעברית ו' מתפקדת כ־v בלבד, ולכן w נשמעת אצלנו כ־v
+3|right|light|raɪt|laɪt|נכון|אור|r מול l|r אנגלית: הלשון מתכווצת אחורה ולא נוגעת בכלום. ר' עברית גרונית ונשמעת שגויה לחלוטין
+3|road|load|roʊd|loʊd|כביש|מטען|r מול l|אל תגלגלו ואל תשתמשו בגרון. הקצה של הלשון מרחף
+3|cup|cop|kʌp|kɒp|כוס|שוטר|ʌ מול ɒ|ʌ קצרה וניטרלית. ɒ עגולה ופתוחה יותר
+3|luck|lock|lʌk|lɒk|מזל|מנעול|ʌ מול ɒ|אם השפתיים מתעגלות — יצא lock
+3|ship|chip|ʃɪp|tʃɪp|ספינה|צ'יפס|ʃ מול tʃ|ʃ זורמת ורציפה. tʃ מתחילה בסתימה, כמו צ' בעברית
+3|share|chair|ʃɛr|tʃɛr|לחלוק|כיסא|ʃ מול tʃ|ש' מול צ'. שימו לב לרגע הסתימה בהתחלה
+3|pin|bin|pɪn|bɪn|סיכה|פח|p מול b|p באנגלית נושפת. שימו יד מול הפה — צריך להרגיש אוויר
+3|pear|bear|pɛr|bɛr|אגס|דוב|p מול b|בלי הנשיפה, p נשמעת כמו b
+4|they|day|ðeɪ|deɪ|הם|יום|ð מול d|ð היא θ קולית — הלשון בין השיניים והמיתרים רוטטים
+4|then|den|ðɛn|dɛn|אז|מאורה|ð מול d|אם הלשון נוגעת בחך — יצא den
+4|thing|thin|θɪŋ|θɪn|דבר|דק|ŋ מול n|ŋ נעצרת בגרון האחורי, בלי לגעת בחך. n נוגעת
+4|full|fool|fʊl|fuːl|מלא|טיפש|ʊ מול uː|ʊ קצרה ורפויה. uː ארוכה עם שפתיים מעוגלות חזק
+4|pull|pool|pʊl|puːl|למשוך|בריכה|ʊ מול uː|אותו זוג, אותה מלכודת
+4|bag|back|bæɡ|bæk|תיק|גב|ɡ מול k|באנגלית העיצור הסופי נשמע. בעברית נוטים להחליש אותו
+4|dog|dock|dɒɡ|dɒk|כלב|מזח|ɡ מול k|אל תבלעו את הסוף — ההבדל כולו שם
+4|cab|cap|kæb|kæp|מונית|כובע|b מול p|עיצור סופי קולי מול אטום
+5|work|walk|wɜːrk|wɔːk|לעבוד|ללכת|ɜːr מול ɔː|ב־work יש r. ב־walk ה־l שותקת לגמרי והתנועה עגולה
+5|correct|collect|kəˈrɛkt|kəˈlɛkt|נכון|לאסוף|r מול l|אותה מילה כמעט. ההבדל בעיצור האמצעי בלבד
+5|breathe|breeze|briːð|briːz|לנשום|בריזה|ð מול z|ð בין השיניים, z מאחורי השיניים
+5|price|prize|praɪs|praɪz|מחיר|פרס|s מול z|z מרעידה את המיתרים. שימו יד על הגרון
+5|leave|live|liːv|lɪv|לעזוב|לחיות|iː מול ɪ|שתי מילים שכיחות מאוד עם משמעות הפוכה לגמרי
+6|desert|dessert|ˈdɛzərt|dɪˈzɜːrt|מדבר|קינוח|הטעמה|ההבדל הוא ההברה המוטעמת בלבד — הראשונה מול השנייה
+6|present|present|ˈprɛzənt|prɪˈzɛnt|מתנה|להציג|הטעמה|שם עצם מוטעם בהתחלה, פועל מוטעם בסוף. כלל רחב באנגלית
+6|record|record|ˈrɛkərd|rɪˈkɔːrd|תקליט|להקליט|הטעמה|אותו כלל: שם עצם בהתחלה, פועל בסוף
+`.trim().split('\n').map(l=>{const p=l.split('|');
+  return {lv:+p[0], a:p[1], b:p[2], ipaA:p[3], ipaB:p[4], heA:p[5], heB:p[6], contrast:p[7], tip:p[8]}});
+
+/* ---------------- קיצורים ---------------- */
+/* רמה | הצורה המלאה | הקיצור | עברית */
+const CONTRACT = `
+3|I am late.|I'm late.|אני מאחר
+3|You are right.|You're right.|אתה צודק
+3|He is my brother.|He's my brother.|הוא אחי
+3|She is not here.|She isn't here.|היא לא כאן
+3|It is cold today.|It's cold today.|קר היום
+3|We are ready.|We're ready.|אנחנו מוכנים
+3|They are coming.|They're coming.|הם באים
+4|I do not know.|I don't know.|אני לא יודע
+4|He does not care.|He doesn't care.|לא אכפת לו
+4|That is not true.|That's not true.|זה לא נכון
+4|We are not sure.|We aren't sure.|אנחנו לא בטוחים
+4|You cannot park here.|You can't park here.|אסור לחנות כאן
+5|I did not see it.|I didn't see it.|לא ראיתי את זה
+5|She was not there.|She wasn't there.|היא לא הייתה שם
+5|They were not ready.|They weren't ready.|הם לא היו מוכנים
+5|I will call you later.|I'll call you later.|אני אתקשר אליך אחר כך
+5|It will not work.|It won't work.|זה לא יעבוד
+5|We will not be late.|We won't be late.|לא נאחר
+6|I have finished.|I've finished.|סיימתי
+6|He has already left.|He's already left.|הוא כבר עזב
+6|They have not replied.|They haven't replied.|הם לא ענו
+6|You should not worry.|You shouldn't worry.|אתה לא צריך לדאוג
+6|I would like some water.|I'd like some water.|הייתי רוצה מים
+6|We could not find it.|We couldn't find it.|לא הצלחנו למצוא את זה
+7|There is not enough time.|There isn't enough time.|אין מספיק זמן
+7|I would have told you.|I'd have told you.|הייתי מספר לך
+7|That would not have helped.|That wouldn't have helped.|זה לא היה עוזר
+7|Who is going to pay?|Who's going to pay?|מי הולך לשלם?
+`.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0], full:p[1], short:p[2], he:p[3]}});
+
+/* ---------------- אנגלית מדוברת מהירה ---------------- */
+/* רמה | הצורה המדוברת | הצורה התקנית | עברית | משפט לדוגמה | הערה */
+const SPOKEN = `
+5|gonna|going to|עומד ל / הולך ל|I'm gonna call him.|לא כותבים כך אף פעם — רק בדיבור ובצ'אט לא רשמי
+5|wanna|want to|רוצה ל|I wanna go home.|אותו כלל: דיבור בלבד
+5|gotta|have got to|חייב|I gotta run.|נשמע הרבה בעבודה ובסרטים
+6|kinda|kind of|די / סוג של|It's kinda late.|מרכך אמירה — נפוץ מאוד בדיבור
+6|lemme|let me|תן לי|Lemme check that.|נוצר מהיעלמות ה־t
+6|gimme|give me|תן לי|Gimme a second.|אותה תופעה
+6|dunno|do not know|לא יודע|I dunno what happened.|קיצור של I don't know
+6|'cause|because|כי|I left 'cause it was late.|ה־be נבלעת לגמרי
+6|ya|you|אתה|See ya tomorrow.|נפוץ בפרידה: see ya
+7|whatcha|what are you|מה אתה|Whatcha doing?|שלוש מילים שנמחצות לאחת
+7|sorta|sort of|די / סוג של|I'm sorta busy.|תאום של kinda
+7|outta|out of|מתוך / החוצה מ|Get outta here.|נבלע כמעט תמיד
+7|shoulda|should have|היה צריך|You shoulda told me.|גם coulda ו־woulda באותה צורה
+7|betcha|bet you|בטוח לך|I betcha he forgot.|דיבור לא רשמי מאוד
+8|Whaddya think?|What do you think?|מה דעתך?|Whaddya think about it?|do you נמחץ ל־dya
+8|Howzit going?|How is it going?|מה נשמע?|Howzit going, man?|ברכה מדוברת שגורה
+`.trim().split('\n').map(l=>{const p=l.split('|');
+  return {lv:+p[0], sp:p[1], full:p[2], he:p[3], ex:p[4], note:p[5]}});
 /* ============================================================
    ENGINE — אחסון, משתמשים, חזרות מרווחות, שטף, בניית סשן
    ============================================================ */
@@ -818,7 +911,7 @@ let USERS = Store.get(K_USERS, []);
 function normalise(u){
   u.srs=u.srs||{}; u.log=u.log||[]; u.mastered=u.mastered||{};
   u.lv=u.lv||0; u.xp=u.xp||0; u.streak=u.streak||0;
-  u.settings=Object.assign({tts:true,autoSpeak:true,speed:.9}, u.settings||{});
+  u.settings=Object.assign({tts:true,autoSpeak:true,speed:.95,pitch:1,voice:null}, u.settings||{});
   return u;
 }
 USERS.forEach(normalise);
@@ -834,7 +927,7 @@ function newUser(name, emoji, role, lv){
     srs:{},                    // itemId -> {ef,iv,rep,due,seen,ok,ms}
     log:[],                    // {d, n, ok, ms, min}
     mastered:{},               // lvId -> אחוז
-    settings:{tts:true, autoSpeak:true, speed:.9}
+    settings:{tts:true, autoSpeak:true, speed:.95, pitch:1, voice:null}
   };
   USERS.push(normalise(u)); saveUsers(); return u;
 }
@@ -890,12 +983,19 @@ function poolFor(lv){
   PROOF.filter(c=>c.lv<=lv).forEach(c=>p.push({t:'proof', id:'F:'+key(c.s), d:c, lv:c.lv}));
   GRAMMAR.filter(g=>g.lv<=lv).forEach(g=>p.push({t:'rule', id:'G:'+key(g.ti), d:g, lv:g.lv}));
   TALK.filter(t=>t.lv<=lv).forEach(t=>p.push({t:'talk', id:'T:'+key(t.q), d:t, lv:t.lv}));
+  MINPAIRS.filter(m=>m.lv<=lv).forEach(m=>{
+    p.push({t:'mp-hear', id:'M:'+m.a+'-'+m.b+'#h', d:m, lv:m.lv});
+    if(lv>=3) p.push({t:'mp-say', id:'M:'+m.a+'-'+m.b+'#s', d:m, lv:m.lv});
+  });
+  CONTRACT.filter(c=>c.lv<=lv).forEach(c=>p.push({t:'contract', id:'K:'+key(c.full), d:c, lv:c.lv}));
+  SPOKEN.filter(s=>s.lv<=lv).forEach(s=>p.push({t:'spoken', id:'R:'+s.sp, d:s, lv:s.lv}));
   return p;
 }
 
 /* יעד זמן שליפה לפי סוג התרגיל (מילישניות) */
 const TARGET = {letter:2500,phonics:3500,'w-recog':3000,'w-recall':5000,'w-listen':6000,
-                'w-speak':6000,build:15000,dictate:14000,cloze:6000,proof:9000,rule:8000,talk:20000};
+                'w-speak':6000,build:15000,dictate:14000,cloze:6000,proof:9000,rule:8000,talk:20000,
+                'mp-hear':4000,'mp-say':7000,contract:5000,spoken:6000};
 
 /* --- בניית סשן: חזרות שנדרשות קודם, ואז חומר חדש, בשילוב מסוגים שונים --- */
 function buildSession(u, size, mode){
@@ -919,13 +1019,17 @@ function buildSession(u, size, mode){
     const s=[...weak,...due].sort((a,b)=>strength(u.srs[a.id])-strength(u.srs[b.id]));
     return interleave(fill(s, pool));
   }
+  if(mode==='sound'){
+    const s=pool.filter(x=>['mp-hear','mp-say','spoken','phonics','w-listen','w-speak','dictate'].includes(x.t));
+    return s.length? interleave(capTypes(shuffle(s),size)) : buildSession(u,size,'mix');
+  }
   if(mode==='talk'){
     const t=pool.filter(x=>x.t==='talk');
     return t.length? shuffle(t).slice(0,size) : buildSession(u,size,'mix');
   }
   if(mode==='rules'){
-    const g=pool.filter(x=>['rule','cloze','proof','build'].includes(x.t));
-    return g.length? interleave(shuffle(g).slice(0,size)) : buildSession(u,size,'mix');
+    const g=pool.filter(x=>['rule','cloze','proof','build','contract'].includes(x.t));
+    return g.length? interleave(capTypes(shuffle(g),size)) : buildSession(u,size,'mix');
   }
 
   shuffle(due); shuffle(fresh); shuffle(weak);
@@ -1016,31 +1120,62 @@ function analyse(u){
 
 const TYPE_HE = {letter:'אותיות',phonics:'פונטיקה','w-recog':'זיהוי מילים','w-recall':'שליפת מילים',
  'w-listen':'הבנת הנשמע','w-speak':'הגייה',build:'בניית משפט',dictate:'הכתבה',cloze:'השלמה',
- proof:'הגהה',rule:'חוקי דקדוק',talk:'שיחה'};
+ proof:'הגהה',rule:'חוקי דקדוק',talk:'שיחה','mp-hear':'אבחנת צלילים','mp-say':'הגייה מדויקת',
+ contract:'קיצורים',spoken:'דיבור מהיר'};
 
 /* --- דיבור --- */
-let VOICES=[];
-function loadVoices(){ VOICES = (window.speechSynthesis? speechSynthesis.getVoices():[]).filter(v=>/^en/i.test(v.lang)); }
-if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
-function say(text, rate){
-  if(!window.speechSynthesis) return false;
-  try{
-    speechSynthesis.cancel();
-    const u2=new SpeechSynthesisUtterance(text);
-    u2.lang='en-US'; u2.rate = rate || (me()?.settings.speed || .9);
-    const v = VOICES.find(v=>/Samantha|Google US|Alex|Karen/i.test(v.name)) || VOICES[0];
-    if(v) u2.voice=v;
-    speechSynthesis.speak(u2); return true;
-  }catch(e){ return false; }
+/* דירוג קולות: הדפדפן מחזיר גם קולות דחוסים ("compact") שנשמעים מתכתיים.
+   אנחנו מדרגים ובוחרים את הטבעי ביותר שזמין במכשיר.                      */
+let VOICES=[], WARM=false;
+
+function voiceScore(v){
+  const n=(v.name||'').toLowerCase(), l=(v.lang||'').toLowerCase();
+  let s=0;
+  if(/premium|enhanced|neural|natural/.test(n)) s+=60;   // הקולות האיכותיים באמת
+  if(/siri/.test(n))                            s+=45;
+  if(/google/.test(n))                          s+=35;
+  if(/\b(ava|allison|samantha|zoe|evan|nathan|joelle|susan|karen|aria|jenny|guy|sonia|libby|emma)\b/.test(n)) s+=20;
+  if(/compact|eloquence|espeak|pico|novelty|whisper|zarvox|albert|bad news|bells/.test(n)) s-=80;
+  if(l.startsWith('en-us')) s+=12; else if(l.startsWith('en-gb')) s+=8;
+  if(v.localService===false) s+=10;                       // קולות רשת בדרך כלל טובים יותר
+  if(v.default) s+=3;
+  return s;
 }
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-function listen(onResult, onEnd){
-  if(!SR) return null;
-  const r=new SR(); r.lang='en-US'; r.interimResults=false; r.maxAlternatives=3;
-  r.onresult=e=>{ const alts=[...e.results[0]].map(a=>a.transcript); onResult(alts); };
-  r.onerror=()=>onEnd&&onEnd(); r.onend=()=>onEnd&&onEnd();
-  try{ r.start(); }catch(e){ return null; }
-  return r;
+function loadVoices(){
+  const all = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  VOICES = all.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a));
+}
+function pickVoice(){
+  const want = me()?.settings?.voice;
+  return VOICES.find(v=>v.name===want) || VOICES[0] || null;
+}
+if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
+
+/* iOS/Safari חוסמים דיבור עד למגע ראשון. משחררים בשקט. */
+function warmUp(){
+  if(WARM || !window.speechSynthesis) return;
+  WARM=true;
+  try{ const w=new SpeechSynthesisUtterance(' '); w.volume=0; speechSynthesis.speak(w); }catch(e){}
+  if(!VOICES.length) loadVoices();
+}
+addEventListener('touchstart', warmUp, {once:true, passive:true});
+addEventListener('mousedown',  warmUp, {once:true});
+
+function say(text, rate){
+  if(!window.speechSynthesis || !text) return false;
+  try{
+    warmUp();
+    speechSynthesis.cancel();
+    const s=me()?.settings||{};
+    const u2=new SpeechSynthesisUtterance(String(text));
+    const v=pickVoice();
+    if(v){ u2.voice=v; u2.lang=v.lang; } else u2.lang='en-US';
+    u2.rate  = rate || s.speed || .95;
+    u2.pitch = s.pitch != null ? s.pitch : 1;
+    u2.volume= 1;
+    speechSynthesis.speak(u2);
+    return true;
+  }catch(e){ return false; }
 }
 
 /* --- השוואת טקסט סלחנית --- */
@@ -1156,7 +1291,7 @@ function vHome(s){
    <button class="btn" style="margin-top:14px" onclick="startSession('mix',14)">תרגול היום · 14 פריטים</button>
    <div class="row" style="margin-top:8px">
      <button class="btn ghost sm" style="width:100%" onclick="startSession('weak',10)">חיזוק חולשות</button>
-     <button class="btn ghost sm" style="width:100%" onclick="startSession('talk',6)">אימון שיחה</button>
+     <button class="btn ghost sm" style="width:100%" onclick="startSession('sound',10)">אוזן והגייה</button>
    </div>
    <div class="sec-title">סולם הרמות</div><div class="ladder" id="ld"></div>`;
   const ld=$('#ld');
@@ -1204,6 +1339,8 @@ function vPractice(s){
      <button class="btn ghost sm" style="margin-top:10px;width:100%" onclick="startSession('weak',12)">התחלה</button></div>
    <div class="card"><b>דקדוק ותחביר</b><div class="sub">חוקים, השלמת חסר, בניית משפט והגהה.</div>
      <button class="btn ghost sm" style="margin-top:10px;width:100%" onclick="startSession('rules',12)">התחלה</button></div>
+   <div class="card"><b>אוזן והגייה</b><div class="sub">זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. זה השריר שחסר לרוב דוברי העברית.</div>
+     <button class="btn ghost sm" style="margin-top:10px;width:100%" onclick="startSession('sound',12)">התחלה</button></div>
    <div class="card"><b>אימון שיחה</b><div class="sub">שאלות פתוחות. אתם עונים בקול או בכתב ומשווים לתשובת מודל.</div>
      <button class="btn ghost sm" style="margin-top:10px;width:100%" onclick="startSession('talk',8)">התחלה</button></div>
    <div class="card"><b>מרתון ארוך</b><div class="sub">30 פריטים ברצף, לתרגול עומק.</div>
@@ -1488,13 +1625,106 @@ function drawDone(s){
       <b>עליתם לרמה ${u.lv} · ${LEVELS[u.lv].nm}</b><div class="sub">${LEVELS[u.lv].dsc}</div></div>`:''}
     ${S.hardIds.length?`<div class="sec-title">לחזרה קרובה</div><div class="card">${
       S.items.filter(x=>S.hardIds.includes(x.id)).map(x=>{
-        const lbl = x.t.startsWith('w-')?`${x.d.en} — ${x.d.he}` : x.t==='rule'?x.d.ti : (x.d.en||x.d.s||x.d.q||x.d.w||x.d.u||'');
+        const lbl = x.t.startsWith('w-')?`${x.d.en} — ${x.d.he}` : x.t==='rule'?x.d.ti : (x.d.en||x.d.s||x.d.q||x.d.w||x.d.u||x.d.full||x.d.sp||(x.d.a?x.d.a+' / '+x.d.b:'')||'');
         return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span><span class="w">${esc(lbl)}</span><span class="badge">${TYPE_HE[x.t]}</span></div>`;
       }).join('')}</div>`:''}
     <button class="btn" style="margin-top:14px" onclick="startSession('${S.mode}',${n})">עוד סשן</button>
     <button class="btn ghost" style="margin-top:8px" onclick="S=null;go('home')">חזרה לבית</button>`;
   S.finished=true;
 }
+/* ---------------- זוגות מינימליים: שמיעה ---------------- */
+RENDER['mp-hear']=(q,it,u,tg)=>{
+  const d=it.d, target = Math.random()<.5 ? d.a : d.b;
+  const other = target===d.a ? d.b : d.a;
+  q.innerHTML=`<div class="prompt"><div class="kicker">אבחנה בין צלילים</div>
+    <button class="speakbtn" onclick="say('${jq(target)}',.85)">${svg('sound')}</button>
+    <div class="small">איזו מהשתיים נאמרה?</div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(target)}',.6)">האטה</button></div>
+    <div class="opts" id="o"></div>`;
+  say(target,.85);
+  shuffle([d.a,d.b]).forEach(w=>{
+    const isA = w===d.a;
+    const b=el(`<button class="opt" style="text-align:center">
+      <span class="en" style="font-size:19px">${w}</span>
+      <span class="hint"><span class="ipa">/${isA?d.ipaA:d.ipaB}/</span> · ${isA?d.heA:d.heB}</span></button>`);
+    b.onclick=()=>{ const ok=w===target; b.classList.add(ok?'ok':'no');
+      say(d.a+' … '+d.b,.7);
+      answer(it,ok,tg,`נאמר <b class="en">${target}</b> <span class="ipa">/${target===d.a?d.ipaA:d.ipaB}/</span> — ${target===d.a?d.heA:d.heB}.<br>
+        לא <b class="en">${other}</b> <span class="ipa">/${other===d.a?d.ipaA:d.ipaB}/</span>.<br>
+        <b>${esc(d.contrast)}</b> — ${esc(d.tip)}`); };
+    $('#o').appendChild(b);
+  });
+};
+
+/* ---------------- זוגות מינימליים: הגייה ---------------- */
+RENDER['mp-say']=(q,it,u,tg)=>{
+  const d=it.d, tgt = Math.random()<.5 ? d.a : d.b;
+  const twin = tgt===d.a ? d.b : d.a;
+  const ipaT = tgt===d.a ? d.ipaA : d.ipaB, heT = tgt===d.a ? d.heA : d.heB;
+  q.innerHTML=`<div class="prompt"><div class="kicker">הגייה מדויקת</div>
+    <div class="med">${tgt}</div><div class="ipa">/${ipaT}/</div><div class="small">${heT}</div>
+    <div class="muted" style="font-size:12.5px">ולא <span class="en">${twin}</span></div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(tgt)}',.7)">שמיעת דוגמה</button></div>
+    <div class="ruleblk" style="margin-top:12px"><b>${esc(d.contrast)}</b><br>${esc(d.tip)}</div>
+    <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
+      <p class="muted" id="st" style="margin-top:8px">${SR?'לחצו והגו את המילה':'זיהוי דיבור לא נתמך כאן'}</p></div>
+    <button class="btn ghost" style="margin-top:10px" id="skip">שמעתי ותרגלתי</button>`;
+  say(tgt,.75);
+  $('#skip').onclick=()=>answer(it,true,tg,`<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`);
+  $('#mic').onclick=()=>{
+    if(!SR) return toast('אין תמיכה בזיהוי דיבור');
+    const m=$('#mic'); m.classList.add('rec'); $('#st').textContent='מקשיב…';
+    listen(alts=>{
+      m.classList.remove('rec');
+      const hitT = alts.some(a=>near(a,tgt));
+      const hitW = !hitT && alts.some(a=>near(a,twin));
+      answer(it,hitT,tg, hitT
+        ? `מדויק: <b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span>`
+        : hitW
+          ? `נשמע כמו <b class="en">${twin}</b>, לא <b class="en">${tgt}</b>.<br><b>${esc(d.contrast)}</b> — ${esc(d.tip)}`
+          : `שמעתי: <b class="en">${esc(alts[0]||'—')}</b><br>המטרה: <b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`);
+    },()=>{ m.classList.remove('rec'); if(!S.answered)$('#st').textContent='לא נקלט. נסו שוב או המשיכו.'; });
+  };
+};
+
+/* ---------------- קיצורים ---------------- */
+RENDER.contract=(q,it,u,tg)=>{
+  const d=it.d;
+  const wrong = shuffle(CONTRACT.filter(x=>x!==d)).slice(0,3).map(x=>x.short);
+  const opts = shuffle([d.short,...wrong]);
+  q.innerHTML=`<div class="prompt"><div class="kicker">קיצור — איך זה נשמע בדיבור</div>
+    <div class="med" style="font-size:21px">${esc(d.full)}</div><div class="small">${esc(d.he)}</div></div>
+    <p class="muted" style="text-align:center;margin:12px 0 0">מה הצורה המקוצרת?</p><div class="opts" id="o"></div>`;
+  if(u.settings.autoSpeak) say(d.full,.85);
+  opts.forEach(o=>{
+    const b=el(`<button class="opt en" style="text-align:center">${esc(o)}</button>`);
+    b.onclick=()=>{ const ok=o===d.short; b.classList.add(ok?'ok':'no'); say(d.short,.95);
+      answer(it,ok,tg,`<span style="opacity:.6" class="en">${esc(d.full)}</span> → <b class="en">${esc(d.short)}</b><br>${esc(d.he)}
+        <br><span class="muted">בדיבור טבעי כמעט תמיד משתמשים בצורה המקוצרת. הצורה המלאה נשמעת רשמית או מודגשת.</span>`); };
+    $('#o').appendChild(b);
+  });
+};
+
+/* ---------------- אנגלית מדוברת מהירה ---------------- */
+RENDER.spoken=(q,it,u,tg)=>{
+  const d=it.d;
+  const wrong = shuffle(SPOKEN.filter(x=>x!==d)).slice(0,3).map(x=>x.full);
+  const opts = shuffle([d.full,...wrong]);
+  q.innerHTML=`<div class="prompt"><div class="kicker">דיבור מהיר — מה נאמר באמת</div>
+    <button class="speakbtn" onclick="say('${jq(d.ex)}',1.05)">${svg('sound')}</button>
+    <div class="med" style="font-size:20px">${esc(d.ex)}</div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.ex)}',.6)">האטה</button></div>
+    <p class="muted" style="text-align:center;margin:12px 0 0">מה הצורה התקנית של <span class="en">${esc(d.sp)}</span>?</p>
+    <div class="opts" id="o"></div>`;
+  say(d.ex,1.05);
+  opts.forEach(o=>{
+    const b=el(`<button class="opt en" style="text-align:center">${esc(o)}</button>`);
+    b.onclick=()=>{ const ok=o===d.full; b.classList.add(ok?'ok':'no');
+      answer(it,ok,tg,`<b class="en">${esc(d.sp)}</b> = <b class="en">${esc(d.full)}</b> — ${esc(d.he)}<br>
+        <span class="en">${esc(d.ex)}</span><br><span class="muted">${esc(d.note)}</span>`); };
+    $('#o').appendChild(b);
+  });
+};
 /* ---------------- התקדמות וניתוח ---------------- */
 function vStats(s){
   const u=me(), a=analyse(u);
@@ -1541,9 +1771,17 @@ function vFamily(s){
     <button class="btn ghost" style="margin-top:10px" onclick="addUser()">+ הוספת לומד</button>
     <div class="sec-title">הגדרות של ${esc(u.name)}</div>
     <div class="card">
+      <div class="field"><label>קול</label>
+        <select id="vc"><option value="">בחירה אוטומטית — הטוב ביותר במכשיר</option>${
+          VOICES.map(v=>`<option value="${esc(v.name)}" ${v.name===u.settings.voice?'selected':''}>${esc(v.name)} · ${esc(v.lang)}${voiceScore(v)>=60?' ✦':''}</option>`).join('')}</select>
+        <button class="btn ghost sm" style="width:100%;margin-top:8px" id="tv">השמעת דוגמה</button>
+        <p class="muted" style="margin-top:6px">${VOICES.length?`${VOICES.length} קולות אנגלית זמינים במכשיר. ✦ מסמן קול איכותי.`:'לא נמצאו קולות אנגלית. רעננו את הדף אחרי התקנת קול במכשיר.'}</p></div>
       <div class="field"><label>מהירות הדיבור</label>
-        <select id="sp">${[['0.6','איטית מאוד'],['0.75','איטית'],['0.9','רגילה'],['1','מהירה'],['1.15','ילידית']]
+        <select id="sp">${[['0.6','איטית מאוד'],['0.75','איטית'],['0.95','רגילה'],['1.05','מהירה'],['1.2','ילידית']]
           .map(([v,n])=>`<option value="${v}" ${+v===u.settings.speed?'selected':''}>${n}</option>`).join('')}</select></div>
+      <div class="field"><label>גובה הקול</label>
+        <select id="pt">${[['0.85','נמוך'],['1','טבעי'],['1.15','גבוה']]
+          .map(([v,n])=>`<option value="${v}" ${+v===(u.settings.pitch??1)?'selected':''}>${n}</option>`).join('')}</select></div>
       <div class="field"><label>השמעה אוטומטית</label>
         <select id="au"><option value="1" ${u.settings.autoSpeak?'selected':''}>מופעלת</option><option value="0" ${!u.settings.autoSpeak?'selected':''}>כבויה</option></select></div>
       <div class="field"><label>רמה נוכחית (עקיפה ידנית)</label>
@@ -1567,10 +1805,17 @@ function vFamily(s){
     b.onclick=()=>userSheet(x);
     ul.appendChild(b);
   });
-  $('#sv').onclick=()=>{
-    u.settings.speed=+$('#sp').value; u.settings.autoSpeak=$('#au').value==='1';
-    u.lv=+$('#lv').value; saveUsers(); toast('נשמר'); render();
+  const apply=()=>{
+    u.settings.voice=$('#vc').value||null;
+    u.settings.speed=+$('#sp').value;
+    u.settings.pitch=+$('#pt').value;
+    u.settings.autoSpeak=$('#au').value==='1';
   };
+  $('#vc').onchange=()=>{ apply(); say('This is how I will sound. Listen and repeat.'); };
+  $('#tv').onclick =()=>{ apply(); say('This is how I will sound. Listen and repeat.'); };
+  $('#sp').onchange=()=>{ apply(); say('Listen and repeat.'); };
+  $('#pt').onchange=()=>{ apply(); say('Listen and repeat.'); };
+  $('#sv').onclick =()=>{ apply(); u.lv=+$('#lv').value; saveUsers(); toast('נשמר'); render(); };
 }
 
 function userSheet(x){
@@ -1628,6 +1873,14 @@ function closeSheet(){ document.querySelector('.sheet-bg')?.remove(); }
 if(!USERS.length){ /* מסך בחירת משתמש יופיע */ }
 if(CUR && !me()) CUR=null;
 render();
+/* רשימת הקולות מגיעה מהדפדפן באיחור — מרעננים את מסך ההגדרות כשהיא נטענת */
+if(window.speechSynthesis){
+  let once=false;
+  speechSynthesis.addEventListener('voiceschanged', ()=>{
+    loadVoices();
+    if(!once && TAB==='family'){ once=true; render(); }
+  });
+}
 
 </script>
 </body>
