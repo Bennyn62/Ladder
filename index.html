@@ -1,0 +1,1634 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14213d">
+<title>Ladder · לימוד אנגלית למשפחה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600;700;800&family=Space+Grotesk:wght@500;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14213d; --ink2:#43537a; --ink3:#8b98b8;
+  --paper:#eef1f8; --card:#ffffff; --line:#dde3ef;
+  --brand:#3d5af1; --brand-soft:#e7ebff; --brand-dark:#2b41c4;
+  --accent:#ff8a3d; --accent-soft:#fff0e4;
+  --good:#12a37a; --good-soft:#e2f6f0;
+  --bad:#e4572e; --bad-soft:#fdeae4;
+  --gold:#f6b93b;
+  --r:16px; --r-lg:24px;
+  --sh:0 1px 2px rgba(20,33,61,.06), 0 8px 24px rgba(20,33,61,.07);
+  --sh-lift:0 2px 4px rgba(20,33,61,.08), 0 16px 40px rgba(20,33,61,.14);
+  --he:'Assistant',system-ui,sans-serif;
+  --en:'Space Grotesk',system-ui,sans-serif;
+  --mono:'Space Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:var(--he); background:var(--paper); color:var(--ink);
+  font-size:16px; line-height:1.5; overscroll-behavior-y:none;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input,select{font-family:inherit;font-size:16px}
+.en{font-family:var(--en);direction:ltr;unicode-bidi:isolate}
+.ipa{font-family:var(--mono);direction:ltr;unicode-bidi:isolate;color:var(--ink3);font-size:.82em;letter-spacing:-.02em}
+.hide{display:none !important}
+
+/* ---------- shell ---------- */
+#app{max-width:560px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+.screen{flex:1;padding:0 16px 96px}
+.topbar{
+  position:sticky;top:0;z-index:40;background:rgba(238,241,248,.86);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  padding:calc(env(safe-area-inset-top) + 10px) 16px 10px;
+  display:flex;align-items:center;gap:10px;border-bottom:1px solid transparent;
+}
+.topbar.scrolled{border-bottom-color:var(--line)}
+.wordmark{font-family:var(--en);font-weight:700;letter-spacing:-.03em;font-size:19px;direction:ltr}
+.wordmark i{font-style:normal;color:var(--brand)}
+.spacer{flex:1}
+.chip{
+  display:inline-flex;align-items:center;gap:6px;background:var(--card);
+  border:1px solid var(--line);border-radius:999px;padding:5px 11px;
+  font-size:13px;font-weight:600;white-space:nowrap
+}
+.chip.flame{color:var(--accent);border-color:#ffd9bd;background:var(--accent-soft)}
+.avatar{
+  width:34px;height:34px;border-radius:12px;display:grid;place-items:center;
+  font-size:18px;background:var(--brand-soft);border:1px solid var(--line);flex:none
+}
+
+/* ---------- nav ---------- */
+.nav{
+  position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);border-top:1px solid var(--line);
+  padding:6px 8px calc(env(safe-area-inset-bottom) + 6px);
+}
+.nav-in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.nav button{
+  display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;
+  border-radius:12px;font-size:11px;font-weight:600;color:var(--ink3);transition:.15s
+}
+.nav button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.nav button.on{color:var(--brand);background:var(--brand-soft)}
+
+/* ---------- cards ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.card+.card{margin-top:12px}
+.sec-title{font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--ink3);margin:22px 0 10px;text-transform:uppercase}
+h1{font-size:25px;font-weight:800;letter-spacing:-.02em;margin:4px 0 2px}
+h2{font-size:19px;font-weight:700;margin:0 0 6px}
+.sub{color:var(--ink2);font-size:14px;margin:0}
+.muted{color:var(--ink3);font-size:13px}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--brand);color:#fff;border-radius:14px;padding:14px 18px;
+  font-weight:700;font-size:16px;width:100%;transition:transform .1s, box-shadow .2s;
+  box-shadow:0 4px 0 var(--brand-dark)
+}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--brand-dark)}
+.btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:none}
+.btn.ghost:active{transform:none;background:var(--paper)}
+.btn.warm{background:var(--accent);box-shadow:0 4px 0 #d96a1f}
+.btn.sm{padding:9px 14px;font-size:14px;width:auto;border-radius:11px;box-shadow:none}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.row{display:flex;gap:8px}
+.row>*{flex:1}
+
+/* ---------- the ladder (signature) ---------- */
+.ladder{position:relative;padding:6px 0 2px}
+.rung{
+  position:relative;display:flex;align-items:center;gap:12px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  padding:13px 14px;margin-bottom:8px;text-align:right;width:100%;
+  transition:.18s;overflow:hidden
+}
+.rung:not(.locked):active{transform:scale(.985)}
+.rung.locked{opacity:.5}
+.rung.cur{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.rung .fillbar{position:absolute;inset:0 auto 0 0;width:0;background:var(--brand-soft);opacity:.6;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.rung>*{position:relative;z-index:1}
+.rung .lv{
+  width:42px;height:42px;border-radius:13px;display:grid;place-items:center;flex:none;
+  font-family:var(--en);font-weight:700;font-size:17px;background:var(--paper);
+  border:1px solid var(--line);color:var(--ink2)
+}
+.rung.done .lv{background:var(--good);color:#fff;border-color:var(--good)}
+.rung.cur .lv{background:var(--brand);color:#fff;border-color:var(--brand)}
+.rung .nm{font-weight:700;font-size:15.5px;line-height:1.25}
+.rung .dsc{font-size:12.5px;color:var(--ink3);margin-top:2px}
+.rung .pct{font-family:var(--mono);font-size:12px;color:var(--ink3);flex:none}
+
+/* ---------- practice stage ---------- */
+.stage{padding-top:8px}
+.progline{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:2px 0 4px}
+.progline>i{display:block;height:100%;background:var(--brand);border-radius:99px;transition:width .35s}
+.qbar{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink3);margin-bottom:14px}
+
+/* fluency meter */
+.flow{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.flow .track{width:52px;height:5px;background:var(--line);border-radius:99px;overflow:hidden}
+.flow .track>i{display:block;height:100%;width:100%;background:var(--good);transition:width .1s linear,background .3s}
+.flow.mid .track>i{background:var(--gold)} .flow.slow .track>i{background:var(--bad)}
+
+.prompt{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:26px 18px;text-align:center;box-shadow:var(--sh);min-height:150px;
+  display:flex;flex-direction:column;justify-content:center;gap:8px
+}
+.prompt .kicker{font-size:12px;font-weight:700;letter-spacing:.06em;color:var(--brand);text-transform:uppercase}
+.prompt .big{font-family:var(--en);font-size:46px;font-weight:700;letter-spacing:-.02em;line-height:1.05;direction:ltr}
+.prompt .big.he{font-family:var(--he);font-size:34px;direction:rtl;letter-spacing:0}
+.prompt .med{font-family:var(--en);font-size:24px;font-weight:600;direction:ltr;line-height:1.35}
+.prompt .med.he{font-family:var(--he);direction:rtl;font-weight:700}
+.prompt .small{font-size:14px;color:var(--ink2)}
+.prompt .letterpair{display:flex;gap:14px;justify-content:center;align-items:baseline;font-family:var(--en)}
+.prompt .letterpair b{font-size:64px;font-weight:700;line-height:1}
+.prompt .letterpair span{font-size:40px;font-weight:500;color:var(--ink3);line-height:1}
+
+.opts{display:grid;gap:8px;margin-top:14px}
+.opt{
+  background:var(--card);border:1.5px solid var(--line);border-radius:14px;
+  padding:14px 15px;text-align:right;font-weight:600;font-size:16.5px;transition:.13s;width:100%
+}
+.opt:active{transform:scale(.985)}
+.opt.ok{border-color:var(--good);background:var(--good-soft);color:#0b6e52}
+.opt.no{border-color:var(--bad);background:var(--bad-soft);color:#a33418}
+.opt .hint{display:block;font-size:12px;font-weight:400;color:var(--ink3);margin-top:2px}
+
+.answerbox{display:flex;gap:8px;margin-top:14px}
+.answerbox input{
+  flex:1;padding:15px 14px;border:1.5px solid var(--line);border-radius:14px;
+  background:var(--card);font-family:var(--en);direction:ltr;text-align:left;
+  font-size:19px;font-weight:600;outline:none;min-width:0
+}
+.answerbox input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.answerbox input.ok{border-color:var(--good);background:var(--good-soft)}
+.answerbox input.no{border-color:var(--bad);background:var(--bad-soft)}
+.answerbox .btn{width:auto;flex:none;padding:0 20px;border-radius:14px}
+
+/* word tiles for sentence building */
+.tiles{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;justify-content:center}
+.tile{
+  font-family:var(--en);direction:ltr;background:var(--card);border:1.5px solid var(--line);
+  border-radius:11px;padding:9px 13px;font-size:17px;font-weight:600;transition:.12s
+}
+.tile:active{transform:scale(.94)}
+.tile.used{opacity:.28;pointer-events:none}
+.slot{
+  min-height:56px;background:var(--brand-soft);border:1.5px dashed #b9c4ff;border-radius:14px;
+  padding:9px;display:flex;flex-wrap:wrap;gap:7px;direction:ltr;align-items:center;margin-top:12px
+}
+.slot .tile{background:#fff;border-color:#b9c4ff}
+.slot.ok{background:var(--good-soft);border-color:var(--good);border-style:solid}
+.slot.no{background:var(--bad-soft);border-color:var(--bad);border-style:solid}
+.slot:empty::after{content:'סדר כאן את המילים';direction:rtl;font-family:var(--he);color:#8c99cc;font-size:13.5px;padding:6px}
+
+/* cloze */
+.cloze{font-family:var(--en);direction:ltr;font-size:22px;font-weight:600;line-height:1.6}
+.cloze u{color:var(--brand);text-decoration:none;border-bottom:2.5px solid var(--brand);padding:0 22px}
+
+/* proofread */
+.proof{font-family:var(--en);direction:ltr;font-size:21px;font-weight:600;line-height:1.75;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.pw{padding:3px 6px;border-radius:8px;border:1.5px solid transparent;transition:.12s}
+.pw.sel{border-color:var(--brand);background:var(--brand-soft)}
+.pw.ok{border-color:var(--good);background:var(--good-soft)}
+.pw.no{border-color:var(--bad);background:var(--bad-soft)}
+
+/* feedback */
+.fb{border-radius:var(--r);padding:14px;margin-top:12px;border:1px solid;animation:pop .22s ease-out}
+@keyframes pop{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.fb.ok{background:var(--good-soft);border-color:#a9e3d1}
+.fb.no{background:var(--bad-soft);border-color:#f3c0ae}
+.fb .hd{font-weight:800;font-size:15px;display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.fb.ok .hd{color:#0b6e52} .fb.no .hd{color:#a33418}
+.fb .bd{font-size:14px;color:var(--ink2);line-height:1.55}
+.fb .bd b{color:var(--ink)}
+
+.speakbtn{
+  width:56px;height:56px;border-radius:50%;background:var(--brand-soft);color:var(--brand);
+  display:grid;place-items:center;margin:0 auto;border:1px solid #c9d3ff;flex:none
+}
+.speakbtn svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.speakbtn.rec{background:var(--bad);color:#fff;border-color:var(--bad);animation:pulse 1.1s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(228,87,46,.5)}70%{box-shadow:0 0 0 14px rgba(228,87,46,0)}}
+
+/* ---------- stats ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px}
+.stat .n{font-family:var(--en);font-size:26px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.stat .l{font-size:12px;color:var(--ink3);margin-top:3px;font-weight:600}
+.bars{display:flex;align-items:flex-end;gap:3px;height:74px;margin-top:8px}
+.bars>div{flex:1;background:var(--brand-soft);border-radius:4px 4px 0 0;min-height:3px;position:relative}
+.bars>div.hot{background:var(--brand)}
+.legend{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-top:5px;font-family:var(--mono)}
+.wordrow{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--line)}
+.wordrow:last-child{border-bottom:0}
+.wordrow .w{font-family:var(--en);direction:ltr;font-weight:600;flex:1;min-width:0}
+.wordrow .h{color:var(--ink3);font-size:13px;flex:1;min-width:0}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.badge{font-family:var(--mono);font-size:11px;padding:2px 7px;border-radius:99px;background:var(--paper);color:var(--ink2);flex:none}
+
+/* ---------- users ---------- */
+.userpick{display:grid;gap:10px}
+.usercard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px;text-align:right;width:100%;transition:.15s}
+.usercard:active{transform:scale(.985)}
+.usercard.on{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.usercard .av{width:46px;height:46px;border-radius:15px;display:grid;place-items:center;font-size:24px;background:var(--brand-soft);flex:none}
+.emojipick{display:flex;flex-wrap:wrap;gap:7px}
+.emojipick button{width:42px;height:42px;border-radius:12px;background:var(--paper);border:1.5px solid transparent;font-size:22px}
+.emojipick button.on{border-color:var(--brand);background:var(--brand-soft)}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;font-weight:700;color:var(--ink2);margin-bottom:5px}
+.field input,.field select{width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:12px;background:var(--card);outline:none}
+.field input:focus,.field select:focus{border-color:var(--brand)}
+
+.sheet-bg{position:fixed;inset:0;background:rgba(20,33,61,.42);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--paper);width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:18px 16px calc(env(safe-area-inset-bottom) + 18px);max-height:88vh;overflow:auto;animation:up .26s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.sheet .grab{width:38px;height:4px;background:var(--line);border-radius:99px;margin:0 auto 14px}
+
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;background:var(--brand-soft);color:var(--brand-dark)}
+.pill.g{background:var(--good-soft);color:#0b6e52}
+.pill.o{background:var(--accent-soft);color:#b95a12}
+.pill.r{background:var(--bad-soft);color:#a33418}
+
+.ruleblk{background:var(--brand-soft);border-radius:12px;padding:12px;margin-top:10px;font-size:14px;line-height:1.6}
+.ruleblk .ex{font-family:var(--en);direction:ltr;font-weight:600;margin-top:6px;display:block}
+.toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 18px;border-radius:99px;font-size:14px;font-weight:600;z-index:200;animation:pop .2s}
+
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar" id="topbar"></div>
+  <div class="screen" id="screen"></div>
+</div>
+<div class="nav" id="nav"></div>
+<script>
+/* ============================================================
+   DATA — מאגר התוכן. הכל כאן, קל להרחבה.
+   פורמט מילה:  en|he|ipa|pos|משפט דוגמה|תרגום המשפט
+   ============================================================ */
+
+const LEVELS = [
+ {id:0,nm:'האותיות',   dsc:'שמות האותיות, צורה גדולה וקטנה',            need:0},
+ {id:1,nm:'הצלילים',   dsc:'פונטיקה — לחבר אותיות למילה',                need:75},
+ {id:2,nm:'מילים ראשונות',dsc:'250 המילים הכי שימושיות באנגלית',        need:75},
+ {id:3,nm:'משפט ראשון',dsc:'to be, הווה פשוט, סדר המילים',              need:75},
+ {id:4,nm:'שאלות ושלילה',dsc:'שאלות, שלילה, הווה ממושך',                need:75},
+ {id:5,nm:'עבר ועתיד', dsc:'זמנים בסיסיים ופעלים חריגים',               need:75},
+ {id:6,nm:'קישור והרחבה',dsc:'מילות יחס, קישור, השוואה',                need:75},
+ {id:7,nm:'זמנים מורכבים',dsc:'Perfect, תנאי, סביל, דיבור עקיף',        need:75},
+ {id:8,nm:'שטף ילידי',  dsc:'Phrasal verbs, ניבים, ניואנס ושיחה',       need:75}
+];
+
+const LETTERS = 'A,eɪ,apple,תפוח,æ|B,biː,ball,כדור,b|C,siː,cat,חתול,k|D,diː,dog,כלב,d|E,iː,egg,ביצה,ɛ|F,ɛf,fish,דג,f|G,dʒiː,goat,עז,ɡ|H,eɪtʃ,hat,כובע,h|I,aɪ,ink,דיו,ɪ|J,dʒeɪ,jam,ריבה,dʒ|K,keɪ,key,מפתח,k|L,ɛl,lion,אריה,l|M,ɛm,moon,ירח,m|N,ɛn,nose,אף,n|O,oʊ,orange,תפוז,ɒ|P,piː,pen,עט,p|Q,kjuː,queen,מלכה,kw|R,ɑːr,rain,גשם,r|S,ɛs,sun,שמש,s|T,tiː,tree,עץ,t|U,juː,umbrella,מטריה,ʌ|V,viː,van,טנדר,v|W,ˈdʌbəljuː,water,מים,w|X,ɛks,box,קופסה,ks|Y,waɪ,yellow,צהוב,j|Z,ziː,zebra,זברה,z'
+ .split('|').map(s=>{const[u,ipa,ex,he,snd]=s.split(',');return{u,l:u.toLowerCase(),ipa,ex,he,snd}});
+
+/* פונטיקה: מילת CVC | הברות | תרגום */
+const PHONICS = `cat,c-a-t,חתול|bat,b-a-t,עטלף|hat,h-a-t,כובע|map,m-a-p,מפה|bag,b-a-g,תיק|dad,d-a-d,אבא|man,m-a-n,איש|ran,r-a-n,רץ|bed,b-e-d,מיטה|red,r-e-d,אדום|pen,p-e-n,עט|ten,t-e-n,עשר|leg,l-e-g,רגל|net,n-e-t,רשת|big,b-i-g,גדול|pig,p-i-g,חזיר|sit,s-i-t,לשבת|six,s-i-x,שש|win,w-i-n,לנצח|lip,l-i-p,שפה|dog,d-o-g,כלב|box,b-o-x,קופסה|top,t-o-p,ראש|hot,h-o-t,חם|mom,m-o-m,אמא|pot,p-o-t,סיר|sun,s-u-n,שמש|bus,b-u-s,אוטובוס|cup,c-u-p,כוס|run,r-u-n,לרוץ|nut,n-u-t,אגוז|hug,h-u-g,חיבוק|ship,sh-i-p,ספינה|fish,f-i-sh,דג|chin,ch-i-n,סנטר|that,th-a-t,זה|when,wh-e-n,מתי|tree,t-r-ee,עץ|blue,b-l-ue,כחול|stop,s-t-o-p,עצור`
+ .split('|').map(s=>{const[w,sp,he]=s.split(',');return{w,sp,he}});
+
+/* ---------------- אוצר מילים ---------------- */
+const W = {};
+
+W[2] = `
+mother|אמא|ˈmʌðər|n|My mother is a teacher.|אמא שלי מורה
+father|אבא|ˈfɑːðər|n|My father works here.|אבא שלי עובד כאן
+brother|אח|ˈbrʌðər|n|I have one brother.|יש לי אח אחד
+sister|אחות|ˈsɪstər|n|My sister is ten.|אחותי בת עשר
+baby|תינוק|ˈbeɪbi|n|The baby is sleeping.|התינוק ישן
+friend|חבר|frɛnd|n|She is my best friend.|היא החברה הכי טובה שלי
+boy|ילד|bɔɪ|n|The boy is running.|הילד רץ
+girl|ילדה|ɡɜːrl|n|The girl has a book.|לילדה יש ספר
+man|איש|mæn|n|That man is tall.|האיש הזה גבוה
+woman|אישה|ˈwʊmən|n|The woman is a doctor.|האישה היא רופאה
+head|ראש|hɛd|n|Touch your head.|גע בראש שלך
+hand|יד|hænd|n|Give me your hand.|תן לי את היד שלך
+eye|עין|aɪ|n|Close your eyes.|תעצום עיניים
+foot|כף רגל|fʊt|n|My foot hurts.|כואבת לי הרגל
+water|מים|ˈwɔːtər|n|I drink water.|אני שותה מים
+bread|לחם|brɛd|n|We need bread.|אנחנו צריכים לחם
+milk|חלב|mɪlk|n|The milk is cold.|החלב קר
+apple|תפוח|ˈæpəl|n|I eat an apple.|אני אוכל תפוח
+egg|ביצה|ɛɡ|n|One egg, please.|ביצה אחת בבקשה
+rice|אורז|raɪs|n|Rice with chicken.|אורז עם עוף
+house|בית|haʊs|n|Our house is big.|הבית שלנו גדול
+room|חדר|ruːm|n|This is my room.|זה החדר שלי
+door|דלת|dɔːr|n|Open the door.|תפתח את הדלת
+window|חלון|ˈwɪndoʊ|n|Close the window.|תסגור את החלון
+table|שולחן|ˈteɪbəl|n|Put it on the table.|שים את זה על השולחן
+chair|כיסא|tʃɛr|n|Sit on the chair.|שב על הכיסא
+bed|מיטה|bɛd|n|Go to bed.|לך לישון
+car|מכונית|kɑːr|n|The car is fast.|המכונית מהירה
+school|בית ספר|skuːl|n|I go to school.|אני הולך לבית ספר
+book|ספר|bʊk|n|Read this book.|תקרא את הספר הזה
+dog|כלב|dɔːɡ|n|The dog is friendly.|הכלב ידידותי
+cat|חתול|kæt|n|My cat sleeps a lot.|החתול שלי ישן הרבה
+bird|ציפור|bɜːrd|n|A bird is singing.|ציפור שרה
+tree|עץ|triː|n|The tree is old.|העץ ישן
+sun|שמש|sʌn|n|The sun is bright.|השמש בהירה
+day|יום|deɪ|n|Have a nice day.|שיהיה יום נעים
+night|לילה|naɪt|n|Good night.|לילה טוב
+red|אדום|rɛd|adj|A red apple.|תפוח אדום
+blue|כחול|bluː|adj|The blue sky.|השמיים הכחולים
+green|ירוק|ɡriːn|adj|Green grass.|דשא ירוק
+black|שחור|blæk|adj|A black cat.|חתול שחור
+white|לבן|waɪt|adj|White snow.|שלג לבן
+big|גדול|bɪɡ|adj|A big dog.|כלב גדול
+small|קטן|smɔːl|adj|A small box.|קופסה קטנה
+good|טוב|ɡʊd|adj|That is good.|זה טוב
+bad|רע|bæd|adj|Bad weather.|מזג אוויר רע
+hot|חם|hɒt|adj|The soup is hot.|המרק חם
+cold|קר|koʊld|adj|It is cold today.|קר היום
+new|חדש|nuː|adj|A new phone.|טלפון חדש
+old|ישן / זקן|oʊld|adj|An old car.|מכונית ישנה
+one|אחד|wʌn|num|One apple.|תפוח אחד
+two|שתיים|tuː|num|Two dogs.|שני כלבים
+three|שלוש|θriː|num|Three books.|שלושה ספרים
+four|ארבע|fɔːr|num|Four chairs.|ארבעה כיסאות
+five|חמש|faɪv|num|Five minutes.|חמש דקות
+ten|עשר|tɛn|num|Ten people.|עשרה אנשים
+yes|כן|jɛs|adv|Yes, I agree.|כן, אני מסכים
+no|לא|noʊ|adv|No, thank you.|לא, תודה
+please|בבקשה|pliːz|adv|Water, please.|מים בבקשה
+thank you|תודה|ˈθæŋk juː|phr|Thank you very much.|תודה רבה
+hello|שלום|həˈloʊ|phr|Hello, how are you?|שלום, מה שלומך?
+goodbye|להתראות|ɡʊdˈbaɪ|phr|Goodbye, see you.|להתראות, נתראה
+`;
+
+W[3] = `
+be|להיות|biː|v|I am happy.|אני שמח
+have|יש / להחזיק|hæv|v|I have a car.|יש לי מכונית
+go|ללכת|ɡoʊ|v|We go to work.|אנחנו הולכים לעבודה
+come|לבוא|kʌm|v|Come here.|בוא הנה
+eat|לאכול|iːt|v|They eat lunch.|הם אוכלים צהריים
+drink|לשתות|drɪŋk|v|She drinks tea.|היא שותה תה
+sleep|לישון|sliːp|v|I sleep eight hours.|אני ישן שמונה שעות
+run|לרוץ|rʌn|v|He runs fast.|הוא רץ מהר
+walk|ללכת ברגל|wɔːk|v|We walk home.|אנחנו הולכים הביתה
+sit|לשבת|sɪt|v|Please sit down.|בבקשה שב
+stand|לעמוד|stænd|v|Stand up.|קום
+speak|לדבר|spiːk|v|I speak Hebrew.|אני מדבר עברית
+say|לומר|seɪ|v|Say it again.|תגיד את זה שוב
+tell|לספר|tɛl|v|Tell me the truth.|תגיד לי את האמת
+ask|לשאול|æsk|v|Ask the teacher.|תשאל את המורה
+know|לדעת|noʊ|v|I know the answer.|אני יודע את התשובה
+think|לחשוב|θɪŋk|v|I think so.|אני חושב שכן
+want|לרצות|wɒnt|v|I want coffee.|אני רוצה קפה
+need|להזדקק|niːd|v|We need help.|אנחנו צריכים עזרה
+like|לאהוב|laɪk|v|I like music.|אני אוהב מוזיקה
+love|לאהוב מאוד|lʌv|v|She loves her job.|היא אוהבת את העבודה שלה
+see|לראות|siː|v|I see you.|אני רואה אותך
+look|להסתכל|lʊk|v|Look at this.|תסתכל על זה
+hear|לשמוע|hɪr|v|I hear music.|אני שומע מוזיקה
+read|לקרוא|riːd|v|He reads a lot.|הוא קורא הרבה
+write|לכתוב|raɪt|v|Write your name.|תכתוב את השם שלך
+work|לעבוד|wɜːrk|v|They work here.|הם עובדים כאן
+play|לשחק|pleɪ|v|Kids play outside.|ילדים משחקים בחוץ
+help|לעזור|hɛlp|v|Can you help me?|אתה יכול לעזור לי?
+make|לעשות / ליצור|meɪk|v|Make a plan.|תכין תוכנית
+do|לעשות|duː|v|What do you do?|במה אתה עוסק?
+give|לתת|ɡɪv|v|Give me a minute.|תן לי דקה
+take|לקחת|teɪk|v|Take this bag.|קח את התיק הזה
+open|לפתוח|ˈoʊpən|v|Open your book.|תפתח את הספר
+close|לסגור|kloʊz|v|Close the door.|תסגור את הדלת
+buy|לקנות|baɪ|v|I buy bread daily.|אני קונה לחם כל יום
+happy|שמח|ˈhæpi|adj|We are happy.|אנחנו שמחים
+sad|עצוב|sæd|adj|He looks sad.|הוא נראה עצוב
+tired|עייף|ˈtaɪərd|adj|I am tired.|אני עייף
+hungry|רעב|ˈhʌŋɡri|adj|The kids are hungry.|הילדים רעבים
+fast|מהיר|fæst|adj|A fast train.|רכבת מהירה
+slow|איטי|sloʊ|adj|A slow computer.|מחשב איטי
+easy|קל|ˈiːzi|adj|This is easy.|זה קל
+hard|קשה|hɑːrd|adj|A hard question.|שאלה קשה
+here|כאן|hɪr|adv|Come here.|בוא הנה
+there|שם|ðɛr|adv|Put it there.|שים את זה שם
+now|עכשיו|naʊ|adv|Do it now.|תעשה את זה עכשיו
+today|היום|təˈdeɪ|adv|Today is Monday.|היום יום שני
+always|תמיד|ˈɔːlweɪz|adv|She is always late.|היא תמיד מאחרת
+never|אף פעם|ˈnɛvər|adv|I never smoke.|אני אף פעם לא מעשן
+`;
+
+W[4] = `
+morning|בוקר|ˈmɔːrnɪŋ|n|Good morning.|בוקר טוב
+evening|ערב|ˈiːvnɪŋ|n|In the evening.|בערב
+week|שבוע|wiːk|n|Next week.|שבוע הבא
+month|חודש|mʌnθ|n|Every month.|כל חודש
+year|שנה|jɪr|n|Last year.|שנה שעברה
+hour|שעה|ˈaʊər|n|One hour left.|נשארה שעה
+minute|דקה|ˈmɪnɪt|n|Wait a minute.|חכה רגע
+time|זמן|taɪm|n|What time is it?|מה השעה?
+weather|מזג אוויר|ˈwɛðər|n|The weather is nice.|מזג האוויר נעים
+rain|גשם|reɪn|n|Rain is coming.|גשם מגיע
+wind|רוח|wɪnd|n|A strong wind.|רוח חזקה
+cloud|ענן|klaʊd|n|Dark clouds.|עננים כהים
+shirt|חולצה|ʃɜːrt|n|A blue shirt.|חולצה כחולה
+shoes|נעליים|ʃuːz|n|New shoes.|נעליים חדשות
+coat|מעיל|koʊt|n|Take your coat.|קח את המעיל שלך
+money|כסף|ˈmʌni|n|I have no money.|אין לי כסף
+phone|טלפון|foʊn|n|Answer the phone.|תענה לטלפון
+street|רחוב|striːt|n|A quiet street.|רחוב שקט
+city|עיר|ˈsɪti|n|A big city.|עיר גדולה
+country|מדינה|ˈkʌntri|n|Which country?|איזו מדינה?
+food|אוכל|fuːd|n|Good food.|אוכל טוב
+shop|חנות|ʃɒp|n|The shop is closed.|החנות סגורה
+who|מי|huː|q|Who is that?|מי זה?
+what|מה|wɒt|q|What is this?|מה זה?
+where|איפה|wɛr|q|Where do you live?|איפה אתה גר?
+when|מתי|wɛn|q|When does it start?|מתי זה מתחיל?
+why|למה|waɪ|q|Why not?|למה לא?
+how|איך|haʊ|q|How does it work?|איך זה עובד?
+which|איזה|wɪtʃ|q|Which one do you want?|איזה אתה רוצה?
+maybe|אולי|ˈmeɪbi|adv|Maybe tomorrow.|אולי מחר
+really|באמת|ˈriːəli|adv|I really like it.|אני ממש אוהב את זה
+together|ביחד|təˈɡɛðər|adv|We work together.|אנחנו עובדים ביחד
+again|שוב|əˈɡɛn|adv|Try again.|נסה שוב
+`;
+
+W[5] = `
+went|הלך|wɛnt|v|I went home early.|הלכתי הביתה מוקדם
+saw|ראה|sɔː|v|We saw a movie.|ראינו סרט
+did|עשה|dɪd|v|He did his homework.|הוא עשה שיעורים
+ate|אכל|eɪt|v|She ate breakfast.|היא אכלה ארוחת בוקר
+took|לקח|tʊk|v|They took the bus.|הם לקחו את האוטובוס
+gave|נתן|ɡeɪv|v|I gave him the key.|נתתי לו את המפתח
+found|מצא|faʊnd|v|We found the answer.|מצאנו את התשובה
+bought|קנה|bɔːt|v|He bought a car.|הוא קנה מכונית
+brought|הביא|brɔːt|v|She brought coffee.|היא הביאה קפה
+began|התחיל|bɪˈɡæn|v|The class began late.|השיעור התחיל באיחור
+became|הפך ל|bɪˈkeɪm|v|It became difficult.|זה נעשה קשה
+chose|בחר|tʃoʊz|v|I chose the blue one.|בחרתי את הכחול
+built|בנה|bɪlt|v|They built a house.|הם בנו בית
+sent|שלח|sɛnt|v|I sent the email.|שלחתי את המייל
+paid|שילם|peɪd|v|We paid yesterday.|שילמנו אתמול
+left|עזב|lɛft|v|He left at six.|הוא עזב בשש
+felt|הרגיש|fɛlt|v|I felt better.|הרגשתי יותר טוב
+kept|שמר|kɛpt|v|She kept the receipt.|היא שמרה את הקבלה
+meant|התכוון|mɛnt|v|I meant to call.|התכוונתי להתקשר
+travel|לנסוע|ˈtrævəl|v|We travel in summer.|אנחנו נוסעים בקיץ
+arrive|להגיע|əˈraɪv|v|They arrive at nine.|הם מגיעים בתשע
+stay|להישאר|steɪ|v|Stay with me.|תישאר איתי
+leave|לעזוב|liːv|v|Do not leave now.|אל תעזוב עכשיו
+learn|ללמוד|lɜːrn|v|I learn English.|אני לומד אנגלית
+teach|ללמד|tiːtʃ|v|She teaches math.|היא מלמדת מתמטיקה
+remember|לזכור|rɪˈmɛmbər|v|I remember his name.|אני זוכר את שמו
+forget|לשכוח|fərˈɡɛt|v|Do not forget the key.|אל תשכח את המפתח
+try|לנסות|traɪ|v|Try one more time.|נסה עוד פעם
+change|לשנות|tʃeɪndʒ|v|We changed the plan.|שינינו את התוכנית
+decide|להחליט|dɪˈsaɪd|v|I decided to stay.|החלטתי להישאר
+angry|כועס|ˈæŋɡri|adj|He was angry.|הוא כעס
+afraid|מפחד|əˈfreɪd|adj|I am afraid of dogs.|אני מפחד מכלבים
+surprised|מופתע|sərˈpraɪzd|adj|She was surprised.|היא הופתעה
+important|חשוב|ɪmˈpɔːrtənt|adj|This is important.|זה חשוב
+different|שונה|ˈdɪfrənt|adj|A different answer.|תשובה שונה
+same|אותו הדבר|seɪm|adj|The same problem.|אותה בעיה
+`;
+
+W[6] = `
+about|על אודות|əˈbaʊt|prep|A book about history.|ספר על היסטוריה
+between|בין|bɪˈtwiːn|prep|Between us.|בינינו
+during|במהלך|ˈdʊrɪŋ|prep|During the meeting.|במהלך הפגישה
+against|נגד|əˈɡɛnst|prep|Against the rules.|נגד הכללים
+without|בלי|wɪˈðaʊt|prep|Without sugar.|בלי סוכר
+through|דרך|θruː|prep|Through the door.|דרך הדלת
+until|עד|ənˈtɪl|prep|Until Friday.|עד יום שישי
+among|בקרב|əˈmʌŋ|prep|Among friends.|בין חברים
+because|כי|bɪˈkɔːz|conj|I left because it was late.|עזבתי כי היה מאוחר
+although|למרות ש|ɔːlˈðoʊ|conj|Although it rained, we went.|למרות שירד גשם, הלכנו
+however|אולם|haʊˈɛvər|conj|However, I disagree.|אולם, אני לא מסכים
+therefore|לכן|ˈðɛrfɔːr|conj|Therefore we stopped.|לכן הפסקנו
+while|בזמן ש|waɪl|conj|While I was cooking.|בזמן שבישלתי
+unless|אלא אם|ənˈlɛs|conj|Unless you call me.|אלא אם תתקשר אליי
+instead|במקום|ɪnˈstɛd|adv|Take tea instead.|קח תה במקום
+enough|מספיק|ɪˈnʌf|adv|That is enough.|זה מספיק
+almost|כמעט|ˈɔːlmoʊst|adv|Almost ready.|כמעט מוכן
+probably|כנראה|ˈprɒbəbli|adv|He is probably home.|הוא כנראה בבית
+actually|בעצם|ˈæktʃuəli|adv|Actually, I agree.|בעצם, אני מסכים
+especially|במיוחד|ɪˈspɛʃəli|adv|Especially in winter.|במיוחד בחורף
+better|יותר טוב|ˈbɛtər|adj|This is better.|זה יותר טוב
+worse|יותר גרוע|wɜːrs|adj|The traffic is worse.|הפקקים יותר גרועים
+several|כמה|ˈsɛvrəl|adj|Several people came.|כמה אנשים הגיעו
+own|משלו|oʊn|adj|My own room.|החדר שלי
+whole|שלם|hoʊl|adj|The whole day.|כל היום
+level|רמה|ˈlɛvəl|n|A high level.|רמה גבוהה
+reason|סיבה|ˈriːzən|n|The main reason.|הסיבה העיקרית
+result|תוצאה|rɪˈzʌlt|n|A good result.|תוצאה טובה
+example|דוגמה|ɪɡˈzæmpəl|n|For example.|לדוגמה
+problem|בעיה|ˈprɒbləm|n|No problem.|אין בעיה
+choice|בחירה|tʃɔɪs|n|A hard choice.|בחירה קשה
+mistake|טעות|mɪˈsteɪk|n|A small mistake.|טעות קטנה
+`;
+
+W[7] = `
+achieve|להשיג|əˈtʃiːv|v|We achieved the goal.|השגנו את המטרה
+allow|לאפשר|əˈlaʊ|v|This allows faster work.|זה מאפשר עבודה מהירה יותר
+avoid|להימנע|əˈvɔɪd|v|Avoid the highway.|תימנע מהכביש המהיר
+consider|לשקול|kənˈsɪdər|v|Consider the options.|שקול את האפשרויות
+suggest|להציע|səˈdʒɛst|v|I suggest we wait.|אני מציע שנחכה
+require|לדרוש|rɪˈkwaɪər|v|This requires time.|זה דורש זמן
+provide|לספק|prəˈvaɪd|v|They provide support.|הם מספקים תמיכה
+improve|לשפר|ɪmˈpruːv|v|Improve your accent.|שפר את המבטא שלך
+reduce|להפחית|rɪˈduːs|v|Reduce the noise.|תפחית את הרעש
+increase|להגדיל|ɪnˈkriːs|v|Increase the speed.|תגדיל את המהירות
+involve|לערב / לכלול|ɪnˈvɒlv|v|It involves risk.|זה כרוך בסיכון
+manage|לנהל / להצליח|ˈmænɪdʒ|v|I managed to finish.|הצלחתי לסיים
+prevent|למנוע|prɪˈvɛnt|v|Prevent mistakes.|למנוע טעויות
+realize|להבין / לממש|ˈriːəlaɪz|v|I realized my error.|הבנתי את הטעות שלי
+admit|להודות|ədˈmɪt|v|He admitted the truth.|הוא הודה באמת
+deny|להכחיש|dɪˈnaɪ|v|She denied it.|היא הכחישה את זה
+apply|להגיש / ליישם|əˈplaɪ|v|Apply the rule.|יישם את הכלל
+afford|להרשות לעצמו|əˈfɔːrd|v|I cannot afford it.|אני לא יכול להרשות לעצמי
+approach|גישה / לגשת|əˈproʊtʃ|n|A new approach.|גישה חדשה
+purpose|מטרה|ˈpɜːrpəs|n|On purpose.|בכוונה
+issue|סוגיה|ˈɪʃuː|n|A serious issue.|סוגיה רצינית
+ability|יכולת|əˈbɪləti|n|The ability to learn.|היכולת ללמוד
+attitude|גישה נפשית|ˈætɪtuːd|n|A positive attitude.|גישה חיובית
+opportunity|הזדמנות|ˌɒpərˈtuːnəti|n|A rare opportunity.|הזדמנות נדירה
+evidence|ראיה|ˈɛvɪdəns|n|There is no evidence.|אין ראיות
+research|מחקר|rɪˈsɜːrtʃ|n|Recent research.|מחקר עדכני
+likely|סביר|ˈlaɪkli|adj|It is likely to rain.|סביר שירד גשם
+aware|מודע|əˈwɛr|adj|I am aware of it.|אני מודע לזה
+willing|מוכן|ˈwɪlɪŋ|adj|Willing to help.|מוכן לעזור
+worth|שווה|wɜːrθ|adj|It is worth trying.|שווה לנסות
+whether|האם|ˈwɛðər|conj|I do not know whether he will come.|אני לא יודע האם הוא יבוא
+regarding|בנוגע ל|rɪˈɡɑːrdɪŋ|prep|Regarding your email.|בנוגע למייל שלך
+`;
+
+W[8] = `
+give up|לוותר|ɡɪv ʌp|phr|Do not give up now.|אל תוותר עכשיו
+figure out|להבין / לפצח|ˈfɪɡjər aʊt|phr|I figured out the bug.|פיצחתי את התקלה
+look forward to|לצפות בכיליון עיניים|lʊk ˈfɔːrwərd tuː|phr|I look forward to it.|אני מצפה לזה
+run out of|להיגמר|rʌn aʊt əv|phr|We ran out of time.|נגמר לנו הזמן
+put off|לדחות|pʊt ɒf|phr|Do not put it off.|אל תדחה את זה
+come up with|להעלות רעיון|kʌm ʌp wɪð|phr|She came up with a plan.|היא העלתה תוכנית
+get along with|להסתדר עם|ɡɛt əˈlɔːŋ wɪð|phr|They get along well.|הם מסתדרים טוב
+turn down|לסרב|tɜːrn daʊn|phr|He turned down the offer.|הוא דחה את ההצעה
+bring up|להעלות נושא|brɪŋ ʌp|phr|She brought it up.|היא העלתה את זה
+work out|להסתדר / להתאמן|wɜːrk aʊt|phr|It worked out fine.|זה הסתדר בסדר
+take over|להשתלט|teɪk ˈoʊvər|phr|He took over the project.|הוא לקח פיקוד על הפרויקט
+look into|לבדוק לעומק|lʊk ˈɪntuː|phr|I will look into it.|אני אבדוק את זה
+piece of cake|קלי קלות|piːs əv keɪk|idm|The test was a piece of cake.|המבחן היה קלי קלות
+break the ice|לשבור את הקרח|breɪk ði aɪs|idm|A joke to break the ice.|בדיחה לשבור את הקרח
+under the weather|לא מרגיש טוב|ˈʌndər ðə ˈwɛðər|idm|I feel under the weather.|אני לא מרגיש טוב
+hit the road|לצאת לדרך|hɪt ðə roʊd|idm|Let us hit the road.|בוא נצא לדרך
+on the same page|בהסכמה|ɒn ðə seɪm peɪdʒ|idm|Are we on the same page?|אנחנו מסונכרנים?
+call it a day|לסיים ליום|kɔːl ɪt ə deɪ|idm|Let us call it a day.|בוא נסיים להיום
+by the way|דרך אגב|baɪ ðə weɪ|phr|By the way, she called.|דרך אגב, היא התקשרה
+as far as I know|למיטב ידיעתי|æz fɑːr æz aɪ noʊ|phr|As far as I know, it is closed.|למיטב ידיעתי, זה סגור
+to be honest|למען האמת|tuː bi ˈɒnɪst|phr|To be honest, I disagree.|למען האמת, אני לא מסכים
+I would rather|אני מעדיף|aɪ wʊd ˈræðər|phr|I would rather stay home.|אני מעדיף להישאר בבית
+it depends on|תלוי ב|ɪt dɪˈpɛndz ɒn|phr|It depends on the price.|זה תלוי במחיר
+no wonder|לא פלא|noʊ ˈwʌndər|phr|No wonder he is tired.|לא פלא שהוא עייף
+subtle|עדין / מרומז|ˈsʌtəl|adj|A subtle difference.|הבדל דק
+reluctant|מסויג|rɪˈlʌktənt|adj|He was reluctant to answer.|הוא היסס לענות
+straightforward|פשוט וישיר|ˌstreɪtˈfɔːrwərd|adj|A straightforward answer.|תשובה ישירה
+overwhelming|מציף / מוחץ|ˌoʊvərˈwɛlmɪŋ|adj|An overwhelming response.|תגובה מוחצת
+insight|תובנה|ˈɪnsaɪt|n|A useful insight.|תובנה שימושית
+trade-off|פשרה|ˈtreɪd ɒf|n|There is a trade-off.|יש כאן פשרה
+`;
+
+const WORDS = [];
+Object.keys(W).forEach(lv=>{
+  W[lv].trim().split('\n').forEach(line=>{
+    const p = line.split('|'); if(p.length<6) return;
+    WORDS.push({id:'w:'+p[0], en:p[0], he:p[1], ipa:p[2], pos:p[3], ex:p[4], exhe:p[5], lv:+lv});
+  });
+});
+
+/* ---------------- חוקי דקדוק ---------------- */
+/* lv | כותרת | הסבר בעברית | דוגמאות: en~he ; en~he */
+const GRAMMAR = `
+3|a / an|לפני שם עצם יחיד מוסיפים a. אם המילה מתחילה בצליל תנועה (a,e,i,o,u) — משתמשים ב־an.|a car~מכונית;an apple~תפוח;an hour~שעה (h שותקת)
+3|to be — am / is / are|I → am. He/She/It → is. You/We/They → are. בעברית אין פועל "להיות" בהווה, ולכן זו הטעות הכי נפוצה.|I am tired~אני עייף;She is a nurse~היא אחות;They are here~הם כאן
+3|הווה פשוט + s|בגוף שלישי יחיד (he/she/it) מוסיפים s לפועל. בשאר הגופים — הפועל נשאר בסיסי.|I work~אני עובד;He works~הוא עובד;She goes~היא הולכת
+3|סדר המילים SVO|באנגלית הסדר קבוע: נושא ← פועל ← מושא. אי אפשר להזיז מילים כמו בעברית.|I love this song~אני אוהב את השיר הזה;Dana reads books~דנה קוראת ספרים
+3|רבים|מוסיפים s. אחרי s,x,ch,sh → es. y אחרי עיצור → ies.|books~ספרים;boxes~קופסאות;cities~ערים
+4|שלילה בהווה|don't לכל הגופים, doesn't ל־he/she/it. אחרי don't/doesn't הפועל תמיד בצורת הבסיס — בלי s.|I don't know~אני לא יודע;He doesn't work~הוא לא עובד
+4|שאלות בהווה|Do/Does בהתחלה, ואז נושא ואז פועל בסיס. שים לב: ה־s עובר ל־Does.|Do you speak English?~אתה מדבר אנגלית?;Does she live here?~היא גרה כאן?
+4|מילות שאלה + עזר|קודם מילת שאלה, אחר כך פועל עזר, אחר כך הנושא. Where do you...? ולא Where you...?|Where do you live?~איפה אתה גר?;What does it mean?~מה זה אומר?
+4|הווה ממושך|am/is/are + ing — לפעולה שקורית עכשיו או בתקופה הזו.|I am eating now~אני אוכל עכשיו;They are working~הם עובדים
+4|Present Simple מול Continuous|Simple = הרגל וקבוע. Continuous = ברגע זה. פעלים של מצב (know, want, like) כמעט לא באים ב־ing.|I drink coffee every day~אני שותה קפה כל יום;I am drinking coffee~אני שותה קפה עכשיו
+5|עבר פשוט|מוסיפים ed לפעלים רגילים. פעלים חריגים משנים צורה לגמרי וצריך לשנן אותם.|I worked yesterday~עבדתי אתמול;I went home~הלכתי הביתה
+5|שלילה ושאלה בעבר|did/didn't לכל הגופים — והפועל חוזר לצורת הבסיס. Didn't went זו שגיאה.|I didn't go~לא הלכתי;Did you see it?~ראית את זה?
+5|עתיד — will|will + פועל בסיס. להחלטה ברגע, הבטחה או תחזית.|I will call you~אני אתקשר אליך;It will rain~ירד גשם
+5|עתיד — going to|be going to + פועל = תוכנית שכבר קיימת, או משהו שרואים שעומד לקרות.|I am going to study~אני הולך ללמוד;She is going to win~היא עומדת לנצח
+5|there is / there are|"יש" באנגלית. is ליחיד, are לרבים. לא to have.|There is a problem~יש בעיה;There are two options~יש שתי אפשרויות
+6|מילות יחס של מקום|in = בתוך שטח סגור. on = על משטח. at = בנקודה מסוימת.|in the room~בחדר;on the table~על השולחן;at the door~בדלת
+6|מילות יחס של זמן|in לחודש/שנה, on ליום ותאריך, at לשעה.|in June~ביוני;on Monday~ביום שני;at 8 o'clock~בשעה 8
+6|השוואה|קצר: er + than. ארוך: more + than. מצטיין: the + est / the most.|faster than me~מהר ממני;more useful~יותר שימושי;the best~הכי טוב
+6|some / any|some במשפט חיובי ובהצעה, any בשלילה ובשאלה.|I have some time~יש לי קצת זמן;I don't have any money~אין לי כסף
+6|much / many / a lot of|much לבלתי ספיר, many לספיר, a lot of לשניהם.|much water~הרבה מים;many people~הרבה אנשים
+6|too / enough|too = יותר מדי (שלילי). enough = מספיק, ובא אחרי שם התואר.|too expensive~יקר מדי;fast enough~מהיר מספיק
+7|Present Perfect|have/has + צורה שלישית. לפעולה שקרתה בלי זמן מוגדר, או שנמשכת עד עכשיו. לא משתמשים עם yesterday.|I have finished~סיימתי;She has lived here for years~היא גרה כאן שנים
+7|Perfect מול Past Simple|Past Simple כשיש זמן מוגדר בעבר. Present Perfect כשהזמן פתוח או רלוונטי להווה.|I saw him yesterday~ראיתי אותו אתמול;I have seen this film~ראיתי את הסרט הזה
+7|for / since|for = משך זמן. since = נקודת התחלה.|for two hours~במשך שעתיים;since 2019~מאז 2019
+7|Past Continuous|was/were + ing — פעולה שהייתה באמצע כשמשהו קטע אותה.|I was driving when he called~נהגתי כשהוא התקשר
+7|Conditional 1|If + הווה פשוט , will + בסיס. מצב אמיתי ואפשרי.|If it rains, I will stay~אם ירד גשם, אשאר
+7|Conditional 2|If + עבר פשוט , would + בסיס. מצב דמיוני או לא סביר.|If I had time, I would help~אילו היה לי זמן, הייתי עוזר
+7|סביל — Passive|be + צורה שלישית. כשהפעולה חשובה יותר מהמבצע.|The report was sent~הדוח נשלח;English is spoken here~מדברים כאן אנגלית
+7|דיבור עקיף|כשמדווחים על דברי מישהו, הזמן "נסוג" צעד אחורה.|He said he was tired~הוא אמר שהוא עייף
+7|Modals|can=יכולת, must=חובה, should=המלצה, might=אולי. תמיד + פועל בסיס בלי to.|You should rest~כדאי שתנוח;It might work~זה אולי יעבוד
+8|Phrasal verbs|פועל + מילית שמשנה את המשמעות לגמרי. אי אפשר לתרגם מילה במילה — צריך לזכור כיחידה אחת.|give up~לוותר;look after~לטפל ב;put up with~לסבול
+8|Collocations|צירופים קבועים. אנגלית "נשמעת נכון" בזכותם — make a decision ולא do a decision.|make a decision~לקבל החלטה;take a photo~לצלם;heavy rain~גשם כבד
+8|תווית מרככת|באנגלית מדוברת מרככים אמירות ישירות. תרגום ישיר מעברית נשמע בוטה.|Could you possibly help me?~האם תוכל אולי לעזור לי;I'm not sure I agree~אני לא בטוח שאני מסכים
+8|Articles מתקדם|the למשהו ידוע ומסוים. בלי תווית להכללות ולמושגים מופשטים.|Music is important~מוזיקה חשובה;The music was loud~המוזיקה הייתה רועשת
+8|טעויות עבריות נפוצות|גיל: לא "I have 30 years" אלא I am 30. הסבר: לא "explain me" אלא explain to me. אלה תרגומים ישירים מעברית שלא קיימים באנגלית.|I am 30 years old~אני בן 30;Please explain it to me~תסביר לי את זה
+`.trim().split('\n').map(l=>{
+  const p=l.split('|');
+  return {lv:+p[0], ti:p[1], he:p[2], ex:p[3].split(';').map(e=>{const[en,h]=e.split('~');return{en,he:h}})};
+});
+
+/* ---------------- משפטים: בנייה, הכתבה, תרגום ---------------- */
+const SENTS = `
+3|I am a student.|אני סטודנט
+3|She is my sister.|היא אחותי
+3|We are at home.|אנחנו בבית
+3|The dog is very big.|הכלב מאוד גדול
+3|He works in a school.|הוא עובד בבית ספר
+3|They live in Tel Aviv.|הם גרים בתל אביב
+3|I like cold water.|אני אוהב מים קרים
+3|My mother reads books.|אמא שלי קוראת ספרים
+3|The children play outside.|הילדים משחקים בחוץ
+3|This is a new car.|זו מכונית חדשה
+4|I do not know the answer.|אני לא יודע את התשובה
+4|She does not eat meat.|היא לא אוכלת בשר
+4|Do you speak English?|אתה מדבר אנגלית?
+4|Where does he work?|איפה הוא עובד?
+4|What are you doing now?|מה אתה עושה עכשיו?
+4|They are not coming today.|הם לא באים היום
+4|Why is the door open?|למה הדלת פתוחה?
+4|I am waiting for you.|אני מחכה לך
+4|How much does it cost?|כמה זה עולה?
+4|We are learning English together.|אנחנו לומדים אנגלית ביחד
+5|I went to the store yesterday.|הלכתי לחנות אתמול
+5|She did not call me back.|היא לא חזרה אליי
+5|Did you finish the work?|סיימת את העבודה?
+5|We will travel next summer.|ניסע בקיץ הבא
+5|He is going to buy a house.|הוא עומד לקנות בית
+5|There were many people there.|היו שם הרבה אנשים
+5|I bought this last year.|קניתי את זה בשנה שעברה
+5|They will not agree to that.|הם לא יסכימו לזה
+6|I stayed home because it was raining.|נשארתי בבית כי ירד גשם
+6|This solution is better than the other one.|הפתרון הזה טוב יותר מהשני
+6|We met at the station on Monday.|נפגשנו בתחנה ביום שני
+6|Although it was late, we kept working.|למרות שהיה מאוחר, המשכנו לעבוד
+6|There is not enough time for everything.|אין מספיק זמן להכול
+6|He explained the reason to the whole team.|הוא הסביר את הסיבה לכל הצוות
+7|I have already finished the report.|כבר סיימתי את הדוח
+7|She has been working here since 2019.|היא עובדת כאן מאז 2019
+7|If I had more time, I would learn Spanish.|אילו היה לי יותר זמן, הייתי לומד ספרדית
+7|The email was sent this morning.|המייל נשלח הבוקר
+7|I was driving when the phone rang.|נהגתי כשהטלפון צלצל
+7|You should have told me earlier.|היית צריך לספר לי קודם
+7|He said that he would come later.|הוא אמר שהוא יבוא מאוחר יותר
+7|This might take longer than expected.|זה עלול לקחת יותר זמן מהצפוי
+8|To be honest, I would rather stay home.|למען האמת, אני מעדיף להישאר בבית
+8|We ran out of time before the meeting ended.|נגמר לנו הזמן לפני שהפגישה הסתיימה
+8|I cannot figure out what went wrong.|אני לא מצליח להבין מה השתבש
+8|As far as I know, the office is closed.|למיטב ידיעתי, המשרד סגור
+8|Let us make a decision and move on.|בוא נקבל החלטה ונתקדם
+8|It depends on what you are trying to achieve.|זה תלוי במה שאתה מנסה להשיג
+`.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],en:p[1],he:p[2]}});
+
+/* ---------------- השלמת חסר ---------------- */
+/* lv | משפט עם ___ | תשובה | מסיחים | הסבר */
+const CLOZE = `
+3|She ___ a teacher.|is|am,are,be|I→am, He/She/It→is, You/We/They→are
+3|I ___ from Israel.|am|is,are,be|אחרי I תמיד am
+3|He ___ in a bank.|works|work,working,worked|גוף שלישי יחיד בהווה מקבל s
+3|We ___ two children.|have|has,haves,having|has רק ל־he/she/it
+3|This is ___ orange.|an|a,the,--|לפני צליל תנועה משתמשים ב־an
+4|He ___ like coffee.|doesn't|don't,isn't,not|בגוף שלישי יחיד — doesn't
+4|___ you live here?|Do|Does,Are,Is|Do לכל הגופים חוץ מ־he/she/it
+4|What ___ she doing?|is|are,does,do|הווה ממושך עם she → is
+4|They ___ not coming.|are|is,do,does|They → are
+4|Where ___ he work?|does|do,is,are|שאלה בהווה עם he → does
+5|I ___ to Eilat last week.|went|go,gone,goed|go בעבר → went
+5|She ___ not answer the phone.|did|does,is,was|שלילה בעבר → did not
+5|We ___ visit them tomorrow.|will|are,did,was|עתיד פשוט → will + בסיס
+5|He ___ the book yesterday.|read|reads,reading,will read|last/yesterday מחייבים עבר
+5|There ___ many people at the party.|were|was,are,is|רבים בעבר → were
+6|I waited ___ six o'clock.|until|during,since,for|until = עד נקודת זמן
+6|The meeting is ___ Tuesday.|on|in,at,to|ימים בשבוע מקבלים on
+6|She is taller ___ her brother.|than|then,that,as|השוואה → than
+6|I don't have ___ questions.|any|some,much,a|בשלילה משתמשים ב־any
+6|It is ___ expensive for me.|too|very much,enough,so much|too = יותר מדי
+7|I ___ lived here for ten years.|have|has,am,did|I → have
+7|She ___ already left.|has|have,is,was|She → has
+7|If it rains, I ___ stay home.|will|would,am,did|תנאי ראשון → will
+7|If I ___ rich, I would travel.|were|am,is,will be|תנאי שני → were לכל הגופים
+7|The car ___ repaired last week.|was|is,has,were|סביל בעבר יחיד → was
+7|You ___ see a doctor.|should|must to,will to,can to|should = המלצה, בלי to
+8|I am looking forward ___ meeting you.|to|for,at,with|look forward to + ing
+8|Let's ___ a decision.|make|do,take,have|collocation: make a decision
+8|We ran ___ of milk.|out|off,over,away|run out of = נגמר
+8|He gave ___ smoking last year.|up|on,in,off|give up = לוותר / להפסיק
+`.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],s:p[1],a:p[2],d:p[3].split(','),he:p[4]}});
+
+/* ---------------- הגהה: מצא את הטעות ---------------- */
+/* lv | משפט שגוי | המילה השגויה | התיקון | ההסבר */
+const PROOF = `
+3|I am student.|student|a student|לפני שם עצם יחיד חייבים a/an
+3|She have a car.|have|has|he/she/it מקבלים has
+3|He go to work every day.|go|goes|גוף שלישי יחיד בהווה מקבל s
+3|I am like pizza.|am|--|בהווה פשוט אין am לפני פועל
+3|They is my friends.|is|are|They → are
+4|He don't know.|don't|doesn't|גוף שלישי יחיד → doesn't
+4|Where you live?|you|do you|שאלה בהווה חייבת do לפני הנושא
+4|Does she works here?|works|work|אחרי does הפועל חוזר לבסיס
+4|I not have time.|not|don't|שלילה בהווה → don't
+5|I didn't went home.|went|go|אחרי didn't הפועל בצורת בסיס
+5|Yesterday I go to the beach.|go|went|Yesterday מחייב עבר
+5|She will comes tomorrow.|comes|come|אחרי will הפועל בבסיס
+5|I have 25 years old.|have|am|גיל באנגלית: I am 25 years old
+6|I am waiting you.|waiting|waiting for|wait דורש for
+6|We arrived to Haifa.|to|in|arrive in/at, לא arrive to
+6|It depends of the price.|of|on|depend on
+6|I am good in math.|in|at|good at, לא good in
+7|I have seen him yesterday.|have seen|saw|עם yesterday משתמשים ב־Past Simple
+7|She is living here since 2019.|is living|has lived|since מחייב Present Perfect
+7|If I will have time, I will call.|will have|have|אחרי If בתנאי ראשון — הווה פשוט
+7|The letter was write by Dan.|write|written|סביל דורש צורה שלישית
+8|Please explain me the rule.|explain me|explain to me|explain דורש to לפני המושא
+8|I did a mistake.|did|made|collocation: make a mistake
+8|He said me the truth.|said me|told me|say something to me / tell me
+8|I have a good relation with him.|relation|relationship|relationship לקשר בין אנשים
+`.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],s:p[1],bad:p[2],fix:p[3],he:p[4]}});
+
+/* ---------------- שיחה ---------------- */
+/* lv | השאלה באנגלית | תרגום | רמז למבנה התשובה | דוגמת תשובה */
+const TALK = `
+2|What is your name?|מה שמך?|My name is ___|My name is Dan.
+2|How are you?|מה שלומך?|I am ___|I am fine, thank you.
+2|How old are you?|בן כמה אתה?|I am ___ years old|I am twelve years old.
+3|Where do you live?|איפה אתה גר?|I live in ___|I live in Netanya.
+3|What do you do?|במה אתה עוסק?|I am a ___ / I work as a ___|I work as an engineer.
+3|Do you have brothers or sisters?|יש לך אחים ואחיות?|I have ___|I have one brother and one sister.
+3|What is your favourite food?|מה האוכל האהוב עליך?|My favourite food is ___|My favourite food is hummus.
+4|What are you doing right now?|מה אתה עושה עכשיו?|I am ___ing|I am studying English.
+4|Why are you learning English?|למה אתה לומד אנגלית?|Because ___|Because I need it for work.
+4|What time do you usually wake up?|באיזו שעה אתה קם בדרך כלל?|I usually wake up at ___|I usually wake up at six.
+5|What did you do yesterday?|מה עשית אתמול?|I ___ (עבר)|I worked and then I went to the gym.
+5|Where did you travel last year?|לאן נסעת בשנה שעברה?|I went to ___|I went to Greece with my family.
+5|What are your plans for the weekend?|מה התוכניות שלך לסופ"ש?|I am going to ___|I am going to visit my parents.
+6|Which do you prefer, the city or the countryside? Why?|מה אתה מעדיף, עיר או כפר? למה?|I prefer ___ because ___|I prefer the city because there is more to do.
+6|What is the biggest difference between Israel and other countries you visited?|מה ההבדל הגדול ביותר?|The biggest difference is ___|The biggest difference is the pace of life.
+6|Describe your typical workday.|תאר יום עבודה טיפוסי|First ___, then ___, after that ___|First I check my email, then I run tests.
+7|What have you learned in the last year?|מה למדת בשנה האחרונה?|I have learned ___|I have learned how to manage my time better.
+7|If you could live anywhere, where would you live?|אילו יכולת לגור בכל מקום, איפה?|If I could, I would live in ___|If I could, I would live near the sea.
+7|What would you do if you lost your job tomorrow?|מה היית עושה אילו איבדת את עבודתך מחר?|I would ___|I would start looking immediately and update my CV.
+8|What is one thing people often get wrong about your profession?|מה אנשים לרוב לא מבינים במקצוע שלך?|People tend to think ___, but actually ___|People tend to think it is only coding, but actually most of it is testing.
+8|Tell me about a time you had to change your mind about something.|ספר על פעם שהיית צריך לשנות את דעתך|I used to think ___, but then ___|I used to think speed mattered most, but then I saw the cost of bugs.
+8|How would you explain your job to a ten-year-old?|איך היית מסביר את עבודתך לילד בן עשר?|Imagine ___. That is basically what I do.|Imagine a plane that flies itself. I make sure it does not get lost.
+`.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],q:p[1],he:p[2],hint:p[3],ans:p[4]}});
+/* ============================================================
+   ENGINE — אחסון, משתמשים, חזרות מרווחות, שטף, בניית סשן
+   ============================================================ */
+
+/* --- אחסון: localStorage אם זמין, אחרת בזיכרון (לתצוגה מקדימה) --- */
+const Store = (()=>{
+  let ok=true, mem={};
+  try{ localStorage.setItem('__t','1'); localStorage.removeItem('__t'); }catch(e){ ok=false; }
+  return {
+    persistent: ok,
+    get(k,d){ try{ const v = ok?localStorage.getItem(k):mem[k]; return v?JSON.parse(v):d; }catch(e){ return d; } },
+    set(k,v){ const s=JSON.stringify(v); if(ok){try{localStorage.setItem(k,s)}catch(e){mem[k]=s}} else mem[k]=s; }
+  };
+})();
+
+const K_USERS='ladder.users', K_CUR='ladder.current';
+const today = ()=> new Date().toISOString().slice(0,10);
+const dayNum = ()=> Math.floor(Date.now()/864e5);
+const uid = ()=> Math.random().toString(36).slice(2,9);
+
+let USERS = Store.get(K_USERS, []);
+/* השלמת שדות חסרים בפרופילים ישנים או מיובאים */
+function normalise(u){
+  u.srs=u.srs||{}; u.log=u.log||[]; u.mastered=u.mastered||{};
+  u.lv=u.lv||0; u.xp=u.xp||0; u.streak=u.streak||0;
+  u.settings=Object.assign({tts:true,autoSpeak:true,speed:.9}, u.settings||{});
+  return u;
+}
+USERS.forEach(normalise);
+let CUR   = Store.get(K_CUR, null);
+const saveUsers = ()=> Store.set(K_USERS, USERS);
+const me = ()=> USERS.find(u=>u.id===CUR);
+
+function newUser(name, emoji, role, lv){
+  const u = {
+    id:uid(), name, emoji, role, created:today(),
+    lv: lv||0,                 // רמה נוכחית
+    xp:0, streak:0, lastDay:null,
+    srs:{},                    // itemId -> {ef,iv,rep,due,seen,ok,ms}
+    log:[],                    // {d, n, ok, ms, min}
+    mastered:{},               // lvId -> אחוז
+    settings:{tts:true, autoSpeak:true, speed:.9}
+  };
+  USERS.push(normalise(u)); saveUsers(); return u;
+}
+
+/* --- SM-2 עם משקל שטף --- */
+/* q: 0-5. אנחנו מחשבים אותו משילוב של נכונות + זמן תגובה. */
+function grade(correct, ms, target){
+  if(!correct) return ms<1500?2:1;          // טעות מהירה = כמעט ידע, טעות איטית = לא יודע
+  const r = ms/target;
+  if(r<=.6) return 5;                        // שליפה מיידית
+  if(r<=1)  return 4;                        // בטווח היעד
+  if(r<=1.8)return 3;                        // נכון אבל עם היסוס
+  return 3;
+}
+
+function review(u, itemId, correct, ms, target){
+  const q = grade(correct, ms, target);
+  let c = u.srs[itemId] || {ef:2.5, iv:0, rep:0, due:dayNum(), seen:0, ok:0, ms:0};
+  c.seen++; if(correct) c.ok++;
+  c.ms = c.ms ? Math.round(c.ms*.65 + ms*.35) : ms;   // ממוצע נע של זמן שליפה
+  if(q<3){ c.rep=0; c.iv=0; }                        // נפילה — חוזרים לאותו יום
+  else{
+    c.rep++;
+    c.iv = c.rep===1?1 : c.rep===2?3 : Math.round(c.iv*c.ef);
+    c.ef = Math.max(1.3, c.ef + (0.1 - (5-q)*(0.08+(5-q)*0.02)));
+  }
+  c.due = dayNum() + c.iv;
+  c.last = dayNum();
+  u.srs[itemId] = c;
+  return {q, card:c};
+}
+
+/* מיומנות פריט: 0-1 */
+const strength = c => !c ? 0 : Math.min(1, Math.min(1,c.rep/3)*.55 + (c.ok/Math.max(1,c.seen))*.45);
+
+/* --- מאגר פריטים לפי רמה --- */
+function poolFor(lv){
+  const p = [];
+  if(lv<=1) LETTERS.forEach(x=>p.push({t:'letter', id:'L:'+x.u, d:x, lv:0}));
+  if(lv>=1 && lv<=3) PHONICS.forEach(x=>p.push({t:'phonics',id:'P:'+x.w, d:x, lv:1}));
+  WORDS.filter(w=>w.lv<=lv).forEach(w=>{
+    p.push({t:'w-recog', id:w.id+'#r', d:w, lv:w.lv});
+    p.push({t:'w-recall',id:w.id+'#p', d:w, lv:w.lv});
+    if(w.lv>=2) p.push({t:'w-listen',id:w.id+'#l', d:w, lv:w.lv});
+    if(w.lv>=3) p.push({t:'w-speak', id:w.id+'#s', d:w, lv:w.lv});
+  });
+  const key = s => s.slice(0,28);
+  SENTS.filter(s=>s.lv<=lv).forEach(s=>{
+    p.push({t:'build',  id:'S:'+key(s.en)+'#b', d:s, lv:s.lv});
+    p.push({t:'dictate',id:'S:'+key(s.en)+'#d', d:s, lv:s.lv});
+  });
+  CLOZE.filter(c=>c.lv<=lv).forEach(c=>p.push({t:'cloze', id:'C:'+key(c.s), d:c, lv:c.lv}));
+  PROOF.filter(c=>c.lv<=lv).forEach(c=>p.push({t:'proof', id:'F:'+key(c.s), d:c, lv:c.lv}));
+  GRAMMAR.filter(g=>g.lv<=lv).forEach(g=>p.push({t:'rule', id:'G:'+key(g.ti), d:g, lv:g.lv}));
+  TALK.filter(t=>t.lv<=lv).forEach(t=>p.push({t:'talk', id:'T:'+key(t.q), d:t, lv:t.lv}));
+  return p;
+}
+
+/* יעד זמן שליפה לפי סוג התרגיל (מילישניות) */
+const TARGET = {letter:2500,phonics:3500,'w-recog':3000,'w-recall':5000,'w-listen':6000,
+                'w-speak':6000,build:15000,dictate:14000,cloze:6000,proof:9000,rule:8000,talk:20000};
+
+/* --- בניית סשן: חזרות שנדרשות קודם, ואז חומר חדש, בשילוב מסוגים שונים --- */
+function buildSession(u, size, mode){
+  const pool = poolFor(u.lv);
+  const d = dayNum();
+  let due=[], fresh=[], weak=[];
+  pool.forEach(it=>{
+    const c=u.srs[it.id];
+    if(!c) fresh.push(it);
+    else if(c.due<=d) (strength(c)<.35?weak:due).push(it);
+  });
+  // מילוי: אם אין מספיק פריטים שהגיע זמנם, מקדימים את החלשים ביותר
+  const fill = (list, sub) => {
+    if(list.length>=size) return list.slice(0,size);
+    const extra = shuffle(sub.filter(x=>!list.includes(x)))
+      .sort((a,b)=>strength(u.srs[a.id])-strength(u.srs[b.id]));
+    return [...list, ...extra].slice(0,size);
+  };
+
+  if(mode==='weak'){
+    const s=[...weak,...due].sort((a,b)=>strength(u.srs[a.id])-strength(u.srs[b.id]));
+    return interleave(fill(s, pool));
+  }
+  if(mode==='talk'){
+    const t=pool.filter(x=>x.t==='talk');
+    return t.length? shuffle(t).slice(0,size) : buildSession(u,size,'mix');
+  }
+  if(mode==='rules'){
+    const g=pool.filter(x=>['rule','cloze','proof','build'].includes(x.t));
+    return g.length? interleave(shuffle(g).slice(0,size)) : buildSession(u,size,'mix');
+  }
+
+  shuffle(due); shuffle(fresh); shuffle(weak);
+  // מיקס: ~40% חלשים, ~40% לחזרה, ~30% חדש — ומה שחסר מושלם מהמאגר
+  const want = [...weak.slice(0,Math.ceil(size*.4)), ...due.slice(0,Math.ceil(size*.4)), ...fresh.slice(0,Math.ceil(size*.3))];
+  const rest = shuffle([...fresh, ...due, ...weak]).filter(x=>!want.includes(x));
+  return interleave(capTypes([...want, ...rest, ...shuffle(pool)], size));
+
+/* אף סוג תרגיל לא תופס יותר מ־35% מהסשן — כדי שלא ייצא סשן של מילים בלבד */
+}
+function capTypes(cands, size){
+  const cap=Math.max(2,Math.ceil(size*.35)), cnt={}, out=[], seen=new Set();
+  for(const x of cands){
+    if(out.length>=size) break;
+    if(seen.has(x.id)) continue;
+    if((cnt[x.t]||0)>=cap) continue;
+    cnt[x.t]=(cnt[x.t]||0)+1; seen.add(x.id); out.push(x);
+  }
+  for(const x of cands){ if(out.length>=size) break; if(seen.has(x.id)) continue; seen.add(x.id); out.push(x); }
+  return out;
+}
+
+/* שזירה — לא שני תרגילים מאותו סוג ברצף (Interleaving) */
+function interleave(arr){
+  const out=[]; const rem=[...arr];
+  while(rem.length){
+    let i = rem.findIndex(x=>!out.length || x.t!==out[out.length-1].t);
+    if(i<0) i=0;
+    out.push(rem.splice(i,1)[0]);
+  }
+  return out;
+}
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+function sample(arr,n,not){ return shuffle(arr.filter(x=>x!==not)).slice(0,n); }
+
+/* --- שליטה ברמה --- */
+function levelPct(u, lv){
+  const all = poolFor(lv);
+  const own = all.filter(x=>x.lv===lv);
+  const set = own.length?own:all;
+  if(!set.length) return 0;
+  const s = set.reduce((a,x)=>a+strength(u.srs[x.id]),0);
+  return Math.round(100*s/set.length);
+}
+function checkPromote(u){
+  const pct = levelPct(u, u.lv);
+  u.mastered[u.lv]=pct;
+  if(pct>=LEVELS[u.lv].need && u.lv<LEVELS.length-1){ u.lv++; return true; }
+  return false;
+}
+
+/* --- רצף ימים ולוג --- */
+function touchDay(u, correct, ms){
+  const t=today();
+  if(u.lastDay!==t){
+    const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+    u.streak = (u.lastDay===y)?u.streak+1:1;
+    u.lastDay=t;
+  }
+  let e = u.log.find(x=>x.d===t);
+  if(!e){ e={d:t,n:0,ok:0,ms:0}; u.log.push(e); if(u.log.length>400) u.log.shift(); }
+  e.n++; if(correct) e.ok++; e.ms = Math.round((e.ms*(e.n-1)+ms)/e.n);
+}
+
+/* --- ניתוח לדשבורד --- */
+function analyse(u){
+  const items = Object.entries(u.srs);
+  const known = items.filter(([,c])=>strength(c)>=.7).length;
+  const learning = items.filter(([,c])=>strength(c)>0 && strength(c)<.7).length;
+  const accAll = items.reduce((a,[,c])=>a+c.ok,0) / Math.max(1, items.reduce((a,[,c])=>a+c.seen,0));
+  const msArr = items.filter(([,c])=>c.ms).map(([,c])=>c.ms);
+  const avgMs = msArr.length? Math.round(msArr.reduce((a,b)=>a+b,0)/msArr.length) : 0;
+  const wordCards = items.filter(([k])=>k.startsWith('w:'));
+  const vocab = new Set(wordCards.filter(([,c])=>strength(c)>=.7).map(([k])=>k.split('#')[0])).size;
+  // נקודות חולשה לפי סוג תרגיל
+  const byType={};
+  poolFor(u.lv).forEach(it=>{ const c=u.srs[it.id]; if(!c)return;
+    byType[it.t]=byType[it.t]||{ok:0,n:0}; byType[it.t].ok+=c.ok; byType[it.t].n+=c.seen; });
+  const weakTypes = Object.entries(byType).filter(([,v])=>v.n>=4)
+      .map(([t,v])=>({t, acc:v.ok/v.n})).sort((a,b)=>a.acc-b.acc).slice(0,3);
+  // מילים בעייתיות
+  const weakWords = items.filter(([k,c])=>k.startsWith('w:') && c.seen>=2 && strength(c)<.45)
+      .map(([k,c])=>({w:k.split(':')[1].split('#')[0], c}))
+      .sort((a,b)=>strength(a.c)-strength(b.c)).slice(0,12);
+  const dueNow = poolFor(u.lv).filter(it=>{const c=u.srs[it.id];return c&&c.due<=dayNum()}).length;
+  return {known, learning, accAll, avgMs, vocab, weakTypes, weakWords, dueNow, total:items.length};
+}
+
+const TYPE_HE = {letter:'אותיות',phonics:'פונטיקה','w-recog':'זיהוי מילים','w-recall':'שליפת מילים',
+ 'w-listen':'הבנת הנשמע','w-speak':'הגייה',build:'בניית משפט',dictate:'הכתבה',cloze:'השלמה',
+ proof:'הגהה',rule:'חוקי דקדוק',talk:'שיחה'};
+
+/* --- דיבור --- */
+let VOICES=[];
+function loadVoices(){ VOICES = (window.speechSynthesis? speechSynthesis.getVoices():[]).filter(v=>/^en/i.test(v.lang)); }
+if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+function say(text, rate){
+  if(!window.speechSynthesis) return false;
+  try{
+    speechSynthesis.cancel();
+    const u2=new SpeechSynthesisUtterance(text);
+    u2.lang='en-US'; u2.rate = rate || (me()?.settings.speed || .9);
+    const v = VOICES.find(v=>/Samantha|Google US|Alex|Karen/i.test(v.name)) || VOICES[0];
+    if(v) u2.voice=v;
+    speechSynthesis.speak(u2); return true;
+  }catch(e){ return false; }
+}
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+function listen(onResult, onEnd){
+  if(!SR) return null;
+  const r=new SR(); r.lang='en-US'; r.interimResults=false; r.maxAlternatives=3;
+  r.onresult=e=>{ const alts=[...e.results[0]].map(a=>a.transcript); onResult(alts); };
+  r.onerror=()=>onEnd&&onEnd(); r.onend=()=>onEnd&&onEnd();
+  try{ r.start(); }catch(e){ return null; }
+  return r;
+}
+
+/* --- השוואת טקסט סלחנית --- */
+const norm = s => (s||'').toLowerCase().replace(/[.,!?;:'"()\-]/g,'').replace(/\s+/g,' ').trim();
+function near(a,b){
+  a=norm(a); b=norm(b);
+  if(a===b) return true;
+  if(!a) return false;
+  // מרחק לוינשטיין קטן — סובלנות לשגיאת הקלדה אחת במילים ארוכות
+  const m=a.length,n=b.length; if(Math.abs(m-n)>2) return false;
+  const dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
+    dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  return dp[m][n] <= (m>6?2:1);
+}
+/* ============================================================
+   UI
+   ============================================================ */
+const $  = s => document.querySelector(s);
+const el = (h)=>{const d=document.createElement('div');d.innerHTML=h.trim();return d.firstElementChild};
+const esc = s => (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const jq = s => esc(s).replace(/'/g,"\\'").replace(/`/g,'');   // בטוח לתוך onclick="..."
+let TAB='home', S=null, TICK=null; // S = סשן פעיל
+
+const ICONS={
+ home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>',
+ play:'<circle cx="12" cy="12" r="9"/><path d="M10 8.5 16 12l-6 3.5z"/>',
+ chart:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+ users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 5.3a3.2 3.2 0 0 1 0 5.4M17.5 14.2A6.5 6.5 0 0 1 21.5 20"/>',
+ sound:'<path d="M11 5 6.5 9H3v6h3.5L11 19z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/>',
+ mic:'<rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>'
+};
+const svg = n => `<svg viewBox="0 0 24 24">${ICONS[n]}</svg>`;
+
+function toast(t){ const x=el(`<div class="toast">${esc(t)}</div>`); document.body.appendChild(x); setTimeout(()=>x.remove(),1900); }
+
+function render(){
+  if(!me()){ TAB='users'; }
+  $('#nav').classList.toggle('hide', !me());
+  drawTop(); drawNav();
+  const s=$('#screen');
+  s.innerHTML='';
+  ({home:vHome, practice:vPractice, stats:vStats, family:vFamily, users:vUsers}[TAB]||vHome)(s);
+  window.scrollTo(0,0);
+}
+function go(t){ if(S && !S.finished && t!=='practice'){ if(!confirm('לצאת מהתרגול? ההתקדמות בסשן הזה תישמר.')) return; S=null; } TAB=t; render(); }
+
+function drawTop(){
+  const u=me();
+  $('#topbar').innerHTML = u
+   ? `<div class="wordmark">Ladd<i>e</i>r</div><div class="spacer"></div>
+      <span class="chip flame">🔥 ${u.streak}</span>
+      <span class="chip">רמה ${u.lv}</span>
+      <button class="avatar" onclick="go('family')">${u.emoji}</button>`
+   : `<div class="wordmark">Ladd<i>e</i>r</div><div class="spacer"></div><span class="muted">לימוד אנגלית למשפחה</span>`;
+}
+function drawNav(){
+  const t=(k,n,i)=>`<button class="${TAB===k?'on':''}" onclick="go('${k}')">${svg(i)}<span>${n}</span></button>`;
+  $('#nav').innerHTML=`<div class="nav-in">${t('home','בית','home')}${t('practice','תרגול','play')}${t('stats','התקדמות','chart')}${t('family','משפחה','users')}</div>`;
+}
+addEventListener('scroll',()=>$('#topbar').classList.toggle('scrolled',scrollY>4));
+
+/* ---------------- בחירת משתמש ---------------- */
+const EMOJIS='🦊 🐼 🐧 🦁 🐨 🐢 🦉 🐝 🚀 ⚽ 🎸 🌻 🍀 ⭐ 🐙 🦄'.split(' ');
+function vUsers(s){
+  s.innerHTML = `<h1>מי לומד עכשיו?</h1><p class="sub">כל אחד במשפחה מקבל התקדמות משלו.</p>
+    <div class="userpick" style="margin-top:16px" id="ul"></div>
+    <button class="btn ghost" style="margin-top:12px" onclick="addUser()">+ הוספת לומד</button>
+    ${Store.persistent?'':'<p class="muted" style="margin-top:14px">תצוגה מקדימה: הנתונים נשמרים לזמן הפעלה זה בלבד. אחרי העלאה לשרת — הכול נשמר במכשיר.</p>'}`;
+  const ul=$('#ul');
+  if(!USERS.length) ul.innerHTML='<div class="card"><p class="sub">עוד אין לומדים. התחילו בהוספת הראשון.</p></div>';
+  USERS.forEach(u=>{
+    const b=el(`<button class="usercard"><div class="av">${u.emoji}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(u.name)}</div>
+      <div class="muted">${u.role==='parent'?'הורה':'לומד'} · רמה ${u.lv} · ${LEVELS[u.lv].nm}</div></div>
+      <span class="badge">🔥 ${u.streak}</span></button>`);
+    b.onclick=()=>{ CUR=u.id; Store.set(K_CUR,CUR); TAB='home'; render(); };
+    ul.appendChild(b);
+  });
+}
+function addUser(){
+  let em=EMOJIS[0];
+  sheet(`<h2>לומד חדש</h2>
+    <div class="field"><label>שם</label><input id="nm" placeholder="למשל: יעל"></div>
+    <div class="field"><label>אווטאר</label><div class="emojipick" id="ep"></div></div>
+    <div class="field"><label>תפקיד</label><select id="rl"><option value="child">לומד</option><option value="parent">הורה / מנהל</option></select></div>
+    <div class="field"><label>רמת פתיחה</label><select id="lv">${LEVELS.map(l=>`<option value="${l.id}">${l.id} · ${l.nm}</option>`).join('')}</select></div>
+    <p class="muted" style="margin:-4px 0 14px">לא בטוחים? התחילו מרמה 0. אפשר לדלג בכל רגע.</p>
+    <button class="btn" id="ok">יצירת לומד</button>`, sh=>{
+    const ep=sh.querySelector('#ep');
+    EMOJIS.forEach((e,i)=>{const b=el(`<button class="${i?'':'on'}">${e}</button>`);
+      b.onclick=()=>{ep.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');em=e;};ep.appendChild(b);});
+    sh.querySelector('#ok').onclick=()=>{
+      const n=sh.querySelector('#nm').value.trim(); if(!n){toast('צריך שם');return;}
+      const u=newUser(n,em,sh.querySelector('#rl').value,+sh.querySelector('#lv').value);
+      CUR=u.id; Store.set(K_CUR,CUR); closeSheet(); TAB='home'; render();
+    };
+  });
+}
+
+/* ---------------- בית: הסולם ---------------- */
+function vHome(s){
+  const u=me(), a=analyse(u);
+  s.innerHTML=`
+   <h1>שלום, ${esc(u.name)}</h1>
+   <p class="sub">${a.dueNow?`${a.dueNow} פריטים ממתינים לחזרה היום.`:'הכול מעודכן. אפשר להתקדם לחומר חדש.'}</p>
+   <div class="grid3" style="margin-top:14px">
+     <div class="stat"><div class="n">${a.vocab}</div><div class="l">מילים בשליטה</div></div>
+     <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">דיוק</div></div>
+     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':'—'}</div><div class="l">זמן שליפה</div></div>
+   </div>
+   <button class="btn" style="margin-top:14px" onclick="startSession('mix',14)">תרגול היום · 14 פריטים</button>
+   <div class="row" style="margin-top:8px">
+     <button class="btn ghost sm" style="width:100%" onclick="startSession('weak',10)">חיזוק חולשות</button>
+     <button class="btn ghost sm" style="width:100%" onclick="startSession('talk',6)">אימון שיחה</button>
+   </div>
+   <div class="sec-title">סולם הרמות</div><div class="ladder" id="ld"></div>`;
+  const ld=$('#ld');
+  LEVELS.forEach(l=>{
+    const pct = l.id<u.lv ? (u.mastered[l.id]||100) : l.id===u.lv ? levelPct(u,l.id) : 0;
+    const cls = l.id<u.lv?'done':l.id===u.lv?'cur':'locked';
+    const b=el(`<button class="rung ${cls}">
+      <div class="fillbar" style="width:${l.id<=u.lv?pct:0}%"></div>
+      <div class="lv">${l.id}</div>
+      <div style="flex:1;min-width:0"><div class="nm">${l.nm}</div><div class="dsc">${l.dsc}</div></div>
+      <div class="pct">${l.id<=u.lv?pct+'%':'🔒'}</div></button>`);
+    b.onclick=()=> l.id<=u.lv ? levelSheet(l) : toast(`נפתח אחרי ${LEVELS[u.lv].need}% ברמה ${u.lv}`);
+    ld.appendChild(b);
+  });
+  if(u.lv<LEVELS.length-1){
+    ld.insertAdjacentHTML('afterend',
+      `<p class="muted" style="margin-top:10px">כדי לפתוח את רמה ${u.lv+1} צריך ${LEVELS[u.lv].need}% שליטה ברמה ${u.lv}. עכשיו: ${levelPct(u,u.lv)}%.</p>`);
+  }
+}
+function levelSheet(l){
+  const u=me();
+  const ws=WORDS.filter(w=>w.lv===l.id), gs=GRAMMAR.filter(g=>g.lv===l.id);
+  sheet(`<h2>רמה ${l.id} · ${l.nm}</h2><p class="sub">${l.dsc}</p>
+    <div class="row" style="margin-top:14px">
+      <button class="btn sm" style="width:100%" onclick="closeSheet();startSession('mix',12,${l.id})">תרגול הרמה</button>
+      <button class="btn ghost sm" style="width:100%" onclick="closeSheet();startSession('rules',10,${l.id})">דקדוק בלבד</button>
+    </div>
+    ${gs.length?`<div class="sec-title">חוקים ברמה זו</div>${gs.map(g=>`<div class="card"><b>${esc(g.ti)}</b><div class="sub" style="margin-top:4px">${esc(g.he)}</div>
+      <div class="ruleblk">${g.ex.map(e=>`<span class="ex en">${esc(e.en)}</span><span class="muted">${esc(e.he)}</span>`).join('')}</div></div>`).join('')}`:''}
+    ${ws.length?`<div class="sec-title">מילים ברמה זו (${ws.length})</div><div class="card">${ws.map(w=>{
+      const st=strength(u.srs[w.id+'#r']);
+      const col=st>=.7?'var(--good)':st>0?'var(--gold)':'var(--line)';
+      return `<div class="wordrow"><span class="dot" style="background:${col}"></span>
+        <span class="w">${esc(w.en)}</span><span class="h">${esc(w.he)}</span></div>`}).join('')}</div>`:''}`);
+}
+
+/* ---------------- מסך תרגול ---------------- */
+function vPractice(s){
+  if(S) return drawQ(s);
+  const u=me();
+  s.innerHTML=`<h1>בחירת תרגול</h1><p class="sub">כל מצב מאמן שריר אחר.</p>
+   <div class="card" style="margin-top:14px"><b>תרגול מעורב</b><div class="sub">חזרות שהגיע זמנן + חומר חדש, בשזירה בין סוגי תרגיל. זה המצב היעיל ביותר לזיכרון ארוך טווח.</div>
+     <button class="btn sm" style="margin-top:10px;width:100%" onclick="startSession('mix',14)">התחלה · 14 פריטים</button></div>
+   <div class="card"><b>חיזוק חולשות</b><div class="sub">רק הפריטים עם אחוז ההצלחה או מהירות השליפה הנמוכים ביותר.</div>
+     <button class="btn ghost sm" style="margin-top:10px;width:100%" onclick="startSession('weak',12)">התחלה</button></div>
+   <div class="card"><b>דקדוק ותחביר</b><div class="sub">חוקים, השלמת חסר, בניית משפט והגהה.</div>
+     <button class="btn ghost sm" style="margin-top:10px;width:100%" onclick="startSession('rules',12)">התחלה</button></div>
+   <div class="card"><b>אימון שיחה</b><div class="sub">שאלות פתוחות. אתם עונים בקול או בכתב ומשווים לתשובת מודל.</div>
+     <button class="btn ghost sm" style="margin-top:10px;width:100%" onclick="startSession('talk',8)">התחלה</button></div>
+   <div class="card"><b>מרתון ארוך</b><div class="sub">30 פריטים ברצף, לתרגול עומק.</div>
+     <button class="btn ghost sm" style="margin-top:10px;width:100%" onclick="startSession('mix',30)">התחלה</button></div>`;
+}
+
+function startSession(mode, size, lv){
+  const u=me();
+  const oldLv=u.lv; if(lv!=null) u.lv=lv;
+  const items=buildSession(u,size,mode);
+  u.lv=oldLv;
+  if(!items.length){ toast('אין פריטים זמינים'); return; }
+  S={items, i:0, ok:0, msSum:0, mode, answered:false, t0:0, promoted:false, hardIds:[]};
+  TAB='practice'; render();
+}
+
+function drawQ(s){
+  const u=me(), it=S.items[S.i];
+  if(!it) return drawDone(s);
+  const target=TARGET[it.t]||6000;
+  s.innerHTML=`<div class="stage">
+    <div class="progline"><i style="width:${(S.i/S.items.length)*100}%"></i></div>
+    <div class="qbar"><span>${S.i+1} / ${S.items.length}</span>
+      <span class="badge">${TYPE_HE[it.t]||it.t}</span><span class="spacer" style="flex:1"></span>
+      <span class="flow" id="flow"><span class="track"><i id="ft"></i></span><span id="fv">0.0s</span></span>
+      <button class="btn ghost sm" style="padding:4px 10px" onclick="S=null;render()">יציאה</button></div>
+    <div id="q"></div></div>`;
+  S.t0=performance.now(); S.answered=false;
+  clearInterval(TICK);
+  TICK=setInterval(()=>{
+    if(!S||S.answered) return;
+    const ms=performance.now()-S.t0, r=ms/target;
+    const f=$('#flow'); if(!f) return clearInterval(TICK);
+    $('#ft').style.width=Math.max(0,100-r*100)+'%';
+    $('#fv').textContent=(ms/1000).toFixed(1)+'s';
+    f.className='flow '+(r<1?'':r<1.8?'mid':'slow');
+  },100);
+  RENDER[it.t](document.getElementById('q'), it, u, target);
+}
+
+/* סיום שאלה */
+function answer(it, correct, target, extraHtml){
+  if(S.answered) return; S.answered=true; clearInterval(TICK);
+  const u=me(), ms=Math.round(performance.now()-S.t0);
+  const {q}=review(u,it.id,correct,ms,target);
+  touchDay(u,correct,ms); u.xp += correct?(q>=5?12:q>=4?9:6):2;
+  if(correct) S.ok++; else S.hardIds.push(it.id);
+  S.msSum+=ms; saveUsers();
+  const fast = correct && ms<=target*.6;
+  const box=el(`<div class="fb ${correct?'ok':'no'}">
+    <div class="hd">${correct?(fast?'⚡ שליפה מיידית':'✓ נכון'):'✗ לא מדויק'}<span class="badge">${(ms/1000).toFixed(1)}s</span></div>
+    <div class="bd">${extraHtml||''}</div></div>`);
+  $('#q').appendChild(box);
+  const nx=el(`<button class="btn" style="margin-top:10px">${S.i+1<S.items.length?'הבא':'סיום'}</button>`);
+  nx.onclick=()=>{ S.i++; render(); };
+  $('#q').appendChild(nx); nx.focus();
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+/* ---------------- מנועי תרגיל ---------------- */
+const RENDER={};
+
+RENDER.letter=(q,it,u,tg)=>{
+  const d=it.d, opts=shuffle([d,...sample(LETTERS,3,d)]);
+  q.innerHTML=`<div class="prompt"><div class="kicker">אות וצליל</div>
+    <div class="letterpair"><b>${d.u}</b><span>${d.l}</span></div>
+    <div class="ipa">/${d.ipa}/</div></div>
+    <p class="muted" style="text-align:center;margin:12px 0 0">איזו מילה מתחילה באות הזאת?</p><div class="opts" id="o"></div>`;
+  if(u.settings.autoSpeak) say(d.u+'. '+d.ex, .85);
+  opts.forEach(o=>{
+    const b=el(`<button class="opt"><span class="en">${o.ex}</span><span class="hint">${o.he}</span></button>`);
+    b.onclick=()=>{ const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.ex);
+      answer(it,ok,tg,`<b class="en">${d.u} ${d.l}</b> — הצליל <span class="ipa">/${d.snd}/</span>, כמו במילה <b class="en">${d.ex}</b> (${d.he}).`); };
+    $('#o').appendChild(b);
+  });
+};
+
+RENDER.phonics=(q,it,u,tg)=>{
+  const d=it.d, opts=shuffle([d,...sample(PHONICS,3,d)]);
+  q.innerHTML=`<div class="prompt"><div class="kicker">חיבור צלילים</div>
+    <div class="big">${d.sp}</div><button class="speakbtn" onclick="say('${jq(d.w)}',.75)">${svg('sound')}</button></div>
+    <p class="muted" style="text-align:center;margin:12px 0 0">מה המילה שיוצאת?</p><div class="opts" id="o"></div>`;
+  if(u.settings.autoSpeak) say(d.w,.7);
+  opts.forEach(o=>{
+    const b=el(`<button class="opt"><span class="en">${o.w}</span><span class="hint">${o.he}</span></button>`);
+    b.onclick=()=>{ const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.w,.8);
+      answer(it,ok,tg,`<b class="en">${d.sp}</b> → <b class="en">${d.w}</b> = ${d.he}`); };
+    $('#o').appendChild(b);
+  });
+};
+
+RENDER['w-recog']=(q,it,u,tg)=>{
+  const d=it.d, pool=WORDS.filter(w=>w.lv<=u.lv&&w!==d);
+  const opts=shuffle([d,...sample(pool,3)]);
+  q.innerHTML=`<div class="prompt"><div class="kicker">מה הפירוש</div>
+    <div class="big">${d.en}</div><div class="ipa">/${d.ipa}/</div>
+    <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button></div><div class="opts" id="o"></div>`;
+  if(u.settings.autoSpeak) say(d.en);
+  opts.forEach(o=>{
+    const b=el(`<button class="opt">${o.he}</button>`);
+    b.onclick=()=>{ const ok=o===d; b.classList.add(ok?'ok':'no');
+      answer(it,ok,tg,`<b class="en">${d.en}</b> = ${d.he}<br><span class="en">${esc(d.ex)}</span><br>${esc(d.exhe)}`); };
+    $('#o').appendChild(b);
+  });
+};
+
+RENDER['w-recall']=(q,it,u,tg)=>{
+  const d=it.d;
+  q.innerHTML=`<div class="prompt"><div class="kicker">שליפה — כתבו באנגלית</div>
+    <div class="big he">${d.he}</div><div class="small">${d.pos==='v'?'פועל':d.pos==='n'?'שם עצם':d.pos==='adj'?'שם תואר':''}</div></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="type here"><button class="btn" id="go">בדיקה</button></div>
+    <p class="muted" style="margin-top:8px;text-align:center">${'_ '.repeat(Math.min(d.en.length,14))}</p>`;
+  const inp=$('#in'); inp.focus();
+  const chk=()=>{ const v=inp.value; const ok=near(v,d.en);
+    inp.classList.add(ok?'ok':'no'); say(d.en);
+    answer(it,ok,tg, ok?`<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span><br><span class="en">${esc(d.ex)}</span>`
+      :`התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${v?`<br>כתבתם: <b class="en">${esc(v)}</b>`:''}<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`); };
+  $('#go').onclick=chk; inp.onkeydown=e=>{if(e.key==='Enter')chk()};
+};
+
+RENDER['w-listen']=(q,it,u,tg)=>{
+  const d=it.d;
+  q.innerHTML=`<div class="prompt"><div class="kicker">הבנת הנשמע</div>
+    <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button>
+    <div class="small">הקשיבו וכתבו את המילה</div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.6)">האטה</button></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="type what you hear"><button class="btn" id="go">בדיקה</button></div>`;
+  say(d.en); const inp=$('#in'); inp.focus();
+  const chk=()=>{ const ok=near(inp.value,d.en); inp.classList.add(ok?'ok':'no'); say(d.en);
+    answer(it,ok,tg,`<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span> = ${d.he}`); };
+  $('#go').onclick=chk; inp.onkeydown=e=>{if(e.key==='Enter')chk()};
+};
+
+RENDER['w-speak']=(q,it,u,tg)=>{
+  const d=it.d;
+  q.innerHTML=`<div class="prompt"><div class="kicker">הגייה</div>
+    <div class="med">${d.en}</div><div class="ipa">/${d.ipa}/</div><div class="small">${d.he}</div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.75)">שמיעת דוגמה</button></div>
+    <div style="text-align:center;margin-top:16px"><button class="speakbtn" id="mic">${svg('mic')}</button>
+    <p class="muted" id="st" style="margin-top:8px">${SR?'לחצו והגו את המילה':'זיהוי דיבור לא נתמך בדפדפן הזה — אפשר לדלג'}</p></div>
+    <button class="btn ghost" style="margin-top:10px" id="skip">שמעתי, ידעתי</button>`;
+  say(d.en,.8);
+  $('#skip').onclick=()=>answer(it,true,tg,`<b class="en">${d.en}</b> = ${d.he}`);
+  $('#mic').onclick=()=>{
+    if(!SR) return toast('אין תמיכה בזיהוי דיבור');
+    const m=$('#mic'); m.classList.add('rec'); $('#st').textContent='מקשיב…';
+    listen(alts=>{
+      m.classList.remove('rec');
+      const ok=alts.some(a=>near(a,d.en));
+      answer(it,ok,tg, ok?`הגייה טובה: <b class="en">${d.en}</b>`
+        :`שמעתי: <b class="en">${esc(alts[0]||'—')}</b><br>המטרה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>`);
+    },()=>{m.classList.remove('rec'); if(!S.answered)$('#st').textContent='לא נקלט. נסו שוב או המשיכו.';});
+  };
+};
+
+RENDER.build=(q,it,u,tg)=>{
+  const d=it.d, words=d.en.replace(/\.$/,'').split(' ');
+  q.innerHTML=`<div class="prompt"><div class="kicker">בניית משפט — תחביר</div>
+    <div class="big he" style="font-size:24px">${d.he}</div></div>
+    <div class="slot" id="slot"></div><div class="tiles" id="tiles"></div>
+    <div class="row" style="margin-top:12px"><button class="btn ghost sm" id="undo" style="width:100%">מחיקה אחורה</button><button class="btn sm" id="go" style="width:100%">בדיקה</button></div>`;
+  const chosen=[];
+  shuffle([...words]).forEach((w,i)=>{
+    const b=el(`<button class="tile">${esc(w)}</button>`);
+    b.onclick=()=>{ b.classList.add('used'); chosen.push({w,b}); paint(); };
+    $('#tiles').appendChild(b);
+  });
+  const paint=()=>{ $('#slot').innerHTML=chosen.map(c=>`<span class="tile">${esc(c.w)}</span>`).join(''); };
+  $('#undo').onclick=()=>{ const c=chosen.pop(); if(c)c.b.classList.remove('used'); paint(); };
+  $('#go').onclick=()=>{
+    const ans=chosen.map(c=>c.w).join(' '); const ok=near(ans,d.en.replace(/\.$/,''));
+    $('#slot').classList.add(ok?'ok':'no'); say(d.en);
+    answer(it,ok,tg, ok?`<span class="en">${esc(d.en)}</span><br>${esc(d.he)}`
+      :`הסדר הנכון: <b class="en">${esc(d.en)}</b><br>${esc(d.he)}<br><span class="muted">זכרו: נושא ← פועל ← מושא.</span>`);
+  };
+};
+
+RENDER.dictate=(q,it,u,tg)=>{
+  const d=it.d;
+  q.innerHTML=`<div class="prompt"><div class="kicker">הכתבה</div>
+    <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button>
+    <div class="small">הקשיבו וכתבו את המשפט המלא</div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.55)">האטה</button></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="write the sentence"><button class="btn" id="go">בדיקה</button></div>`;
+  say(d.en,.8); const inp=$('#in'); inp.focus();
+  const chk=()=>{ const ok=near(inp.value,d.en); inp.classList.add(ok?'ok':'no'); say(d.en);
+    answer(it,ok,tg,`<b class="en">${esc(d.en)}</b><br>${esc(d.he)}${ok?'':`<br><span class="muted">כתבתם: </span><span class="en">${esc(inp.value)}</span>`}`); };
+  $('#go').onclick=chk; inp.onkeydown=e=>{if(e.key==='Enter')chk()};
+};
+
+RENDER.cloze=(q,it,u,tg)=>{
+  const d=it.d, opts=shuffle([d.a,...d.d]);
+  q.innerHTML=`<div class="prompt"><div class="kicker">השלמת החסר</div>
+    <div class="cloze">${esc(d.s).replace('___','<u>&nbsp;</u>')}</div></div><div class="opts" id="o"></div>`;
+  opts.forEach(o=>{
+    const b=el(`<button class="opt en" style="text-align:center">${esc(o==='--'?'(ללא מילה)':o)}</button>`);
+    b.onclick=()=>{ const ok=o===d.a; b.classList.add(ok?'ok':'no'); say(d.s.replace('___',d.a));
+      answer(it,ok,tg,`<b class="en">${esc(d.s.replace('___',d.a))}</b><br>${esc(d.he)}`); };
+    $('#o').appendChild(b);
+  });
+};
+
+RENDER.proof=(q,it,u,tg)=>{
+  const d=it.d, parts=d.s.split(' ');
+  q.innerHTML=`<div class="prompt"><div class="kicker">הגהה — מצאו את הטעות</div>
+    <div class="proof" id="pw"></div><div class="small">הקישו על המילה השגויה</div></div>`;
+  const badWords=d.bad.split(' ');
+  parts.forEach((w,i)=>{
+    const b=el(`<button class="pw">${esc(w)}</button>`);
+    b.onclick=()=>{
+      const clean=w.replace(/[.,?]/g,'');
+      const ok=badWords.some(bw=>bw.replace(/[.,?]/g,'')===clean);
+      b.classList.add(ok?'ok':'no');
+      const fixed=d.s.replace(d.bad, d.fix==='--'?'':d.fix).replace(/\s+/g,' ').trim();
+      say(fixed);
+      answer(it,ok,tg,`<span style="text-decoration:line-through;opacity:.6" class="en">${esc(d.s)}</span><br>
+        <b class="en">${esc(fixed)}</b><br>${esc(d.he)}`);
+    };
+    $('#pw').appendChild(b);
+  });
+};
+
+RENDER.rule=(q,it,u,tg)=>{
+  const d=it.d, ex=d.ex[Math.floor(Math.random()*d.ex.length)];
+  q.innerHTML=`<div class="card"><b style="font-size:17px">${esc(d.ti)}</b>
+    <div class="sub" style="margin-top:6px">${esc(d.he)}</div>
+    <div class="ruleblk">${d.ex.map(e=>`<span class="ex en">${esc(e.en)}</span><span class="muted">${esc(e.he)}</span>`).join('')}</div></div>
+    <div class="prompt" style="margin-top:12px"><div class="kicker">בדיקה מיידית</div>
+      <div class="big he" style="font-size:22px">${esc(ex.he)}</div></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="write it in English"><button class="btn" id="go">בדיקה</button></div>
+    <button class="btn ghost" style="margin-top:8px" id="sk">לא זכרתי — הצג תשובה</button>`;
+  const inp=$('#in'); inp.focus();
+  const done=(ok)=>{ inp.classList.add(ok?'ok':'no'); say(ex.en);
+    answer(it,ok,tg,`<b class="en">${esc(ex.en)}</b><br>${esc(ex.he)}<br><span class="muted">${esc(d.he)}</span>`); };
+  $('#go').onclick=()=>done(near(inp.value,ex.en));
+  $('#sk').onclick=()=>done(false);
+  inp.onkeydown=e=>{if(e.key==='Enter')done(near(inp.value,ex.en))};
+};
+
+RENDER.talk=(q,it,u,tg)=>{
+  const d=it.d;
+  q.innerHTML=`<div class="prompt"><div class="kicker">שיחה</div>
+    <div class="med">${esc(d.q)}</div><div class="small">${esc(d.he)}</div>
+    <button class="speakbtn" onclick="say('${jq(d.q)}')">${svg('sound')}</button></div>
+    <div class="ruleblk" style="margin-top:12px">מבנה מומלץ: <span class="ex en">${esc(d.hint)}</span></div>
+    <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
+      <p class="muted" id="st" style="margin-top:8px">${SR?'ענו בקול — או כתבו למטה':'כתבו את התשובה למטה'}</p></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" placeholder="your answer"><button class="btn" id="go">שליחה</button></div>`;
+  say(d.q,.9);
+  const finish=(txt)=>{
+    const words=norm(txt).split(' ').filter(Boolean).length;
+    const good=words>=3;
+    answer(it,good,tg,`${txt?`<span class="muted">התשובה שלכם: </span><span class="en">${esc(txt)}</span><br>`:''}
+      <span class="muted">תשובת מודל: </span><b class="en">${esc(d.ans)}</b>
+      <br><span class="muted">${good?'קראו את תשובת המודל בקול פעמיים — זה מקבע את המבנה.':'תשובה קצרה מדי. נסו משפט שלם עם נושא ופועל.'}</span>`);
+  };
+  $('#go').onclick=()=>finish($('#in').value.trim());
+  $('#in').onkeydown=e=>{if(e.key==='Enter')finish(e.target.value.trim())};
+  $('#mic').onclick=()=>{
+    if(!SR) return toast('אין תמיכה בזיהוי דיבור');
+    const m=$('#mic'); m.classList.add('rec'); $('#st').textContent='מקשיב…';
+    listen(a=>{ m.classList.remove('rec'); finish(a[0]||''); },
+           ()=>{ m.classList.remove('rec'); if(!S.answered)$('#st').textContent='לא נקלט. נסו שוב או כתבו.'; });
+  };
+};
+
+/* ---------------- סיום סשן ---------------- */
+function drawDone(s){
+  const u=me(), n=S.items.length, acc=Math.round(S.ok/n*100), avg=(S.msSum/n/1000).toFixed(1);
+  const promoted=checkPromote(u); saveUsers();
+  const flowNote = avg<3.5?'שליפה מהירה — זה בדיוק מה שמונע גמגום בדיבור.'
+    : avg<6?'קצב סביר. המשיכו לחתור לשליפה מתחת ל־3 שניות.'
+    : 'השליפה עדיין איטית. עדיף סשנים קצרים ותכופים מאשר ארוכים ונדירים.';
+  s.innerHTML=`<h1>${acc>=80?'סשן מצוין':'סיימתם'}</h1>
+    <p class="sub">${flowNote}</p>
+    <div class="grid3" style="margin-top:14px">
+      <div class="stat"><div class="n">${acc}%</div><div class="l">דיוק</div></div>
+      <div class="stat"><div class="n">${avg}s</div><div class="l">זמן ממוצע</div></div>
+      <div class="stat"><div class="n">${S.ok}/${n}</div><div class="l">נכונות</div></div>
+    </div>
+    ${promoted?`<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">
+      <b>עליתם לרמה ${u.lv} · ${LEVELS[u.lv].nm}</b><div class="sub">${LEVELS[u.lv].dsc}</div></div>`:''}
+    ${S.hardIds.length?`<div class="sec-title">לחזרה קרובה</div><div class="card">${
+      S.items.filter(x=>S.hardIds.includes(x.id)).map(x=>{
+        const lbl = x.t.startsWith('w-')?`${x.d.en} — ${x.d.he}` : x.t==='rule'?x.d.ti : (x.d.en||x.d.s||x.d.q||x.d.w||x.d.u||'');
+        return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span><span class="w">${esc(lbl)}</span><span class="badge">${TYPE_HE[x.t]}</span></div>`;
+      }).join('')}</div>`:''}
+    <button class="btn" style="margin-top:14px" onclick="startSession('${S.mode}',${n})">עוד סשן</button>
+    <button class="btn ghost" style="margin-top:8px" onclick="S=null;go('home')">חזרה לבית</button>`;
+  S.finished=true;
+}
+/* ---------------- התקדמות וניתוח ---------------- */
+function vStats(s){
+  const u=me(), a=analyse(u);
+  const days=[...Array(14)].map((_,i)=>{
+    const d=new Date(Date.now()-(13-i)*864e5).toISOString().slice(0,10);
+    return u.log.find(x=>x.d===d)||{d,n:0,ok:0,ms:0};
+  });
+  const mx=Math.max(1,...days.map(d=>d.n));
+  s.innerHTML=`<h1>ההתקדמות של ${esc(u.name)}</h1>
+   <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm} · ${levelPct(u,u.lv)}% שליטה</p>
+   <div class="grid2" style="margin-top:14px">
+     <div class="stat"><div class="n">${a.vocab}</div><div class="l">מילים בשליטה מלאה</div></div>
+     <div class="stat"><div class="n">${a.learning}</div><div class="l">בתהליך למידה</div></div>
+     <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">דיוק כולל</div></div>
+     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':'—'}</div><div class="l">זמן שליפה ממוצע</div></div>
+   </div>
+   <div class="sec-title">פעילות ב־14 הימים האחרונים</div>
+   <div class="card"><div class="bars">${days.map(d=>
+      `<div class="${d.n?'hot':''}" style="height:${Math.max(3,d.n/mx*100)}%" title="${d.d}: ${d.n}"></div>`).join('')}</div>
+     <div class="legend"><span>${days[0].d.slice(5)}</span><span>${days[13].d.slice(5)}</span></div>
+     <p class="muted" style="margin:10px 0 0">סה"כ ${days.reduce((x,d)=>x+d.n,0)} תרגילים בשבועיים · רצף ${u.streak} ימים</p></div>
+   ${a.weakTypes.length?`<div class="sec-title">איפה כדאי להתמקד</div><div class="card">${
+     a.weakTypes.map(w=>`<div class="wordrow"><span class="dot" style="background:${w.acc<.6?'var(--bad)':'var(--gold)'}"></span>
+       <span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}
+     <button class="btn sm" style="margin-top:12px;width:100%" onclick="startSession('weak',12)">תרגול ממוקד חולשות</button></div>`:''}
+   ${a.weakWords.length?`<div class="sec-title">מילים שעדיין לא יושבות</div><div class="card">${
+     a.weakWords.map(x=>{const w=WORDS.find(y=>y.en===x.w)||{he:''};
+       return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span>
+       <span class="w">${esc(x.w)}</span><span class="h">${esc(w.he)}</span>
+       <span class="badge">${x.c.ok}/${x.c.seen}</span></div>`}).join('')}</div>`:''}
+   <div class="sec-title">שליטה לפי רמה</div><div class="card">${
+     LEVELS.filter(l=>l.id<=u.lv).map(l=>{const p=l.id<u.lv?(u.mastered[l.id]||100):levelPct(u,l.id);
+       return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600">
+         <span>${l.id} · ${l.nm}</span><span class="badge">${p}%</span></div>
+         <div class="progline" style="margin-top:5px"><i style="width:${p}%"></i></div></div>`}).join('')}</div>
+   <p class="muted" style="margin-top:14px">${a.dueNow} פריטים ממתינים לחזרה. אלגוריתם החזרות מציג כל פריט בדיוק לפני שהוא נשכח — לכן חשוב יותר לתרגל כל יום מעט, מאשר הרבה פעם בשבוע.</p>`;
+}
+
+/* ---------------- משפחה / ניהול ---------------- */
+function vFamily(s){
+  const u=me();
+  s.innerHTML=`<h1>המשפחה</h1><p class="sub">מעבר בין לומדים, מעקב ושליטה.</p>
+    <div class="userpick" style="margin-top:14px" id="ul"></div>
+    <button class="btn ghost" style="margin-top:10px" onclick="addUser()">+ הוספת לומד</button>
+    <div class="sec-title">הגדרות של ${esc(u.name)}</div>
+    <div class="card">
+      <div class="field"><label>מהירות הדיבור</label>
+        <select id="sp">${[['0.6','איטית מאוד'],['0.75','איטית'],['0.9','רגילה'],['1','מהירה'],['1.15','ילידית']]
+          .map(([v,n])=>`<option value="${v}" ${+v===u.settings.speed?'selected':''}>${n}</option>`).join('')}</select></div>
+      <div class="field"><label>השמעה אוטומטית</label>
+        <select id="au"><option value="1" ${u.settings.autoSpeak?'selected':''}>מופעלת</option><option value="0" ${!u.settings.autoSpeak?'selected':''}>כבויה</option></select></div>
+      <div class="field"><label>רמה נוכחית (עקיפה ידנית)</label>
+        <select id="lv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===u.lv?'selected':''}>${l.id} · ${l.nm}</option>`).join('')}</select></div>
+      <button class="btn sm" style="width:100%" id="sv">שמירת הגדרות</button>
+    </div>
+    <div class="sec-title">גיבוי</div>
+    <div class="card"><p class="sub">כל הנתונים נשמרים במכשיר בלבד. ייצאו קובץ לפני החלפת מכשיר.</p>
+      <div class="row" style="margin-top:10px">
+        <button class="btn ghost sm" style="width:100%" onclick="exportData()">ייצוא</button>
+        <button class="btn ghost sm" style="width:100%" onclick="importData()">ייבוא</button>
+      </div></div>
+    <button class="btn ghost" style="margin-top:12px" onclick="CUR=null;Store.set(K_CUR,null);TAB='users';render()">החלפת לומד</button>
+    <p class="muted" style="margin-top:16px">${Store.persistent?'הנתונים נשמרים במכשיר.':'תצוגה מקדימה — הנתונים לא נשמרים. אחרי העלאה לאתר, השמירה תעבוד.'}</p>`;
+  const ul=$('#ul');
+  USERS.forEach(x=>{
+    const a=analyse(x);
+    const b=el(`<button class="usercard ${x.id===CUR?'on':''}"><div class="av">${x.emoji}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.id===CUR?'<span class="pill">פעיל</span>':''}</div>
+      <div class="muted">רמה ${x.lv} · ${a.vocab} מילים · ${Math.round(a.accAll*100)||0}% דיוק · 🔥 ${x.streak}</div></div></button>`);
+    b.onclick=()=>userSheet(x);
+    ul.appendChild(b);
+  });
+  $('#sv').onclick=()=>{
+    u.settings.speed=+$('#sp').value; u.settings.autoSpeak=$('#au').value==='1';
+    u.lv=+$('#lv').value; saveUsers(); toast('נשמר'); render();
+  };
+}
+
+function userSheet(x){
+  const a=analyse(x);
+  sheet(`<div style="display:flex;align-items:center;gap:12px"><div class="av" style="width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:27px;background:var(--brand-soft)">${x.emoji}</div>
+    <div><h2 style="margin:0">${esc(x.name)}</h2><div class="muted">רמה ${x.lv} · ${LEVELS[x.lv].nm}</div></div></div>
+    <div class="grid2" style="margin-top:14px">
+      <div class="stat"><div class="n">${a.vocab}</div><div class="l">מילים בשליטה</div></div>
+      <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">דיוק</div></div>
+      <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':'—'}</div><div class="l">זמן שליפה</div></div>
+      <div class="stat"><div class="n">${x.streak}</div><div class="l">רצף ימים</div></div>
+    </div>
+    ${a.weakTypes.length?`<div class="sec-title">חולשות</div><div class="card">${a.weakTypes.map(w=>
+      `<div class="wordrow"><span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}</div>`:''}
+    <button class="btn" style="margin-top:14px" id="sw">מעבר ללומד הזה</button>
+    <button class="btn ghost" style="margin-top:8px" id="rm">מחיקת הלומד</button>`, sh=>{
+    sh.querySelector('#sw').onclick=()=>{ CUR=x.id; Store.set(K_CUR,CUR); closeSheet(); TAB='home'; render(); };
+    sh.querySelector('#rm').onclick=()=>{
+      if(!confirm(`למחוק את ${x.name} ואת כל ההתקדמות? אי אפשר לבטל.`)) return;
+      USERS=USERS.filter(y=>y.id!==x.id); if(CUR===x.id){CUR=USERS[0]?.id||null;Store.set(K_CUR,CUR);}
+      saveUsers(); closeSheet(); render();
+    };
+  });
+}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify({v:1,users:USERS},null,1)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='ladder-backup-'+today()+'.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+}
+function importData(){
+  const i=document.createElement('input'); i.type='file'; i.accept='.json';
+  i.onchange=()=>{ const f=i.files[0]; if(!f)return; const r=new FileReader();
+    r.onload=()=>{ try{ const d=JSON.parse(r.result);
+      if(!d.users) throw 0;
+      if(!confirm('הייבוא יחליף את כל הנתונים הקיימים. להמשיך?')) return;
+      USERS=d.users; USERS.forEach(normalise); CUR=USERS[0]?.id||null; saveUsers(); Store.set(K_CUR,CUR); toast('יובא'); render();
+    }catch(e){ toast('הקובץ לא תקין'); } };
+    r.readAsText(f); };
+  i.click();
+}
+
+/* ---------------- גיליון תחתון ---------------- */
+function sheet(html, after){
+  closeSheet();
+  const bg=el(`<div class="sheet-bg"><div class="sheet"><div class="grab"></div>${html}</div></div>`);
+  bg.onclick=e=>{ if(e.target===bg) closeSheet(); };
+  document.body.appendChild(bg);
+  if(after) after(bg.querySelector('.sheet'));
+}
+function closeSheet(){ document.querySelector('.sheet-bg')?.remove(); }
+
+/* ---------------- הפעלה ---------------- */
+if(!USERS.length){ /* מסך בחירת משתמש יופיע */ }
+if(CUR && !me()) CUR=null;
+render();
+
+</script>
+</body>
+</html>
