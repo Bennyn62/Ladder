@@ -303,8 +303,12 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
   border-top:1px solid var(--line);padding:10px 18px calc(env(safe-area-inset-bottom) + 10px)
 }
 .actionbar-in{max-width:600px;margin:0 auto;display:flex;gap:9px;align-items:center}
-.actionbar .btn{flex:1}
-.actionbar .btn.ghost{flex:0 0 auto;padding-inline:16px}
+.actionbar-in>.btn{
+  /* חשוב: .btn כולל width:100%. עם flex-basis:auto זה נהיה 100% מרוחב הסרגל
+     והכפתור השני נדחף אל מחוץ למסך. אפס בסיס + אפשרות לכיווץ פותר את זה. */
+  flex:1 1 0; width:auto; min-width:0; white-space:nowrap;
+  padding-inline:12px; font-size:.95rem
+}
 
 /* ---------- stats ---------- */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
@@ -2013,6 +2017,21 @@ function interleave(arr){
 function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=(Math.random()*(i+1))|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
 function sample(arr,n,not){ return shuffle(arr.filter(x=>x!==not)).slice(0,n); }
 
+/* מסיחים ייחודיים: אף אפשרות לא תוצג עם אותו טקסט כמו התשובה הנכונה,
+   ואף שתי אפשרויות לא יהיו זהות זו לזו. בלי זה, שתי מילים שחולקות תרגום
+   (boy/child = "ילד") יוצרות שאלה שאי אפשר לענות עליה נכון.            */
+function distractors(pool, correct, textOf, n){
+  const seen=new Set([textOf(correct)]), out=[];
+  for(const x of shuffle([...pool])){
+    if(x===correct) continue;
+    const t=textOf(x);
+    if(!t || seen.has(t)) continue;
+    seen.add(t); out.push(x);
+    if(out.length>=n) break;
+  }
+  return out;
+}
+
 /* --- שליטה ברמה --- */
 function levelPct(u, lv){
   const all = poolFor(lv);
@@ -2177,7 +2196,16 @@ function listen(onResult, onEnd){
 }
 
 /* --- השוואת טקסט סלחנית --- */
-const norm = s => (s||'').toLowerCase().replace(/[.,!?;:'"()\-]/g,'').replace(/\s+/g,' ').trim();
+/* iOS ממיר גרש ישר לגרש מסולסל, מקף למקף ארוך ורווח לרווח לא שובר.
+   בלי הנרמול הזה תשובה שנראית זהה לחלוטין נדחית.                      */
+const norm = s => (s||'')
+  .replace(/[\u2018\u2019\u02BC\u00B4]/g,"'")
+  .replace(/[\u201C\u201D]/g,'"')
+  .replace(/[\u2010-\u2015]/g,'-')
+  .replace(/[\u00A0\u202F\u2007]/g,' ')
+  .toLowerCase()
+  .replace(/[.,!?;:'"()\-]/g,'')
+  .replace(/\s+/g,' ').trim();
 function near(a,b){
   a=norm(a); b=norm(b);
   if(a===b) return true;
@@ -2628,7 +2656,7 @@ function drawDone(s){
 const RENDER={};
 
 RENDER.letter=(q,it,u,tg)=>{
-  const d=it.d, opts=shuffle([d,...sample(LETTERS,3,d)]);
+  const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.ex,3)]);
   q.innerHTML=`<div class="prompt"><div class="kicker">אות וצליל</div>
     <div class="letterpair"><b>${d.u}</b><span>${d.l}</span></div>
     <div class="ipa">/${d.ipa}/</div></div>
@@ -2645,7 +2673,7 @@ RENDER.letter=(q,it,u,tg)=>{
 };
 
 RENDER.phonics=(q,it,u,tg)=>{
-  const d=it.d, opts=shuffle([d,...sample(PHONICS,3,d)]);
+  const d=it.d, opts=shuffle([d,...distractors(PHONICS,d,x=>x.w,3)]);
   q.innerHTML=`<div class="prompt"><div class="kicker">חיבור צלילים</div>
     <div class="big">${d.sp}</div><button class="speakbtn" onclick="say('${jq(d.w)}',.75)">${svg('sound')}</button></div>
     <p class="muted" style="text-align:center;margin:12px 0 0">מה המילה שיוצאת?</p><div class="opts" id="o"></div>`;
@@ -2660,8 +2688,8 @@ RENDER.phonics=(q,it,u,tg)=>{
 };
 
 RENDER['w-recog']=(q,it,u,tg)=>{
-  const d=it.d, pool=WORDS.filter(w=>w.lv<=u.lv&&w!==d);
-  const opts=shuffle([d,...sample(pool,3)]);
+  const d=it.d, pool=WORDS.filter(w=>w.lv<=u.lv);
+  const opts=shuffle([d,...distractors(pool,d,x=>x.he,3)]);
   q.innerHTML=`<div class="prompt"><div class="kicker">מה הפירוש</div>
     <div class="big">${d.en}</div><div class="ipa">/${d.ipa}/</div>
     <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button></div><div class="opts" id="o"></div>`;
@@ -2680,13 +2708,16 @@ RENDER['w-recall']=(q,it,u,tg)=>{
   const d=it.d;
   q.innerHTML=`<div class="prompt"><div class="kicker">שליפה — כתבו באנגלית</div>
     <div class="big he">${d.he}</div><div class="small">${d.pos==='v'?'פועל':d.pos==='n'?'שם עצם':d.pos==='adj'?'שם תואר':''}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="type here"></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type here"></div>
     <p class="muted" style="margin-top:8px;text-align:center">${'_ '.repeat(Math.min(d.en.length,14))}</p>`;
   const inp=$('#in'); focusInput(inp);
-  const chk=()=>{ const v=inp.value; const ok=near(v,d.en);
+  /* אם שתי מילים חולקות תרגום ("ילד" = boy / child), שתיהן תשובה נכונה */
+  const accept=WORDS.filter(w=>w.he===d.he).map(w=>w.en);
+  const chk=()=>{ const v=inp.value; const ok=accept.some(a=>near(v,a));
     inp.classList.add(ok?'ok':'no'); say(d.en);
     const exLine = d.ex?`<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`:'';
-    answer(it,ok,tg, ok?`<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${exLine}`
+    const alt = accept.filter(a=>a!==d.en);
+    answer(it,ok,tg, ok?`<b class="en">${esc(near(v,d.en)?d.en:accept.find(a=>near(v,a))||d.en)}</b> <span class="ipa">/${d.ipa}/</span>${alt.length?`<br><span class="muted">גם נכון: </span><span class="en">${esc(alt.join(', '))}</span>`:''}${exLine}`
       :`התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${v?`<br>כתבתם: <b class="en">${esc(v)}</b>`:''}${exLine}`); };
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
   S.primary={label:'בדיקה',fn:chk};
@@ -2700,7 +2731,7 @@ RENDER['w-listen']=(q,it,u,tg)=>{
     <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button>
     <div class="small">הקשיבו וכתבו את המילה</div>
     <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.6)">האטה</button></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="type what you hear"></div>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type what you hear"></div>`;
   say(d.en); const inp=$('#in'); focusInput(inp);
   const chk=()=>{ const ok=near(inp.value,d.en); inp.classList.add(ok?'ok':'no'); say(d.en);
     answer(it,ok,tg,`<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span> = ${d.he}`); };
@@ -2765,7 +2796,7 @@ RENDER.dictate=(q,it,u,tg)=>{
     <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button>
     <div class="small">הקשיבו וכתבו את המשפט המלא</div>
     <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.55)">האטה</button></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="write the sentence"></div>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write the sentence"></div>`;
   say(d.en,.8); const inp=$('#in'); focusInput(inp);
   const chk=()=>{ const ok=near(inp.value,d.en); inp.classList.add(ok?'ok':'no'); say(d.en);
     answer(it,ok,tg,`<b class="en">${esc(d.en)}</b><br>${esc(d.he)}${ok?'':`<br><span class="muted">כתבתם: </span><span class="en">${esc(inp.value)}</span>`}`); };
@@ -2819,7 +2850,7 @@ RENDER.rule=(q,it,u,tg)=>{
     <div class="ruleblk">${d.ex.map(e=>`<span class="ex en">${esc(e.en)}</span><span class="muted">${esc(e.he)}</span>`).join('')}</div></div>
     <div class="prompt" style="margin-top:12px"><div class="kicker">בדיקה מיידית</div>
       <div class="big he" style="font-size:22px">${esc(ex.he)}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="write it in English"></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write it in English"></div>
 `;
   const inp=$('#in'); focusInput(inp);
   const done=(ok)=>{ inp.classList.add(ok?'ok':'no'); say(ex.en);
@@ -2837,7 +2868,7 @@ RENDER.talk=(q,it,u,tg)=>{
     <div class="ruleblk" style="margin-top:12px">מבנה מומלץ: <span class="ex en">${esc(d.hint)}</span></div>
     <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
       <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?'ענו בקול — או כתבו למטה':'כתבו את התשובה למטה'}</p></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" placeholder="your answer"></div>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="your answer"></div>`;
   say(d.q,.9);
   const finish=(txt)=>{
     const words=norm(txt).split(' ').filter(Boolean).length;
@@ -2920,7 +2951,7 @@ RENDER['mp-say']=(q,it,u,tg)=>{
 /* ---------------- קיצורים ---------------- */
 RENDER.contract=(q,it,u,tg)=>{
   const d=it.d;
-  const wrong = shuffle(CONTRACT.filter(x=>x!==d)).slice(0,3).map(x=>x.short);
+  const wrong = distractors(CONTRACT,d,x=>x.short,3).map(x=>x.short);
   const opts = shuffle([d.short,...wrong]);
   q.innerHTML=`<div class="prompt"><div class="kicker">קיצור — איך זה נשמע בדיבור</div>
     <div class="med" style="font-size:21px">${esc(d.full)}</div><div class="small">${esc(d.he)}</div></div>
@@ -2940,7 +2971,7 @@ RENDER.contract=(q,it,u,tg)=>{
 /* ---------------- אנגלית מדוברת מהירה ---------------- */
 RENDER.spoken=(q,it,u,tg)=>{
   const d=it.d;
-  const wrong = shuffle(SPOKEN.filter(x=>x!==d)).slice(0,3).map(x=>x.full);
+  const wrong = distractors(SPOKEN,d,x=>x.full,3).map(x=>x.full);
   const opts = shuffle([d.full,...wrong]);
   q.innerHTML=`<div class="prompt"><div class="kicker">דיבור מהיר — מה נאמר באמת</div>
     <button class="speakbtn" onclick="say('${jq(d.ex)}',1.05)">${svg('sound')}</button>
@@ -2969,7 +3000,7 @@ function irrRender(q,it,u,tg,which){
     <div class="big">${d.base}</div><div class="ipa">/${d.ipa}/</div>
     <div class="small">${d.he}</div>
     <div class="muted" style="font-size:.78rem">${help}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="${which==='past'?'past':'participle'}"></div>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${which==='past'?'past':'participle'}"></div>`;
   const inp=$('#in'); focusInput(inp);
   const table = `<b class="en">${d.base} · ${d.past} · ${d.pp}</b><br>${esc(d.he)}
     <br><span class="muted">תבנית: ${esc(IRR_GROUPS[d.grp]||'')}</span>`;
@@ -3460,6 +3491,7 @@ function vFamily(s){
           VOICES.map(v=>{const t=voiceTier(v);
             return `<option value="${esc(v.name)}" ${v.name===u.settings.voice?'selected':''}>${esc(v.name)} · ${esc(v.lang)}${t==='premium'?' ✦✦':t==='good'?' ✦':''}</option>`}).join('')}</select>
         <button class="btn ghost sm" style="width:100%;margin-top:8px" id="tv">השמעת דוגמה</button>
+        <button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="voiceDiag()">אבחון קולות</button>
         <p class="muted" style="margin-top:6px">${VOICES.length?`${VOICES.length} קולות אנגלית במכשיר · ✦✦ איכות גבוהה, ✦ תקין.`:'עדיין נטענים קולות. אם הרשימה נשארת ריקה — רעננו את הדף.'}</p></div>
       <div class="field"><label>מהירות הדיבור</label>
         <select id="sp">${[['0.6','איטית מאוד'],['0.75','איטית'],['0.95','רגילה'],['1.05','מהירה'],['1.2','ילידית']]
@@ -3592,22 +3624,34 @@ if(window.speechSynthesis){
   });
 }
 
+
+/* ---------- אבחון קולות ----------
+   מציג בדיוק מה הדפדפן מדווח, כולל שפות אחרות. שימושי כשקול שהותקן
+   במכשיר לא מופיע ברשימה — ואז רואים אם הוא בכלל נחשף לדפדפן.        */
+function voiceDiag(){
+  const all = window.speechSynthesis ? speechSynthesis.getVoices() : [];
+  const en  = all.filter(v=>/^en/i.test(v.lang));
+  const row = v=>`<div class="wordrow">
+    <span class="dot" style="background:${voiceTier(v)==='premium'?'var(--good)':voiceTier(v)==='junk'?'var(--bad)':'var(--gold)'}"></span>
+    <span class="w">${esc(v.name)}</span>
+    <span class="h">${esc(v.lang)} · ${v.localService===false?'רשת':'מקומי'}${v.default?' · ברירת מחדל':''}</span>
+    <span class="badge">${voiceScore(v)}</span></div>`;
+  sheet(`<h2>אבחון קולות</h2>
+    <div class="grid3" style="margin-top:14px">
+      <div class="stat"><div class="n">${all.length}</div><div class="l">סה"כ קולות</div></div>
+      <div class="stat"><div class="n">${en.length}</div><div class="l">אנגלית</div></div>
+      <div class="stat"><div class="n">${all.filter(v=>/premium|enhanced|neural/i.test(v.name)).length}</div><div class="l">משודרגים</div></div>
+    </div>
+    ${all.some(v=>/\bava\b/i.test(v.name))
+      ? '<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)"><b>Ava נמצאה</b><div class="sub" style="margin-top:3px">אפשר לבחור אותה ברשימת הקולות.</div></div>'
+      : `<div class="card" style="margin-top:12px;border-color:var(--gold)"><b>Ava לא נחשפת לדפדפן</b>
+         <div class="sub" style="margin-top:4px">היא כנראה מותקנת במכשיר, אבל ספארי לא מעביר קולות Premium ו‑Enhanced לדפי אינטרנט — רק לאפליקציות מקוריות ול‑VoiceOver. זו מגבלה של הדפדפן ולא של האפליקציה, ואין דרך לעקוף אותה מהקוד.</div></div>`}
+    <div class="sec-title">כל הקולות שהמכשיר מדווח</div>
+    <div class="card">${all.length?all.slice().sort((a,b)=>voiceScore(b)-voiceScore(a)).map(row).join('')
+      :'<p class="sub">הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.</p>'}</div>
+    <p class="muted" style="margin-top:12px">אם הרשימה נראית שונה כשפותחים ישירות בספארי לעומת אפליקציה אחרת — זה סימן שהתצוגה המוטמעת מגבילה את הקולות.</p>`);
+}
+
 </script>
-</// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAq_sF_qVHDcgt9WE_8feDTN77zibm53fc",
-  authDomain: "ladder-app-74f7a.firebaseapp.com",
-  projectId: "ladder-app-74f7a",
-  storageBucket: "ladder-app-74f7a.firebasestorage.app",
-  messagingSenderId: "893099976832",
-  appId: "1:893099976832:web:a47169f8e70eb6e90b1e65"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);>
+</body>
 </html>
