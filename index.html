@@ -356,6 +356,44 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .ruleblk .ex{font-family:var(--en);direction:ltr;font-weight:600;margin-top:7px;display:block;font-size:.97rem}
 .toast{position:fixed;bottom:calc(var(--bar) + 22px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:11px;font-size:.87rem;font-weight:700;z-index:200;animation:pop .2s;box-shadow:var(--sh-lift)}
 
+/* ---------- מסך נעילה ומקלדת קוד ---------- */
+.lock{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:30px 24px calc(env(safe-area-inset-bottom) + 30px);max-width:600px;margin:0 auto}
+.lock .who{width:74px;height:74px;border-radius:22px;display:grid;place-items:center;font-size:38px;
+  background:var(--card);border:1px solid var(--line);margin-bottom:14px}
+.dots{display:flex;gap:13px;justify-content:center;margin:20px 0 26px}
+.dots i{width:13px;height:13px;border-radius:50%;background:var(--line);transition:.15s}
+.dots i.on{background:var(--brand);transform:scale(1.15)}
+.dots.err i{background:var(--bad)}
+.dots.err{animation:shake .38s}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;width:100%;max-width:270px}
+.keypad button{aspect-ratio:1;border-radius:50%;background:var(--card);border:1px solid var(--line);
+  font-family:var(--mono);font-size:1.45rem;font-weight:700;transition:.1s;display:grid;place-items:center}
+.keypad button:active{background:var(--brand-soft);transform:scale(.93)}
+.keypad button.blank{background:none;border:0;pointer-events:none}
+.keypad button.act{font-family:var(--he);font-size:.85rem;font-weight:700;color:var(--ink3);border:0;background:none}
+
+/* ---------- מתגים ורשימות בקרה ---------- */
+.ctrl{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--line2)}
+.ctrl:last-of-type{border-bottom:0}
+.ctrl .tx{flex:1;min-width:0}
+.ctrl .tx b{display:block;font-size:.92rem;font-weight:700}
+.ctrl .tx span{font-size:.76rem;color:var(--ink3);line-height:1.45;display:block;margin-top:2px}
+.sw{width:50px;height:30px;border-radius:99px;background:var(--line);position:relative;flex:none;transition:.18s}
+.sw::after{content:'';position:absolute;top:3px;inset-inline-start:3px;width:24px;height:24px;border-radius:50%;
+  background:#fff;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sw.on{background:var(--brand)}
+.sw.on::after{inset-inline-start:23px}
+.stepper{display:flex;align-items:center;gap:9px;flex:none}
+.stepper button{width:34px;height:34px;border-radius:9px;background:var(--paper);border:1px solid var(--line);font-size:1.1rem;font-weight:700;display:grid;place-items:center}
+.stepper span{font-family:var(--mono);font-weight:700;min-width:34px;text-align:center;font-size:.95rem}
+.task{background:var(--brand-soft);border:1px solid var(--brand);border-radius:var(--r);padding:15px}
+.task .lbl{font-size:10.5px;font-weight:800;letter-spacing:.12em;color:var(--brand);text-transform:uppercase}
+.goalring{display:flex;align-items:center;gap:12px}
+.goalring .ring{width:46px;height:46px;flex:none;transform:rotate(-90deg)}
+.goalring circle{fill:none;stroke-width:5;stroke-linecap:round}
+
 /* ---------- הסבר על סוג תרגיל ---------- */
 .intro{
   background:var(--card);border:1px solid var(--brand);border-radius:var(--r-lg);
@@ -1000,6 +1038,788 @@ const SPOKEN = `
 `.trim().split('\n').map(l=>{const p=l.split('|');
   return {lv:+p[0], sp:p[1], full:p[2], he:p[3], ex:p[4], note:p[5]}});
 /* ============================================================
+   פעלים חריגים — מקובצים לפי תבנית ההטיה.
+   הרעיון: לא לשנן 100 פעלים בודדים אלא 12 תבניות.
+   פורמט: רמה|בסיס|עבר|צורה שלישית|עברית|ipa|קוד תבנית
+   ============================================================ */
+const IRR_GROUPS = {
+ same:'שלוש הצורות זהות — אין מה לשנן, רק לזכור שהן לא משתנות',
+ aught:'עבר וצורה שלישית זהות ומסתיימות ב־ought / aught',
+ ent:'d סופית הופכת ל־t: send → sent',
+ ept:'התנועה מתקצרת וה־סוף הופך ל־t: keep → kept',
+ iau:'i → a → u. התבנית המוזיקלית: sing sang sung',
+ ioi:'i → o → i+en: drive drove driven',
+ eoo:'ea/oo → o → o+en: speak spoke spoken',
+ ownew:'ow → ew → own: know knew known',
+ aken:'a → oo → a+ken: take took taken',
+ aten:'עבר קצר, שלישית ב־en: eat ate eaten',
+ ame:'התנועה מתחלפת ושלישית זהה לבסיס: come came come',
+ wild:'חריג לחלוטין — אין תבנית, פשוט לשנן'
+};
+
+const IRREG = `
+3|be|was / were|been|להיות|biː|wild
+3|have|had|had|יש / להחזיק|hæv|wild
+3|do|did|done|לעשות|duː|wild
+3|go|went|gone|ללכת|ɡoʊ|wild
+3|say|said|said|לומר|seɪ|wild
+3|make|made|made|לעשות / ליצור|meɪk|wild
+3|get|got|gotten|לקבל|ɡɛt|wild
+3|see|saw|seen|לראות|siː|wild
+3|come|came|come|לבוא|kʌm|ame
+3|know|knew|known|לדעת|noʊ|ownew
+3|take|took|taken|לקחת|teɪk|aken
+3|give|gave|given|לתת|ɡɪv|aten
+3|find|found|found|למצוא|faɪnd|wild
+3|think|thought|thought|לחשוב|θɪŋk|aught
+3|tell|told|told|לספר|tɛl|wild
+3|become|became|become|להפוך ל|bɪˈkʌm|ame
+3|leave|left|left|לעזוב|liːv|ept
+3|feel|felt|felt|להרגיש|fiːl|ept
+3|put|put|put|לשים|pʊt|same
+3|bring|brought|brought|להביא|brɪŋ|aught
+3|begin|began|begun|להתחיל|bɪˈɡɪn|iau
+3|keep|kept|kept|לשמור|kiːp|ept
+3|hold|held|held|להחזיק|hoʊld|wild
+3|write|wrote|written|לכתוב|raɪt|ioi
+3|stand|stood|stood|לעמוד|stænd|wild
+3|hear|heard|heard|לשמוע|hɪr|wild
+3|let|let|let|לתת ל / להרשות|lɛt|same
+3|mean|meant|meant|להתכוון|miːn|ept
+3|set|set|set|לקבוע|sɛt|same
+3|meet|met|met|לפגוש|miːt|ept
+4|run|ran|run|לרוץ|rʌn|ame
+4|pay|paid|paid|לשלם|peɪ|wild
+4|sit|sat|sat|לשבת|sɪt|wild
+4|speak|spoke|spoken|לדבר|spiːk|eoo
+4|lie|lay|lain|לשכב|laɪ|wild
+4|lead|led|led|להוביל|liːd|ept
+4|read|read|read|לקרוא|riːd|same
+4|grow|grew|grown|לגדול|ɡroʊ|ownew
+4|lose|lost|lost|לאבד|luːz|wild
+4|fall|fell|fallen|ליפול|fɔːl|aten
+4|send|sent|sent|לשלוח|sɛnd|ent
+4|build|built|built|לבנות|bɪld|ent
+4|understand|understood|understood|להבין|ˌʌndərˈstænd|wild
+4|draw|drew|drawn|לצייר|drɔː|ownew
+4|break|broke|broken|לשבור|breɪk|eoo
+4|spend|spent|spent|להוציא כסף / לבלות|spɛnd|ent
+4|cut|cut|cut|לחתוך|kʌt|same
+4|rise|rose|risen|לעלות|raɪz|ioi
+4|drive|drove|driven|לנהוג|draɪv|ioi
+4|buy|bought|bought|לקנות|baɪ|aught
+4|wear|wore|worn|ללבוש|wɛr|eoo
+4|choose|chose|chosen|לבחור|tʃuːz|eoo
+4|seek|sought|sought|לחפש|siːk|aught
+4|throw|threw|thrown|לזרוק|θroʊ|ownew
+4|catch|caught|caught|לתפוס|kætʃ|aught
+4|deal|dealt|dealt|להתמודד / לחלק|diːl|ept
+4|win|won|won|לנצח|wɪn|wild
+4|forget|forgot|forgotten|לשכוח|fərˈɡɛt|aten
+4|eat|ate|eaten|לאכול|iːt|aten
+4|teach|taught|taught|ללמד|tiːtʃ|aught
+5|fight|fought|fought|להילחם|faɪt|aught
+5|sell|sold|sold|למכור|sɛl|wild
+5|drink|drank|drunk|לשתות|drɪŋk|iau
+5|sing|sang|sung|לשיר|sɪŋ|iau
+5|swim|swam|swum|לשחות|swɪm|iau
+5|ring|rang|rung|לצלצל|rɪŋ|iau
+5|sleep|slept|slept|לישון|sliːp|ept
+5|sweep|swept|swept|לטאטא|swiːp|ept
+5|feed|fed|fed|להאכיל|fiːd|ept
+5|hide|hid|hidden|להסתיר|haɪd|ioi
+5|ride|rode|ridden|לרכוב|raɪd|ioi
+5|steal|stole|stolen|לגנוב|stiːl|eoo
+5|freeze|froze|frozen|להקפיא|friːz|eoo
+5|wake|woke|woken|להתעורר|weɪk|eoo
+5|shake|shook|shaken|לנער|ʃeɪk|aken
+5|blow|blew|blown|לנשוב|bloʊ|ownew
+5|fly|flew|flown|לעוף|flaɪ|ownew
+5|hurt|hurt|hurt|לכאוב / לפגוע|hɜːrt|same
+5|hit|hit|hit|להכות|hɪt|same
+5|cost|cost|cost|לעלות כסף|kɒst|same
+5|shut|shut|shut|לסגור|ʃʌt|same
+5|lend|lent|lent|להלוות|lɛnd|ent
+5|bend|bent|bent|לכופף|bɛnd|ent
+5|light|lit|lit|להדליק|laɪt|ept
+5|hang|hung|hung|לתלות|hæŋ|wild
+5|dig|dug|dug|לחפור|dɪɡ|wild
+5|stick|stuck|stuck|להידבק / להיתקע|stɪk|wild
+5|strike|struck|struck|להכות / לשבות|straɪk|wild
+5|shoot|shot|shot|לירות|ʃuːt|wild
+6|arise|arose|arisen|להתעורר / לצוץ|əˈraɪz|ioi
+6|bear|bore|borne|לשאת / לסבול|bɛr|eoo
+6|beat|beat|beaten|להכות / לנצח|biːt|aten
+6|bite|bit|bitten|לנשוך|baɪt|ioi
+6|burn|burnt|burnt|לשרוף|bɜːrn|ent
+6|cast|cast|cast|להטיל|kæst|same
+6|creep|crept|crept|לזחול|kriːp|ept
+6|forbid|forbade|forbidden|לאסור|fərˈbɪd|ioi
+6|forgive|forgave|forgiven|לסלוח|fərˈɡɪv|aten
+6|hold on|held on|held on|להמתין / להחזיק מעמד|hoʊld ɒn|wild
+6|lay|laid|laid|להניח|leɪ|wild
+6|mistake|mistook|mistaken|לטעות|mɪˈsteɪk|aken
+6|overcome|overcame|overcome|להתגבר|ˌoʊvərˈkʌm|ame
+6|prove|proved|proven|להוכיח|pruːv|wild
+6|quit|quit|quit|לפרוש / להפסיק|kwɪt|same
+6|seek out|sought out|sought out|לאתר|siːk aʊt|aught
+6|shine|shone|shone|לזרוח|ʃaɪn|wild
+6|spread|spread|spread|להתפשט|sprɛd|same
+6|swear|swore|sworn|להישבע|swɛr|eoo
+6|tear|tore|torn|לקרוע|tɛr|eoo
+6|withdraw|withdrew|withdrawn|למשוך / לסגת|wɪðˈdrɔː|ownew
+7|bind|bound|bound|לכרוך / לחייב|baɪnd|wild
+7|breed|bred|bred|לגדל / להוליד|briːd|ept
+7|cling|clung|clung|להיצמד|klɪŋ|wild
+7|flee|fled|fled|לברוח|fliː|ept
+7|grind|ground|ground|לטחון|ɡraɪnd|wild
+7|lean|leant|leant|להישען|liːn|ept
+7|leap|leapt|leapt|לזנק|liːp|ept
+7|seek shelter|sought shelter|sought shelter|לחפש מחסה|siːk ˈʃɛltər|aught
+7|shed|shed|shed|להשיל / לשפוך|ʃɛd|same
+7|sink|sank|sunk|לשקוע|sɪŋk|iau
+7|slide|slid|slid|להחליק|slaɪd|ioi
+7|spin|spun|spun|לסובב|spɪn|wild
+7|split|split|split|לפצל|splɪt|same
+7|swing|swung|swung|להתנדנד|swɪŋ|wild
+7|thrust|thrust|thrust|לדחוף בכוח|θrʌst|same
+7|undergo|underwent|undergone|לעבור תהליך|ˌʌndərˈɡoʊ|wild
+7|uphold|upheld|upheld|לקיים / לאשרר|ʌpˈhoʊld|wild
+7|weave|wove|woven|לארוג|wiːv|eoo
+7|weep|wept|wept|לבכות|wiːp|ept
+`.trim().split('\n').map(l=>{const p=l.split('|');
+  return {lv:+p[0], base:p[1], past:p[2], pp:p[3], he:p[4], ipa:p[5], grp:p[6]}});
+
+/* ============================================================
+   הרחבת אוצר מילים — רובד הליבה התדיר.
+   פורמט מקוצר: מילה|עברית|ipa|תפקיד
+   (בלי משפט דוגמה — התרגילים כאן הם זיהוי ושליפה)
+   ============================================================ */
+const WC = {};
+
+WC[3] = `
+I|אני|aɪ|pron
+you|אתה / אתם|juː|pron
+he|הוא|hiː|pron
+she|היא|ʃiː|pron
+it|זה|ɪt|pron
+we|אנחנו|wiː|pron
+they|הם|ðeɪ|pron
+me|אותי|miː|pron
+him|אותו|hɪm|pron
+her|אותה|hɜːr|pron
+us|אותנו|ʌs|pron
+them|אותם|ðɛm|pron
+my|שלי|maɪ|det
+your|שלך|jʊr|det
+his|שלו|hɪz|det
+our|שלנו|ˈaʊər|det
+their|שלהם|ðɛr|det
+this|זה|ðɪs|det
+that|ההוא|ðæt|det
+these|אלה|ðiːz|det
+those|ההם|ðoʊz|det
+the|ה־|ðə|det
+a|אחד / כלשהו|ə|det
+and|ו|ænd|conj
+or|או|ɔːr|conj
+but|אבל|bʌt|conj
+if|אם|ɪf|conj
+so|אז / כל כך|soʊ|conj
+in|בתוך|ɪn|prep
+on|על|ɒn|prep
+at|ב־ / אצל|æt|prep
+to|אל|tuː|prep
+from|מ־|frʌm|prep
+of|של|ʌv|prep
+for|בשביל|fɔːr|prep
+with|עם|wɪð|prep
+by|על ידי|baɪ|prep
+up|למעלה|ʌp|adv
+down|למטה|daʊn|adv
+out|בחוץ|aʊt|adv
+very|מאוד|ˈvɛri|adv
+not|לא|nɒt|adv
+too|גם / מדי|tuː|adv
+also|גם|ˈɔːlsoʊ|adv
+only|רק|ˈoʊnli|adv
+just|בדיוק / רק|dʒʌst|adv
+more|יותר|mɔːr|adv
+most|הכי|moʊst|adv
+all|כל|ɔːl|det
+some|קצת|sʌm|det
+any|כלשהו|ˈɛni|det
+no|אף|noʊ|det
+every|כל אחד|ˈɛvri|det
+many|הרבה|ˈmɛni|det
+much|הרבה|mʌtʃ|det
+few|מעט|fjuː|det
+other|אחר|ˈʌðər|adj
+another|עוד אחד|əˈnʌðər|det
+each|כל אחד|iːtʃ|det
+both|שניהם|boʊθ|det
+can|יכול|kæn|v
+will|יהיה / עתיד|wɪl|v
+would|היה|wʊd|v
+should|צריך|ʃʊd|v
+could|יכול היה|kʊd|v
+must|חייב|mʌst|v
+may|רשאי / אולי|meɪ|v
+might|אולי|maɪt|v
+start|להתחיל|stɑːrt|v
+stop|לעצור|stɒp|v
+finish|לסיים|ˈfɪnɪʃ|v
+wait|לחכות|weɪt|v
+call|להתקשר / לקרוא|kɔːl|v
+show|להראות|ʃoʊ|v
+turn|לפנות / להפוך|tɜːrn|v
+move|לזוז|muːv|v
+live|לחיות|lɪv|v
+die|למות|daɪ|v
+grow|לגדול|ɡroʊ|v
+send|לשלוח|sɛnd|v
+build|לבנות|bɪld|v
+break|לשבור|breɪk|v
+lose|לאבד|luːz|v
+win|לנצח|wɪn|v
+pay|לשלם|peɪ|v
+cook|לבשל|kʊk|v
+clean|לנקות|kliːn|v
+wash|לרחוץ|wɒʃ|v
+water|מים / להשקות|ˈwɔːtər|n
+name|שם|neɪm|n
+thing|דבר|θɪŋ|n
+place|מקום|pleɪs|n
+person|אדם|ˈpɜːrsən|n
+people|אנשים|ˈpiːpəl|n
+family|משפחה|ˈfæməli|n
+child|ילד|tʃaɪld|n
+son|בן|sʌn|n
+daughter|בת|ˈdɔːtər|n
+home|בית|hoʊm|n
+work|עבודה|wɜːrk|n
+job|משרה|dʒɒb|n
+hand|יד|hænd|n
+face|פנים|feɪs|n
+hair|שיער|hɛr|n
+mouth|פה|maʊθ|n
+ear|אוזן|ɪr|n
+`;
+
+WC[4] = `
+week|שבוע|wiːk|n
+today|היום|təˈdeɪ|adv
+tomorrow|מחר|təˈmɒroʊ|adv
+yesterday|אתמול|ˈjɛstərdeɪ|adv
+soon|בקרוב|suːn|adv
+late|מאוחר|leɪt|adj
+early|מוקדם|ˈɜːrli|adj
+often|לעיתים קרובות|ˈɒfən|adv
+sometimes|לפעמים|ˈsʌmtaɪmz|adv
+usually|בדרך כלל|ˈjuːʒuəli|adv
+still|עדיין|stɪl|adv
+already|כבר|ɔːlˈrɛdi|adv
+yet|עדיין / כבר|jɛt|adv
+ago|לפני|əˈɡoʊ|adv
+back|בחזרה|bæk|adv
+away|הרחק|əˈweɪ|adv
+around|מסביב|əˈraʊnd|prep
+over|מעל|ˈoʊvər|prep
+under|מתחת|ˈʌndər|prep
+near|ליד|nɪr|prep
+next to|ליד|nɛkst tuː|prep
+behind|מאחורי|bɪˈhaɪnd|prep
+in front of|לפני|ɪn frʌnt ʌv|prep
+inside|בפנים|ɪnˈsaɪd|prep
+outside|בחוץ|aʊtˈsaɪd|prep
+left|שמאל|lɛft|n
+right|ימין / נכון|raɪt|n
+number|מספר|ˈnʌmbər|n
+half|חצי|hæf|n
+part|חלק|pɑːrt|n
+side|צד|saɪd|n
+end|סוף|ɛnd|n
+top|ראש / למעלה|tɒp|n
+bottom|תחתית|ˈbɒtəm|n
+line|קו / שורה|laɪn|n
+point|נקודה|pɔɪnt|n
+group|קבוצה|ɡruːp|n
+kind|סוג|kaɪnd|n
+way|דרך|weɪ|n
+idea|רעיון|aɪˈdɪə|n
+question|שאלה|ˈkwɛstʃən|n
+answer|תשובה|ˈænsər|n
+story|סיפור|ˈstɔːri|n
+word|מילה|wɜːrd|n
+letter|אות / מכתב|ˈlɛtər|n
+page|עמוד|peɪdʒ|n
+paper|נייר|ˈpeɪpər|n
+picture|תמונה|ˈpɪktʃər|n
+game|משחק|ɡeɪm|n
+music|מוזיקה|ˈmjuːzɪk|n
+film|סרט|fɪlm|n
+color|צבע|ˈkʌlər|n
+size|גודל|saɪz|n
+price|מחיר|praɪs|n
+store|חנות|stɔːr|n
+market|שוק|ˈmɑːrkɪt|n
+office|משרד|ˈɒfɪs|n
+company|חברה|ˈkʌmpəni|n
+team|צוות|tiːm|n
+class|כיתה / שיעור|klæs|n
+teacher|מורה|ˈtiːtʃər|n
+student|תלמיד|ˈstuːdənt|n
+doctor|רופא|ˈdɒktər|n
+police|משטרה|pəˈliːs|n
+hospital|בית חולים|ˈhɒspɪtəl|n
+bank|בנק|bæŋk|n
+road|כביש|roʊd|n
+train|רכבת|treɪn|n
+plane|מטוס|pleɪn|n
+ticket|כרטיס|ˈtɪkɪt|n
+bag|תיק|bæɡ|n
+key|מפתח|kiː|n
+clock|שעון|klɒk|n
+light|אור|laɪt|n
+fire|אש|ˈfaɪər|n
+air|אוויר|ɛr|n
+sea|ים|siː|n
+mountain|הר|ˈmaʊntən|n
+river|נהר|ˈrɪvər|n
+garden|גן|ˈɡɑːrdən|n
+flower|פרח|ˈflaʊər|n
+animal|חיה|ˈænɪməl|n
+horse|סוס|hɔːrs|n
+open|פתוח|ˈoʊpən|adj
+closed|סגור|kloʊzd|adj
+free|חופשי / חינם|friː|adj
+busy|עסוק|ˈbɪzi|adj
+ready|מוכן|ˈrɛdi|adj
+sure|בטוח|ʃʊr|adj
+true|נכון|truː|adj
+false|שגוי|fɔːls|adj
+right|נכון|raɪt|adj
+wrong|שגוי|rɒŋ|adj
+long|ארוך|lɒŋ|adj
+short|קצר|ʃɔːrt|adj
+high|גבוה|haɪ|adj
+low|נמוך|loʊ|adj
+tall|גבוה קומה|tɔːl|adj
+young|צעיר|jʌŋ|adj
+strong|חזק|strɒŋ|adj
+weak|חלש|wiːk|adj
+clean|נקי|kliːn|adj
+dirty|מלוכלך|ˈdɜːrti|adj
+full|מלא|fʊl|adj
+empty|ריק|ˈɛmpti|adj
+cheap|זול|tʃiːp|adj
+expensive|יקר|ɪkˈspɛnsɪv|adj
+nice|נחמד|naɪs|adj
+beautiful|יפה|ˈbjuːtɪfəl|adj
+quiet|שקט|ˈkwaɪət|adj
+loud|רועש|laʊd|adj
+`;
+
+WC[5] = `
+believe|להאמין|bɪˈliːv|v
+hope|לקוות|hoʊp|v
+wish|לאחל / להשתוקק|wɪʃ|v
+agree|להסכים|əˈɡriː|v
+refuse|לסרב|rɪˈfjuːz|v
+accept|לקבל|əkˈsɛpt|v
+expect|לצפות|ɪkˈspɛkt|v
+promise|להבטיח|ˈprɒmɪs|v
+explain|להסביר|ɪkˈspleɪn|v
+describe|לתאר|dɪˈskraɪb|v
+mention|להזכיר|ˈmɛnʃən|v
+repeat|לחזור על|rɪˈpiːt|v
+continue|להמשיך|kənˈtɪnjuː|v
+return|לחזור|rɪˈtɜːrn|v
+enter|להיכנס|ˈɛntər|v
+exit|לצאת|ˈɛɡzɪt|v
+follow|לעקוב|ˈfɒloʊ|v
+lead|להוביל|liːd|v
+join|להצטרף|dʒɔɪn|v
+share|לחלוק|ʃɛr|v
+add|להוסיף|æd|v
+remove|להסיר|rɪˈmuːv|v
+fill|למלא|fɪl|v
+carry|לשאת|ˈkæri|v
+push|לדחוף|pʊʃ|v
+pull|למשוך|pʊl|v
+lift|להרים|lɪft|v
+drop|להפיל|drɒp|v
+throw|לזרוק|θroʊ|v
+hold|להחזיק|hoʊld|v
+touch|לגעת|tʌtʃ|v
+hit|להכות|hɪt|v
+cut|לחתוך|kʌt|v
+fix|לתקן|fɪks|v
+check|לבדוק|tʃɛk|v
+test|לבחון|tɛst|v
+count|לספור|kaʊnt|v
+measure|למדוד|ˈmɛʒər|v
+weigh|לשקול|weɪ|v
+compare|להשוות|kəmˈpɛr|v
+choose|לבחור|tʃuːz|v
+prefer|להעדיף|prɪˈfɜːr|v
+allow|להרשות|əˈlaʊ|v
+prevent|למנוע|prɪˈvɛnt|v
+protect|להגן|prəˈtɛkt|v
+save|לשמור / להציל|seɪv|v
+spend|להוציא / לבלות|spɛnd|v
+earn|להרוויח|ɜːrn|v
+cost|לעלות|kɒst|v
+sell|למכור|sɛl|v
+order|להזמין|ˈɔːrdər|v
+book|להזמין מקום|bʊk|v
+plan|לתכנן|plæn|v
+prepare|להכין|prɪˈpɛr|v
+organize|לארגן|ˈɔːrɡənaɪz|v
+report|לדווח|rɪˈpɔːrt|v
+record|להקליט|rɪˈkɔːrd|v
+print|להדפיס|prɪnt|v
+copy|להעתיק|ˈkɒpi|v
+delete|למחוק|dɪˈliːt|v
+search|לחפש|sɜːrtʃ|v
+discover|לגלות|dɪˈskʌvər|v
+notice|לשים לב|ˈnoʊtɪs|v
+watch|לצפות|wɒtʃ|v
+listen|להאזין|ˈlɪsən|v
+feel|להרגיש|fiːl|v
+smell|להריח|smɛl|v
+taste|לטעום|teɪst|v
+breathe|לנשום|briːð|v
+smile|לחייך|smaɪl|v
+laugh|לצחוק|læf|v
+cry|לבכות|kraɪ|v
+shout|לצעוק|ʃaʊt|v
+whisper|ללחוש|ˈwɪspər|v
+answer|לענות|ˈænsər|v
+reply|להשיב|rɪˈplaɪ|v
+invite|להזמין|ɪnˈvaɪt|v
+visit|לבקר|ˈvɪzɪt|v
+meet|לפגוש|miːt|v
+marry|להתחתן|ˈmæri|v
+health|בריאות|hɛlθ|n
+body|גוף|ˈbɒdi|n
+mind|מחשבה / שכל|maɪnd|n
+heart|לב|hɑːrt|n
+life|חיים|laɪf|n
+death|מוות|dɛθ|n
+love|אהבה|lʌv|n
+fear|פחד|fɪr|n
+hope|תקווה|hoʊp|n
+dream|חלום|driːm|n
+truth|אמת|truːθ|n
+lie|שקר|laɪ|n
+help|עזרה|hɛlp|n
+care|טיפול / אכפתיות|kɛr|n
+chance|סיכוי|tʃæns|n
+risk|סיכון|rɪsk|n
+danger|סכנה|ˈdeɪndʒər|n
+safety|בטיחות|ˈseɪfti|n
+peace|שלום|piːs|n
+war|מלחמה|wɔːr|n
+power|כוח|ˈpaʊər|n
+control|שליטה|kənˈtroʊl|n
+change|שינוי|tʃeɪndʒ|n
+future|עתיד|ˈfjuːtʃər|n
+past|עבר|pæst|n
+present|הווה|ˈprɛzənt|n
+history|היסטוריה|ˈhɪstəri|n
+science|מדע|ˈsaɪəns|n
+nature|טבע|ˈneɪtʃər|n
+world|עולם|wɜːrld|n
+`;
+
+WC[6] = `
+however|אולם|haʊˈɛvər|adv
+therefore|לכן|ˈðɛrfɔːr|adv
+otherwise|אחרת|ˈʌðərwaɪz|adv
+moreover|יתר על כן|mɔːrˈoʊvər|adv
+besides|חוץ מזה|bɪˈsaɪdz|adv
+finally|לבסוף|ˈfaɪnəli|adv
+suddenly|פתאום|ˈsʌdənli|adv
+immediately|מיד|ɪˈmiːdiətli|adv
+gradually|בהדרגה|ˈɡrædʒuəli|adv
+clearly|בבירור|ˈklɪrli|adv
+exactly|בדיוק|ɪɡˈzæktli|adv
+hardly|בקושי|ˈhɑːrdli|adv
+rarely|לעיתים רחוקות|ˈrɛrli|adv
+mostly|בעיקר|ˈmoʊstli|adv
+partly|חלקית|ˈpɑːrtli|adv
+completely|לחלוטין|kəmˈpliːtli|adv
+extremely|מאוד מאוד|ɪkˈstriːmli|adv
+quite|די|kwaɪt|adv
+rather|למדי / דווקא|ˈræðər|adv
+somehow|איכשהו|ˈsʌmhaʊ|adv
+anyway|בכל מקרה|ˈɛniweɪ|adv
+whenever|בכל פעם ש|wɛnˈɛvər|conj
+wherever|בכל מקום ש|wɛrˈɛvər|conj
+whereas|בעוד ש|wɛrˈæz|conj
+since|מאז / מכיוון ש|sɪns|conj
+though|למרות ש|ðoʊ|conj
+despite|למרות|dɪˈspaɪt|prep
+according to|לפי|əˈkɔːrdɪŋ tuː|prep
+due to|בגלל|duː tuː|prep
+apart from|חוץ מ|əˈpɑːrt frʌm|prep
+in terms of|במונחים של|ɪn tɜːrmz ʌv|prep
+develop|לפתח|dɪˈvɛləp|v
+create|ליצור|kriˈeɪt|v
+design|לתכנן|dɪˈzaɪn|v
+produce|לייצר|prəˈduːs|v
+supply|לספק|səˈplaɪ|v
+support|לתמוך|səˈpɔːrt|v
+maintain|לתחזק / לטעון|meɪnˈteɪn|v
+operate|להפעיל|ˈɒpəreɪt|v
+perform|לבצע|pərˈfɔːrm|v
+handle|לטפל|ˈhændəl|v
+solve|לפתור|sɒlv|v
+analyse|לנתח|ˈænəlaɪz|v
+identify|לזהות|aɪˈdɛntɪfaɪ|v
+determine|לקבוע|dɪˈtɜːrmɪn|v
+estimate|להעריך|ˈɛstɪmeɪt|v
+calculate|לחשב|ˈkælkjuleɪt|v
+predict|לחזות|prɪˈdɪkt|v
+assume|להניח|əˈsuːm|v
+argue|לטעון / להתווכח|ˈɑːrɡjuː|v
+claim|לטעון|kleɪm|v
+prove|להוכיח|pruːv|v
+confirm|לאשר|kənˈfɜːrm|v
+reject|לדחות|rɪˈdʒɛkt|v
+approve|לאשר|əˈpruːv|v
+complain|להתלונן|kəmˈpleɪn|v
+apologize|להתנצל|əˈpɒlədʒaɪz|v
+recommend|להמליץ|ˌrɛkəˈmɛnd|v
+encourage|לעודד|ɪnˈkʌrɪdʒ|v
+warn|להזהיר|wɔːrn|v
+threaten|לאיים|ˈθrɛtən|v
+force|להכריח|fɔːrs|v
+persuade|לשכנע|pərˈsweɪd|v
+influence|להשפיע|ˈɪnfluəns|v
+affect|להשפיע על|əˈfɛkt|v
+depend|להיות תלוי|dɪˈpɛnd|v
+belong|להשתייך|bɪˈlɔːŋ|v
+contain|להכיל|kənˈteɪn|v
+include|לכלול|ɪnˈkluːd|v
+exclude|להוציא מכלל|ɪkˈskluːd|v
+replace|להחליף|rɪˈpleɪs|v
+repair|לתקן|rɪˈpɛr|v
+adjust|לכוונן|əˈdʒʌst|v
+connect|לחבר|kəˈnɛkt|v
+separate|להפריד|ˈsɛpəreɪt|v
+system|מערכת|ˈsɪstəm|n
+process|תהליך|ˈprɒsɛs|n
+method|שיטה|ˈmɛθəd|n
+model|מודל|ˈmɒdəl|n
+structure|מבנה|ˈstrʌktʃər|n
+function|תפקוד|ˈfʌŋkʃən|n
+value|ערך|ˈvæljuː|n
+quality|איכות|ˈkwɒləti|n
+amount|כמות|əˈmaʊnt|n
+rate|קצב / שיעור|reɪt|n
+range|טווח|reɪndʒ|n
+limit|גבול|ˈlɪmɪt|n
+average|ממוצע|ˈævərɪdʒ|n
+detail|פרט|ˈdiːteɪl|n
+condition|תנאי / מצב|kənˈdɪʃən|n
+situation|מצב|ˌsɪtʃuˈeɪʃən|n
+effect|השפעה|ɪˈfɛkt|n
+cause|סיבה|kɔːz|n
+benefit|תועלת|ˈbɛnɪfɪt|n
+damage|נזק|ˈdæmɪdʒ|n
+failure|כישלון|ˈfeɪljər|n
+success|הצלחה|səkˈsɛs|n
+progress|התקדמות|ˈprɒɡrɛs|n
+performance|ביצועים|pərˈfɔːrməns|n
+experience|ניסיון|ɪkˈspɪriəns|n
+knowledge|ידע|ˈnɒlɪdʒ|n
+skill|מיומנות|skɪl|n
+effort|מאמץ|ˈɛfərt|n
+attention|תשומת לב|əˈtɛnʃən|n
+`;
+
+WC[7] = `
+acknowledge|להכיר בכך|əkˈnɒlɪdʒ|v
+address|לטפל בנושא|əˈdrɛs|v
+anticipate|לצפות מראש|ænˈtɪsɪpeɪt|v
+assess|להעריך|əˈsɛs|v
+assign|להקצות|əˈsaɪn|v
+attribute|לייחס|əˈtrɪbjuːt|v
+clarify|להבהיר|ˈklærɪfaɪ|v
+comply|לציית|kəmˈplaɪ|v
+conclude|להסיק|kənˈkluːd|v
+constitute|להוות|ˈkɒnstɪtuːt|v
+contribute|לתרום|kənˈtrɪbjuːt|v
+demonstrate|להדגים|ˈdɛmənstreɪt|v
+derive|לגזור / להפיק|dɪˈraɪv|v
+distinguish|להבחין|dɪˈstɪŋɡwɪʃ|v
+emphasize|להדגיש|ˈɛmfəsaɪz|v
+enable|לאפשר|ɪˈneɪbəl|v
+enhance|לשפר|ɪnˈhæns|v
+ensure|להבטיח|ɪnˈʃʊr|v
+establish|לבסס|ɪˈstæblɪʃ|v
+evaluate|להעריך|ɪˈvæljueɪt|v
+exceed|לחרוג / לעלות על|ɪkˈsiːd|v
+implement|ליישם|ˈɪmplɪmɛnt|v
+imply|לרמוז|ɪmˈplaɪ|v
+indicate|להצביע על|ˈɪndɪkeɪt|v
+integrate|לשלב|ˈɪntɪɡreɪt|v
+interpret|לפרש|ɪnˈtɜːrprɪt|v
+justify|להצדיק|ˈdʒʌstɪfaɪ|v
+modify|לשנות|ˈmɒdɪfaɪ|v
+monitor|לנטר|ˈmɒnɪtər|v
+negotiate|לנהל משא ומתן|nɪˈɡoʊʃieɪt|v
+obtain|להשיג|əbˈteɪn|v
+outline|לשרטט קווים|ˈaʊtlaɪn|v
+pursue|לרדוף אחרי|pərˈsuː|v
+resolve|לפתור|rɪˈzɒlv|v
+retain|לשמר|rɪˈteɪn|v
+reveal|לחשוף|rɪˈviːl|v
+specify|לפרט|ˈspɛsɪfaɪ|v
+sustain|לקיים לאורך זמן|səˈsteɪn|v
+transfer|להעביר|trænsˈfɜːr|v
+undertake|לקחת על עצמו|ˌʌndərˈteɪk|v
+verify|לאמת|ˈvɛrɪfaɪ|v
+accuracy|דיוק|ˈækjərəsi|n
+assumption|הנחה|əˈsʌmpʃən|n
+component|רכיב|kəmˈpoʊnənt|n
+concept|מושג|ˈkɒnsɛpt|n
+consequence|תוצאה|ˈkɒnsɪkwɛns|n
+constraint|אילוץ|kənˈstreɪnt|n
+context|הקשר|ˈkɒntɛkst|n
+criteria|קריטריונים|kraɪˈtɪriə|n
+data|נתונים|ˈdeɪtə|n
+deadline|מועד אחרון|ˈdɛdlaɪn|n
+efficiency|יעילות|ɪˈfɪʃənsi|n
+estimate|הערכה|ˈɛstɪmət|n
+factor|גורם|ˈfæktər|n
+feedback|משוב|ˈfiːdbæk|n
+framework|מסגרת|ˈfreɪmwɜːrk|n
+implication|השלכה|ˌɪmplɪˈkeɪʃən|n
+initiative|יוזמה|ɪˈnɪʃətɪv|n
+maintenance|תחזוקה|ˈmeɪntənəns|n
+objective|יעד|əbˈdʒɛktɪv|n
+outcome|תוצאה|ˈaʊtkʌm|n
+parameter|פרמטר|pəˈræmɪtər|n
+priority|עדיפות|praɪˈɔːrəti|n
+procedure|נוהל|prəˈsiːdʒər|n
+requirement|דרישה|rɪˈkwaɪərmənt|n
+resource|משאב|ˈriːsɔːrs|n
+scope|היקף|skoʊp|n
+specification|מפרט|ˌspɛsɪfɪˈkeɪʃən|n
+standard|תקן|ˈstændərd|n
+strategy|אסטרטגיה|ˈstrætədʒi|n
+threshold|סף|ˈθrɛʃhoʊld|n
+tolerance|סובלנות / סבילות|ˈtɒlərəns|n
+validation|אימות|ˌvælɪˈdeɪʃən|n
+variable|משתנה|ˈvɛriəbəl|n
+accurate|מדויק|ˈækjərət|adj
+adequate|מספק|ˈædɪkwət|adj
+appropriate|מתאים|əˈproʊpriət|adj
+consistent|עקבי|kənˈsɪstənt|adj
+crucial|קריטי|ˈkruːʃəl|adj
+current|נוכחי|ˈkʌrənt|adj
+efficient|יעיל|ɪˈfɪʃənt|adj
+essential|חיוני|ɪˈsɛnʃəl|adj
+feasible|בר ביצוע|ˈfiːzəbəl|adj
+initial|ראשוני|ɪˈnɪʃəl|adj
+inherent|מובנה|ɪnˈhɪrənt|adj
+overall|כולל|ˈoʊvərɔːl|adj
+potential|פוטנציאלי|pəˈtɛnʃəl|adj
+precise|מדויק|prɪˈsaɪs|adj
+previous|קודם|ˈpriːviəs|adj
+relevant|רלוונטי|ˈrɛləvənt|adj
+reliable|אמין|rɪˈlaɪəbəl|adj
+significant|משמעותי|sɪɡˈnɪfɪkənt|adj
+subsequent|עוקב|ˈsʌbsɪkwənt|adj
+sufficient|מספיק|səˈfɪʃənt|adj
+`;
+
+WC[8] = `
+account for|להסביר / להוות|əˈkaʊnt fɔːr|phr
+back up|לגבות|bæk ʌp|phr
+break down|להתקלקל / לפרק|breɪk daʊn|phr
+carry out|לבצע|ˈkæri aʊt|phr
+catch up|להשלים פער|kætʃ ʌp|phr
+check out|לבדוק / להתפנות|tʃɛk aʊt|phr
+cut down on|לצמצם|kʌt daʊn ɒn|phr
+end up|לסיים בסופו של דבר|ɛnd ʌp|phr
+fill in|למלא טופס|fɪl ɪn|phr
+find out|לגלות|faɪnd aʊt|phr
+get by|להסתדר בקושי|ɡɛt baɪ|phr
+get over|להתגבר על|ɡɛt ˈoʊvər|phr
+go through|לעבור / לסקור|ɡoʊ θruː|phr
+hold on|לחכות|hoʊld ɒn|phr
+keep up with|לעמוד בקצב|kiːp ʌp wɪð|phr
+leave out|להשמיט|liːv aʊt|phr
+look up|לחפש מידע|lʊk ʌp|phr
+make up for|לפצות על|meɪk ʌp fɔːr|phr
+pass out|להתעלף|pæs aʊt|phr
+pick up|לאסוף / לקלוט|pɪk ʌp|phr
+point out|להצביע על|pɔɪnt aʊt|phr
+pull off|להצליח במשהו קשה|pʊl ɒf|phr
+rule out|לשלול|ruːl aʊt|phr
+set up|להקים|sɛt ʌp|phr
+sort out|לסדר / לפתור|sɔːrt aʊt|phr
+stand out|לבלוט|stænd aʊt|phr
+sum up|לסכם|sʌm ʌp|phr
+take on|לקחת על עצמו|teɪk ɒn|phr
+turn out|להתברר|tɜːrn aʊt|phr
+watch out|להיזהר|wɒtʃ aʊt|phr
+a blessing in disguise|ברכה במסווה|ə ˈblɛsɪŋ ɪn dɪsˈɡaɪz|idm
+back to square one|בחזרה לנקודת ההתחלה|bæk tuː skwɛr wʌn|idm
+ballpark figure|הערכה גסה|ˈbɔːlpɑːrk ˈfɪɡjər|idm
+bite the bullet|לנשוך את השפתיים ולעשות|baɪt ðə ˈbʊlɪt|idm
+cut corners|לקצר בדרך על חשבון האיכות|kʌt ˈkɔːrnərz|idm
+get the hang of it|לתפוס את העניין|ɡɛt ðə hæŋ ʌv ɪt|idm
+in a nutshell|בקצרה|ɪn ə ˈnʌtʃɛl|idm
+jump the gun|להקדים את המאוחר|dʒʌmp ðə ɡʌn|idm
+keep an eye on|לפקוח עין|kiːp ən aɪ ɒn|idm
+long shot|סיכוי קלוש|lɒŋ ʃɒt|idm
+off the top of my head|בלי לבדוק, מהראש|ɒf ðə tɒp ʌv maɪ hɛd|idm
+on the fence|מתלבט|ɒn ðə fɛns|idm
+the bottom line|השורה התחתונה|ðə ˈbɒtəm laɪn|idm
+touch base|ליצור קשר קצר|tʌtʃ beɪs|idm
+up in the air|לא סגור עדיין|ʌp ɪn ði ɛr|idm
+ambiguous|דו משמעי|æmˈbɪɡjuəs|adj
+arbitrary|שרירותי|ˈɑːrbɪtrɛri|adj
+compelling|משכנע|kəmˈpɛlɪŋ|adj
+counterintuitive|מנוגד לאינטואיציה|ˌkaʊntərɪnˈtuːɪtɪv|adj
+deliberate|מכוון|dɪˈlɪbərət|adj
+inevitable|בלתי נמנע|ɪnˈɛvɪtəbəl|adj
+marginal|שולי|ˈmɑːrdʒɪnəl|adj
+nuanced|מעודן / מדויק בגוונים|ˈnuːɑːnst|adj
+plausible|סביר|ˈplɔːzəbəl|adj
+pragmatic|מעשי|præɡˈmætɪk|adj
+redundant|מיותר / כפול|rɪˈdʌndənt|adj
+robust|עמיד|roʊˈbʌst|adj
+sceptical|ספקן|ˈskɛptɪkəl|adj
+thorough|יסודי|ˈθʌroʊ|adj
+viable|בר קיימא|ˈvaɪəbəl|adj
+caveat|הסתייגות|ˈkæviæt|n
+consensus|הסכמה רחבה|kənˈsɛnsəs|n
+discrepancy|אי התאמה|dɪˈskrɛpənsi|n
+leverage|מינוף|ˈlɛvərɪdʒ|n
+milestone|אבן דרך|ˈmaɪlstoʊn|n
+nuance|ניואנס|ˈnuːɑːns|n
+premise|הנחת יסוד|ˈprɛmɪs|n
+rationale|נימוק|ˌræʃəˈnæl|n
+scrutiny|בחינה קפדנית|ˈskruːtɪni|n
+workaround|פתרון עוקף|ˈwɜːrkəraʊnd|n
+`;
+
+/* מיזוג לתוך WORDS, בלי כפילויות */
+Object.keys(WC).forEach(lv=>{
+  WC[lv].trim().split('\n').forEach(line=>{
+    const p=line.split('|'); if(p.length<4) return;
+    const id='w:'+p[0];
+    if(WORDS.some(w=>w.id===id)) return;
+    WORDS.push({id, en:p[0], he:p[1], ipa:p[2], pos:p[3], ex:'', exhe:'', lv:+lv, core:1});
+  });
+});
+/* ============================================================
    ENGINE — אחסון, משתמשים, חזרות מרווחות, שטף, בניית סשן
    ============================================================ */
 
@@ -1023,6 +1843,8 @@ let USERS = Store.get(K_USERS, []);
 /* השלמת שדות חסרים בפרופילים ישנים או מיובאים */
 function normalise(u){
   u.srs=u.srs||{}; u.log=u.log||[]; u.mastered=u.mastered||{}; u.seenTypes=u.seenTypes||{};
+  u.code = u.code||null; u.role = u.role||'learner'; u.task = u.task||null;
+  u.ctrl = Object.assign({daily:0,cap:0,lockLevel:false,lockData:false,mic:true,modes:null}, u.ctrl||{});
   u.lv=u.lv||0; u.xp=u.xp||0; u.streak=u.streak||0;
   u.settings=Object.assign({tts:true,autoSpeak:true,speed:.95,pitch:1,voice:null,theme:'auto',size:'m'}, u.settings||{});
   return u;
@@ -1039,6 +1861,9 @@ function newUser(name, emoji, role, lv){
     xp:0, streak:0, lastDay:null,
     srs:{},                    // itemId -> {ef,iv,rep,due,seen,ok,ms}
     seenTypes:{},              // סוגי תרגיל שכבר הוסבר עליהם
+    code:null,                 // קוד כניסה (מגובב)
+    ctrl:{daily:0, cap:0, lockLevel:false, lockData:false, mic:true, modes:null},
+    task:null,                 // משימה שהוקצתה על ידי הורה או מורה
     log:[],                    // {d, n, ok, ms, min}
     mastered:{},               // lvId -> אחוז
     settings:{tts:true, autoSpeak:true, speed:.95, pitch:1, voice:null, theme:'auto', size:'m'}
@@ -1085,8 +1910,13 @@ function poolFor(lv){
   WORDS.filter(w=>w.lv<=lv).forEach(w=>{
     p.push({t:'w-recog', id:w.id+'#r', d:w, lv:w.lv});
     p.push({t:'w-recall',id:w.id+'#p', d:w, lv:w.lv});
+    if(w.core){ if(w.lv<=5) p.push({t:'w-listen',id:w.id+'#l', d:w, lv:w.lv}); return; }
     if(w.lv>=2) p.push({t:'w-listen',id:w.id+'#l', d:w, lv:w.lv});
     if(w.lv>=3) p.push({t:'w-speak', id:w.id+'#s', d:w, lv:w.lv});
+  });
+  IRREG.filter(v=>v.lv<=lv).forEach(v=>{
+    p.push({t:'irr-past', id:'V:'+v.base+'#p', d:v, lv:v.lv});
+    p.push({t:'irr-pp',   id:'V:'+v.base+'#3', d:v, lv:v.lv});
   });
   const key = s => s.slice(0,28);
   SENTS.filter(s=>s.lv<=lv).forEach(s=>{
@@ -1109,7 +1939,7 @@ function poolFor(lv){
 /* יעד זמן שליפה לפי סוג התרגיל (מילישניות) */
 const TARGET = {letter:2500,phonics:3500,'w-recog':3000,'w-recall':5000,'w-listen':6000,
                 'w-speak':6000,build:15000,dictate:14000,cloze:6000,proof:9000,rule:8000,talk:20000,
-                'mp-hear':4000,'mp-say':7000,contract:5000,spoken:6000};
+                'mp-hear':4000,'mp-say':7000,contract:5000,spoken:6000,'irr-past':5000,'irr-pp':5000};
 
 /* --- בניית סשן: חזרות שנדרשות קודם, ואז חומר חדש, בשילוב מסוגים שונים --- */
 function buildSession(u, size, mode){
@@ -1132,6 +1962,10 @@ function buildSession(u, size, mode){
   if(mode==='weak'){
     const s=[...weak,...due].sort((a,b)=>strength(u.srs[a.id])-strength(u.srs[b.id]));
     return interleave(fill(s, pool));
+  }
+  if(mode==='irregular'){
+    const v=pool.filter(x=>x.t==='irr-past'||x.t==='irr-pp');
+    return v.length? interleave(shuffle(v).slice(0,size)) : buildSession(u,size,'mix');
   }
   if(mode==='sound'){
     const s=pool.filter(x=>['mp-hear','mp-say','spoken','phonics','w-listen','w-speak','dictate'].includes(x.t));
@@ -1235,34 +2069,58 @@ function analyse(u){
 const TYPE_HE = {letter:'אותיות',phonics:'פונטיקה','w-recog':'זיהוי מילים','w-recall':'שליפת מילים',
  'w-listen':'הבנת הנשמע','w-speak':'הגייה',build:'בניית משפט',dictate:'הכתבה',cloze:'השלמה',
  proof:'הגהה',rule:'חוקי דקדוק',talk:'שיחה','mp-hear':'אבחנת צלילים','mp-say':'הגייה מדויקת',
- contract:'קיצורים',spoken:'דיבור מהיר'};
+ contract:'קיצורים',spoken:'דיבור מהיר','irr-past':'פועל חריג · עבר','irr-pp':'פועל חריג · שלישית'};
 
 /* --- דיבור --- */
 /* דירוג קולות: הדפדפן מחזיר גם קולות דחוסים ("compact") שנשמעים מתכתיים.
    אנחנו מדרגים ובוחרים את הטבעי ביותר שזמין במכשיר.                      */
 let VOICES=[], WARM=false;
 
+/* סדר העדפה שמי. Ava היא הקול הטבעי ביותר של Apple לאנגלית אמריקאית,
+   ולכן היא ראשונה. iOS לא תמיד מוסיף את הסיומת (Premium) לשם, ולכן
+   ההתאמה נעשית לפי השם עצמו ולא רק לפי המילה "premium".               */
+const PREF_NAMES = ['ava','allison','samantha','zoe','susan','evan','nathan',
+                    'joelle','tom','aria','jenny','sonia','libby','emma'];
+const JUNK = /compact|eloquence|espeak|pico|novelty|whisper|zarvox|albert|bad news|bells|organ|cellos|trinoids|boing|bubbles|jester|superstar|wobble|bahh/;
+
 function voiceScore(v){
   const n=(v.name||'').toLowerCase(), l=(v.lang||'').toLowerCase();
   let s=0;
-  if(/premium|enhanced|neural|natural/.test(n)) s+=60;   // הקולות האיכותיים באמת
-  if(/siri/.test(n))                            s+=45;
-  if(/google/.test(n))                          s+=35;
-  if(/\b(ava|allison|samantha|zoe|evan|nathan|joelle|susan|karen|aria|jenny|guy|sonia|libby|emma)\b/.test(n)) s+=20;
-  if(/compact|eloquence|espeak|pico|novelty|whisper|zarvox|albert|bad news|bells/.test(n)) s-=80;
+  if(/premium/.test(n))                 s+=70;
+  if(/enhanced|neural|natural/.test(n)) s+=55;
+  if(/siri/.test(n))                    s+=45;
+  if(/google/.test(n))                  s+=35;
+  const pi = PREF_NAMES.findIndex(p=>new RegExp('\\b'+p+'\\b').test(n));
+  if(pi>=0) s += 60 - pi*4;
+  if(JUNK.test(n))                      s-=90;
   if(l.startsWith('en-us')) s+=12; else if(l.startsWith('en-gb')) s+=8;
-  if(v.localService===false) s+=10;                       // קולות רשת בדרך כלל טובים יותר
-  if(v.default) s+=3;
+  if(v.localService===false) s+=6;
+  if(v.default)              s+=3;
   return s;
 }
+const voiceTier = v => { const s=voiceScore(v); return s>=110?'premium' : s>=55?'good' : s<0?'junk' : 'plain'; };
+
+/* iOS לפעמים מחזיר רשימה ריקה או חלקית עד שהקולות נטענים. מנסים שוב. */
+let voiceTries=0;
 function loadVoices(){
   const all = window.speechSynthesis ? speechSynthesis.getVoices() : [];
   VOICES = all.filter(v=>/^en/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a));
+  if(!VOICES.length && voiceTries++ < 14) setTimeout(loadVoices, 400);
 }
 function pickVoice(){
-  const want = me()?.settings?.voice;
-  return VOICES.find(v=>v.name===want) || VOICES[0] || null;
+  const want = me()&&me().settings ? me().settings.voice : null;
+  if(want){
+    const exact = VOICES.find(v=>v.name===want);
+    if(exact) return exact;
+    /* אם המערכת שינתה את שם הקול (למשל Ava (Premium) → Ava), מתאימים לפי השם הפרטי */
+    const tok = want.toLowerCase().split(/[\s(]/)[0];
+    const nearby = VOICES.find(v=>v.name.toLowerCase().startsWith(tok));
+    if(nearby) return nearby;
+  }
+  return VOICES[0] || null;
 }
+const findAva = () => VOICES.find(v=>/\bava\b/i.test(v.name));
+
 if(window.speechSynthesis){ loadVoices(); speechSynthesis.onvoiceschanged=loadVoices; }
 
 /* iOS/Safari חוסמים דיבור עד למגע ראשון. משחררים בשקט. */
@@ -1291,6 +2149,19 @@ function say(text, rate){
     return true;
   }catch(e){ return false; }
 }
+
+/* --- קודי כניסה ובקרת הורים --- */
+/* חשוב: זה שער, לא מנעול. הכול רץ בדפדפן, ומי שיודע לפתוח כלי מפתחים
+   יעקוף את זה. המטרה היא למנוע מאח קטן להיכנס לפרופיל של אחיו או לקפוץ רמה,
+   לא להגן מפני תוקף.                                                        */
+const hashCode = s => { let h=5381; for(const c of String(s)) h=(((h*33)^c.charCodeAt(0))>>>0); return h.toString(36); };
+const codeOk   = (u,c) => !!u.code && u.code===hashCode(c);
+const parents  = () => USERS.filter(u=>u.role==='parent' && u.code);
+
+/* ספירת פריטים שנעשו היום — לצורך יעד ומגבלה */
+function doneToday(u){ const e=u.log.find(x=>x.d===today()); return e?e.n:0; }
+function capLeft(u){ return u.ctrl.cap ? Math.max(0, u.ctrl.cap - doneToday(u)) : Infinity; }
+function modeAllowed(u,m){ return !u.ctrl.modes || u.ctrl.modes.includes(m); }
 
 /* --- זיהוי דיבור --- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1367,7 +2238,9 @@ function focusInput(inp){
 /* ---------- ניתוב ---------- */
 function render(){
   if(!USERS.length){ return vWelcome(); }
-  if(!me()) TAB='users';
+  const cu=me();
+  if(cu && cu.code && !UNLOCKED[cu.id]) return vLockScreen(cu);
+  if(!cu) TAB='users';
   applyTheme();
   const inPractice = TAB==='practice' && S;
   $('#nav').classList.toggle('hide', !me() || inPractice);
@@ -1442,36 +2315,48 @@ function vUsers(s){
   USERS.forEach(u=>{
     const b=el(`<button class="usercard"><div class="av">${u.emoji}</div>
       <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(u.name)}</div>
-      <div class="muted">רמה ${u.lv} · ${LEVELS[u.lv].nm}</div></div>
+      <div class="muted">${u.role==='parent'?'הורה או מורה':'רמה '+u.lv+' · '+LEVELS[u.lv].nm}</div></div>
+      ${u.code?'<span class="badge">🔒</span>':''}
       ${u.streak?`<span class="badge">${u.streak}🔥</span>`:''}</button>`);
     b.onclick=()=>{ CUR=u.id; Store.set(K_CUR,CUR); TAB='home'; render(); };
     ul.appendChild(b);
   });
 }
-function addUser(){
+function addUser(asParent){
   let em=EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
-  sheet(`<h2>לומד חדש</h2>
-    <div class="field"><label>שם</label><input id="nm" placeholder="למשל: יעל"></div>
+  sheet(`<h2>${asParent?'פרופיל הורה או מורה':'לומד חדש'}</h2>
+    <div class="field"><label>שם</label><input id="nm" placeholder="${asParent?'למשל: אבא':'למשל: יעל'}"></div>
+    <div class="field"><label>תפקיד</label><div class="seg" id="rl">
+      <button data-v="learner" class="${asParent?'':'on'}">לומד</button>
+      <button data-v="parent" class="${asParent?'on':''}">הורה או מורה</button></div></div>
     <div class="field"><label>אווטאר</label><div class="emojipick" id="ep"></div></div>
     <div class="field"><label>גודל טקסט</label><div class="seg" id="sz">
       <button data-v="m" class="on">רגיל</button><button data-v="l">גדול</button><button data-v="xl">ענק</button></div></div>
     <div class="field"><label>רמת פתיחה</label><select id="lv">${LEVELS.map(l=>`<option value="${l.id}">${l.id} · ${l.nm}</option>`).join('')}</select>
       <p class="muted" style="margin-top:6px">לא בטוחים? התחילו מ‑0. אפשר לשנות בכל רגע.</p></div>
+    <div class="ctrl" style="border:0"><div class="tx"><b>קוד כניסה</b>
+      <span>ארבע ספרות. נדרש בכניסה לפרופיל ולפתיחת בקרת ההורים.</span></div>
+      <button class="sw ${asParent?'on':''}" id="wantcode"></button></div>
     <button class="btn" id="ok">יצירה</button>`, sh=>{
     const ep=sh.querySelector('#ep');
     EMOJIS.forEach(e=>{const b=el(`<button class="${e===em?'on':''}">${e}</button>`);
       b.onclick=()=>{ep.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');em=e;};ep.appendChild(b);});
+    let role = asParent?'parent':'learner', wantCode = !!asParent;
+    sh.querySelectorAll('#rl button').forEach(b=>b.onclick=()=>{
+      sh.querySelectorAll('#rl button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on'); role=b.dataset.v; });
+    sh.querySelector('#wantcode').onclick=function(){ wantCode=!wantCode; this.classList.toggle('on',wantCode); };
     let size='m';
     sh.querySelectorAll('#sz button').forEach(b=>b.onclick=()=>{
       sh.querySelectorAll('#sz button').forEach(x=>x.classList.remove('on'));b.classList.add('on');size=b.dataset.v;
       document.documentElement.dataset.size=size; });
     sh.querySelector('#ok').onclick=()=>{
       const n=sh.querySelector('#nm').value.trim(); if(!n){toast('צריך שם');return;}
-      const u=newUser(n,em,'learner',+sh.querySelector('#lv').value);
+      const u=newUser(n,em,role,+sh.querySelector('#lv').value);
       u.settings.size=size; saveUsers();
-      CUR=u.id; Store.set(K_CUR,CUR); closeSheet(); TAB='home';
+      CUR=u.id; UNLOCKED[u.id]=1; Store.set(K_CUR,CUR); closeSheet(); TAB='home';
       $('#screen').style.padding=''; $('#topbar').classList.remove('hide');
-      render();
+      if(wantCode) setCode(u); else render();
     };
   });
 }
@@ -1487,6 +2372,8 @@ function vHome(s){
    <h1>${esc(u.name)}</h1>
    <p class="sub">${headline}</p>
 
+   ${goalCard(u)}
+   ${taskCard(u)}
    <div class="card" style="margin-top:16px;border-color:var(--brand)">
      <div style="display:flex;align-items:baseline;gap:8px">
        <b style="font-size:1.05rem">רמה ${u.lv} · ${LEVELS[u.lv].nm}</b>
@@ -1522,6 +2409,29 @@ function vHome(s){
     ld.appendChild(b);
   });
 }
+function goalCard(u){
+  if(!u.ctrl.daily) return '';
+  const dn=doneToday(u), p=Math.min(1, dn/u.ctrl.daily), C=2*Math.PI*20;
+  return `<div class="card" style="margin-top:14px"><div class="goalring">
+    <svg class="ring" viewBox="0 0 46 46">
+      <circle cx="23" cy="23" r="20" stroke="var(--line)"/>
+      <circle cx="23" cy="23" r="20" stroke="var(--${p>=1?'good':'brand'})" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}"/>
+    </svg>
+    <div style="flex:1;min-width:0"><b>${p>=1?'היעד היומי הושלם':'היעד היומי'}</b>
+      <div class="muted">${dn} מתוך ${u.ctrl.daily} פריטים${u.ctrl.cap?` · מגבלה: ${u.ctrl.cap}`:''}</div></div>
+  </div></div>`;
+}
+function taskCard(u){
+  if(!u.task || u.task.done) return '';
+  const t=u.task, p=Math.min(100,(t.prog/t.size)*100);
+  return `<div class="card" style="margin-top:14px;padding:0;border:0;box-shadow:none"><div class="task">
+    <div class="lbl">משימה</div>
+    <b style="display:block;margin-top:2px">${esc(t.note||t.label)}</b>
+    <div class="sub" style="margin-top:2px">${t.prog}/${t.size} פריטים · ${esc(t.label)}</div>
+    <div class="progline" style="margin-top:9px"><i style="width:${p}%"></i></div>
+    <button class="btn sm" style="width:100%;margin-top:11px" onclick="startSession('${t.mode}',${Math.max(4,t.size-t.prog)},null,1)">המשך המשימה</button>
+  </div></div>`;
+}
 function levelSheet(l){
   const u=me();
   const ws=WORDS.filter(w=>w.lv===l.id), gs=GRAMMAR.filter(g=>g.lv===l.id);
@@ -1530,6 +2440,7 @@ function levelSheet(l){
       <button class="btn sm" style="width:100%" onclick="closeSheet();startSession('mix',12,${l.id})">תרגול הרמה</button>
       <button class="btn ghost sm" style="width:100%" onclick="closeSheet();startSession('rules',10,${l.id})">דקדוק בלבד</button>
     </div>
+    ${IRREG.some(v=>v.lv===l.id)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();irregSheet(${l.id})">טבלת הפעלים החריגים</button>`:''}
     ${gs.length?`<div class="sec-title">חוקים</div>${gs.map(g=>`<div class="card"><b>${esc(g.ti)}</b><div class="sub" style="margin-top:5px">${esc(g.he)}</div>
       <div class="ruleblk">${g.ex.map(e=>`<span class="ex en">${esc(e.en)}</span><span class="muted">${esc(e.he)}</span>`).join('')}</div></div>`).join('')}`:''}
     ${ws.length?`<div class="sec-title">מילים · ${ws.length}</div><div class="card">${ws.map(w=>{
@@ -1544,14 +2455,16 @@ const MODES=[
  ['mix',  14,'תרגול מעורב','חזרות שהגיע זמנן יחד עם חומר חדש, בשזירה בין סוגי תרגיל. המצב היעיל ביותר לזיכרון ארוך טווח.'],
  ['weak', 12,'חיזוק חולשות','רק הפריטים שנכשלת בהם או ששולף אותם לאט מדי.'],
  ['sound',12,'אוזן והגייה','זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. השריר שחסר לרוב דוברי העברית.'],
+ ['irregular',12,'פעלים חריגים','מאה פעלים בשלוש צורות, מקובצים ל‑12 תבניות הטיה. התבנית היא הקיצור.'],
  ['rules',12,'דקדוק ותחביר','חוקים, השלמת חסר, בניית משפט, הגהה וקיצורים.'],
  ['talk', 8, 'אימון שיחה','שאלות פתוחות. עונים בקול או בכתב ומשווים לתשובת מודל.'],
  ['mix',  30,'מרתון','שלושים פריטים ברצף, לתרגול עומק.']
 ];
 function vPractice(s){
   if(S) return drawQ(s);
-  s.innerHTML=`<h1>תרגול</h1><p class="sub">כל מצב מאמן שריר אחר.</p>
-    <div style="margin-top:16px">${MODES.map(([m,n,ti,d],i)=>
+  const allowed=MODES.filter(([m])=>modeAllowed(me(),m));
+  s.innerHTML=`<h1>תרגול</h1><p class="sub">${allowed.length<MODES.length?'חלק מהמצבים נעולים על ידי ההורה.':'כל מצב מאמן שריר אחר.'}</p>
+    <div style="margin-top:16px">${allowed.map(([m,n,ti,d],i)=>
       `<div class="card"><b style="font-size:1rem">${ti}</b><div class="sub" style="margin-top:4px">${d}</div>
        <button class="btn ${i?'ghost ':''}sm" style="margin-top:11px;width:100%" onclick="startSession('${m}',${n})">התחלה · ${n} פריטים</button></div>`).join('')}</div>`;
 }
@@ -1572,6 +2485,8 @@ const TYPE_INFO={
  talk:['💬','שיחה','שאלה פתוחה. ענו בקול או בכתב, ואז השוו לתשובת מודל וקראו אותה בקול.'],
  'mp-hear':['🎧','אבחנת צלילים','שתי מילים שנשמעות כמעט זהות. שומעים אחת מהן וצריך לזהות איזו. זה מאמן את האוזן.'],
  'mp-say':['🗣','הגייה מדויקת','אומרים מילה שיש לה תאומה מבלבלת. המערכת תגיד אם יצאה לכם התאומה במקום.'],
+ 'irr-past':['⏮','פועל חריג · עבר','הפועל בצורת הבסיס — כתבו את צורת העבר. בסוף תראו את שלוש הצורות ואת התבנית שאליה הפועל שייך.'],
+ 'irr-pp':['✅','פועל חריג · צורה שלישית','הצורה שבאה אחרי have / has / was. זו הצורה שנחוצה ל‑Present Perfect ולסביל.'],
  contract:['⚡','קיצורים','הצורה המלאה מול הצורה המקוצרת. בדיבור טבעי כמעט תמיד משתמשים בקצרה.'],
  spoken:['🔊','דיבור מהיר','ככה אנגלית באמת נשמעת כשמדברים מהר. תפקידכם לפענח מה נאמר.']
 };
@@ -1585,8 +2500,14 @@ function showIntro(s, it){
 }
 
 /* ---------- הסשן ---------- */
-function startSession(mode, size, lv){
+function startSession(mode, size, lv, fromTask){
   const u=me(), oldLv=u.lv;
+  if(!fromTask && !modeAllowed(u,mode)) return toast('המצב הזה נעול על ידי ההורה');
+  const left=capLeft(u);
+  if(left<=0) return sheet(`<h2>הגעת למגבלה היומית</h2>
+    <p class="sub">נקבעה מגבלה של ${u.ctrl.cap} פריטים ליום, וסיימת אותם. התרגול ייפתח שוב מחר.</p>
+    <button class="btn" style="margin-top:16px" onclick="closeSheet()">הבנתי</button>`);
+  size=Math.min(size,left);
   if(lv!=null) u.lv=lv;
   const items=buildSession(u,size,mode);
   u.lv=oldLv;
@@ -1650,6 +2571,8 @@ function answer(it, correct, target, extraHtml){
   const u=me(), ms=Math.round(performance.now()-S.t0);
   const {q}=review(u,it.id,correct,ms,target);
   touchDay(u,correct,ms); u.xp += correct?(q>=5?12:q>=4?9:6):2;
+  if(u.task && !u.task.done){ u.task.prog=(u.task.prog||0)+1;
+    if(u.task.prog>=u.task.size) u.task.done=1; }
   if(correct) S.ok++; else S.hardIds.push(it.id);
   S.msSum+=ms; saveUsers();
   const n=$('#ndl'); if(n) n.style.left=Math.min(100, ms/(target*2.2)*100)+'%';
@@ -1682,6 +2605,8 @@ function drawDone(s){
       <div class="stat"><div class="n">${avg}<span style="font-size:.6em">s</span></div><div class="l">זמן ממוצע</div></div>
       <div class="stat"><div class="n">${S.ok}/${n}</div><div class="l">נכונות</div></div>
     </div>
+    ${u.task&&u.task.done===1?`<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">
+      <b>המשימה הושלמה</b><div class="sub" style="margin-top:3px">${esc(u.task.note||u.task.label)}</div></div>`:''}
     ${promoted?`<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">
       <b>עלית לרמה ${u.lv} · ${LEVELS[u.lv].nm}</b><div class="sub" style="margin-top:3px">${LEVELS[u.lv].dsc}</div></div>`:''}
     ${S.hardIds.length?`<div class="sec-title">לחזרה קרובה</div><div class="card">${
@@ -1691,6 +2616,8 @@ function drawDone(s){
         return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span>
           <span class="w">${esc(lbl)}</span><span class="badge">${TYPE_HE[x.t]}</span></div>`;
       }).join('')}</div>`:''}</div>`;
+  if(u.task && u.task.done===1){ u.task.done=2; saveUsers(); }
+  cloudSoon();
   S.finished=true;
   const m=S.mode, sz=S.size;
   setAction(`<button class="btn ghost" id="hm">בית</button><button class="btn" id="ag">עוד סשן</button>`);
@@ -1740,11 +2667,11 @@ RENDER['w-recog']=(q,it,u,tg)=>{
     <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button></div><div class="opts" id="o"></div>`;
   if(u.settings.autoSpeak) say(d.en);
   S.reveal=()=>{ say(d.en); answer(it,false,tg,
-    `<b class="en">${d.en}</b> = ${d.he}<br><span class="en">${esc(d.ex)}</span><br>${esc(d.exhe)}`); };
+    `<b class="en">${d.en}</b> = ${d.he}${d.ex?`<br><span class="en">${esc(d.ex)}</span><br>${esc(d.exhe)}`:''}`); };
   opts.forEach(o=>{
     const b=el(`<button class="opt">${o.he}</button>`);
     b.onclick=()=>{ const ok=o===d; b.classList.add(ok?'ok':'no');
-      answer(it,ok,tg,`<b class="en">${d.en}</b> = ${d.he}<br><span class="en">${esc(d.ex)}</span><br>${esc(d.exhe)}`); };
+      answer(it,ok,tg,`<b class="en">${d.en}</b> = ${d.he}${d.ex?`<br><span class="en">${esc(d.ex)}</span><br>${esc(d.exhe)}`:''}`); };
     $('#o').appendChild(b);
   });
 };
@@ -1758,12 +2685,13 @@ RENDER['w-recall']=(q,it,u,tg)=>{
   const inp=$('#in'); focusInput(inp);
   const chk=()=>{ const v=inp.value; const ok=near(v,d.en);
     inp.classList.add(ok?'ok':'no'); say(d.en);
-    answer(it,ok,tg, ok?`<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span><br><span class="en">${esc(d.ex)}</span>`
-      :`התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${v?`<br>כתבתם: <b class="en">${esc(v)}</b>`:''}<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`); };
+    const exLine = d.ex?`<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`:'';
+    answer(it,ok,tg, ok?`<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${exLine}`
+      :`התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${v?`<br>כתבתם: <b class="en">${esc(v)}</b>`:''}${exLine}`); };
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
   S.primary={label:'בדיקה',fn:chk};
   S.reveal=()=>{ inp.classList.add('no'); say(d.en); answer(it,false,tg,
-    `התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span><br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`); };
+    `התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${d.ex?`<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`:''}`); };
 };
 
 RENDER['w-listen']=(q,it,u,tg)=>{
@@ -1788,14 +2716,14 @@ RENDER['w-speak']=(q,it,u,tg)=>{
     <div class="med">${d.en}</div><div class="ipa">/${d.ipa}/</div><div class="small">${d.he}</div>
     <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.75)">שמיעת דוגמה</button></div>
     <div style="text-align:center;margin-top:16px"><button class="speakbtn" id="mic">${svg('mic')}</button>
-    <p class="muted" id="st" style="margin-top:8px">${SR?'לחצו והגו את המילה':'זיהוי דיבור לא נתמך בדפדפן הזה — אפשר לדלג'}</p></div>
+    <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?'לחצו והגו את המילה':'זיהוי דיבור לא נתמך בדפדפן הזה — אפשר לדלג'}</p></div>
 `;
   say(d.en,.8);
   S.primary={label:'ידעתי',fn:()=>answer(it,true,tg,`<b class="en">${d.en}</b> = ${d.he}`)};
   S.reveal=()=>{ say(d.en,.7); answer(it,false,tg,
     `<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span> = ${d.he}`); };
   $('#mic').onclick=()=>{
-    if(!SR) return toast('אין תמיכה בזיהוי דיבור');
+    if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?'אין תמיכה בזיהוי דיבור':'המיקרופון כבוי בהגדרות ההורים');
     const m=$('#mic'); m.classList.add('rec'); $('#st').textContent='מקשיב…';
     listen(alts=>{
       m.classList.remove('rec');
@@ -1908,7 +2836,7 @@ RENDER.talk=(q,it,u,tg)=>{
     <button class="speakbtn" onclick="say('${jq(d.q)}')">${svg('sound')}</button></div>
     <div class="ruleblk" style="margin-top:12px">מבנה מומלץ: <span class="ex en">${esc(d.hint)}</span></div>
     <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
-      <p class="muted" id="st" style="margin-top:8px">${SR?'ענו בקול — או כתבו למטה':'כתבו את התשובה למטה'}</p></div>
+      <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?'ענו בקול — או כתבו למטה':'כתבו את התשובה למטה'}</p></div>
     <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" placeholder="your answer"></div>`;
   say(d.q,.9);
   const finish=(txt)=>{
@@ -1923,7 +2851,7 @@ RENDER.talk=(q,it,u,tg)=>{
   S.reveal=()=>answer(it,false,tg,
     `<span class="muted">תשובת מודל: </span><b class="en">${esc(d.ans)}</b><br><span class="muted">קראו אותה בקול פעמיים.</span>`);
   $('#mic').onclick=()=>{
-    if(!SR) return toast('אין תמיכה בזיהוי דיבור');
+    if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?'אין תמיכה בזיהוי דיבור':'המיקרופון כבוי בהגדרות ההורים');
     const m=$('#mic'); m.classList.add('rec'); $('#st').textContent='מקשיב…';
     listen(a=>{ m.classList.remove('rec'); finish(a[0]||''); },
            ()=>{ m.classList.remove('rec'); if(!S.answered)$('#st').textContent='לא נקלט. נסו שוב או כתבו.'; });
@@ -1967,14 +2895,14 @@ RENDER['mp-say']=(q,it,u,tg)=>{
     <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(tgt)}',.7)">שמיעת דוגמה</button></div>
     <div class="ruleblk" style="margin-top:12px"><b>${esc(d.contrast)}</b><br>${esc(d.tip)}</div>
     <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
-      <p class="muted" id="st" style="margin-top:8px">${SR?'לחצו והגו את המילה':'זיהוי דיבור לא נתמך כאן'}</p></div>
+      <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?'לחצו והגו את המילה':'זיהוי דיבור לא נתמך כאן'}</p></div>
 `;
   say(tgt,.75);
   S.primary={label:'תרגלתי',fn:()=>answer(it,true,tg,`<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`)};
   S.reveal=()=>{ say(tgt,.65); answer(it,false,tg,
     `<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span> — ${heT}<br><b>${esc(d.contrast)}</b> — ${esc(d.tip)}`); };
   $('#mic').onclick=()=>{
-    if(!SR) return toast('אין תמיכה בזיהוי דיבור');
+    if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?'אין תמיכה בזיהוי דיבור':'המיקרופון כבוי בהגדרות ההורים');
     const m=$('#mic'); m.classList.add('rec'); $('#st').textContent='מקשיב…';
     listen(alts=>{
       m.classList.remove('rec');
@@ -2031,6 +2959,424 @@ RENDER.spoken=(q,it,u,tg)=>{
     $('#o').appendChild(b);
   });
 };
+/* ---------------- פעלים חריגים ---------------- */
+function irrRender(q,it,u,tg,which){
+  const d=it.d;
+  const want = which==='past' ? d.past : d.pp;
+  const label= which==='past' ? 'צורת העבר' : 'הצורה השלישית';
+  const help = which==='past' ? 'Past Simple — "אתמול הוא ___"' : 'Past Participle — הצורה שאחרי have / has / was';
+  q.innerHTML=`<div class="prompt"><div class="kicker">פועל חריג · ${label}</div>
+    <div class="big">${d.base}</div><div class="ipa">/${d.ipa}/</div>
+    <div class="small">${d.he}</div>
+    <div class="muted" style="font-size:.78rem">${help}</div></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="${which==='past'?'past':'participle'}"></div>`;
+  const inp=$('#in'); focusInput(inp);
+  const table = `<b class="en">${d.base} · ${d.past} · ${d.pp}</b><br>${esc(d.he)}
+    <br><span class="muted">תבנית: ${esc(IRR_GROUPS[d.grp]||'')}</span>`;
+  const done=ok=>{ inp.classList.add(ok?'ok':'no'); say(`${d.base}, ${d.past}, ${d.pp}`,.8);
+    answer(it,ok,tg,table); };
+  const chk=()=>done(want.split(' / ').some(x=>near(inp.value,x)));
+  inp.onkeydown=e=>{if(e.key==='Enter')chk()};
+  S.primary={label:'בדיקה',fn:chk};
+  S.reveal=()=>done(false);
+}
+RENDER['irr-past']=(q,it,u,tg)=>irrRender(q,it,u,tg,'past');
+RENDER['irr-pp']  =(q,it,u,tg)=>irrRender(q,it,u,tg,'pp');
+
+/* גיליון טבלת הפעלים, מקובץ לפי תבנית */
+function irregSheet(lv){
+  const u=me();
+  const vs = IRREG.filter(v=>v.lv<=lv);
+  const byGrp={};
+  vs.forEach(v=>(byGrp[v.grp]=byGrp[v.grp]||[]).push(v));
+  const order=['same','aught','ent','ept','iau','ioi','eoo','ownew','aken','aten','ame','wild'];
+  sheet(`<h2>פעלים חריגים · ${vs.length}</h2>
+    <p class="sub">אל תשננו אחד אחד. הם מתחלקים ל‑12 תבניות — מי שקולט את התבנית מקבל עשרות פעלים במכה.</p>
+    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('irregular',12)">תרגול פעלים חריגים</button>
+    ${order.filter(g=>byGrp[g]).map(g=>`
+      <div class="sec-title">${g==='wild'?'ללא תבנית':'תבנית'}</div>
+      <div class="card"><div class="sub" style="margin-bottom:8px">${esc(IRR_GROUPS[g])}</div>
+      ${byGrp[g].map(v=>{
+        const st=Math.max(strength(u.srs['V:'+v.base+'#p']), strength(u.srs['V:'+v.base+'#3']));
+        const col=st>=.7?'var(--good)':st>0?'var(--gold)':'var(--line)';
+        return `<div class="wordrow"><span class="dot" style="background:${col}"></span>
+          <span class="w">${esc(v.base)} · ${esc(v.past)} · ${esc(v.pp)}</span>
+          <span class="h">${esc(v.he)}</span></div>`}).join('')}</div>`).join('')}`);
+}
+/* ============================================================
+   קודי כניסה, בקרת הורים ומשימות
+   ============================================================ */
+let UNLOCKED = {};   // מי כבר הזין קוד בהפעלה הנוכחית של האפליקציה
+
+/* ---------- מקלדת קוד ---------- */
+/* מציירת מקלדת ספרות לתוך אלמנט. onDone מקבל את הקוד כשמגיעים לאורך המבוקש. */
+function keypad(host, len, onDone, opts={}){
+  let buf='';
+  host.innerHTML=`
+    <div class="dots" id="dots">${'<i></i>'.repeat(len)}</div>
+    <div class="keypad" id="kp">
+      ${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-n="${n}">${n}</button>`).join('')}
+      <button class="act" data-a="cancel">${opts.cancel||'ביטול'}</button>
+      <button data-n="0">0</button>
+      <button class="act" data-a="del">מחיקה</button>
+    </div>`;
+  const dots=host.querySelector('#dots');
+  const paint=()=>dots.querySelectorAll('i').forEach((d,i)=>d.classList.toggle('on',i<buf.length));
+  const shake=()=>{ dots.classList.add('err'); setTimeout(()=>{dots.classList.remove('err');buf='';paint();},420); };
+  host.querySelectorAll('#kp button').forEach(b=>b.onclick=()=>{
+    if(b.dataset.a==='del'){ buf=buf.slice(0,-1); return paint(); }
+    if(b.dataset.a==='cancel'){ return opts.onCancel?opts.onCancel():closeSheet(); }
+    if(buf.length>=len) return;
+    buf+=b.dataset.n; paint();
+    if(buf.length===len) setTimeout(()=>{ if(onDone(buf)===false) shake(); },140);
+  });
+  return {reset:()=>{buf='';paint()}};
+}
+
+/* ---------- מסך נעילה של פרופיל ---------- */
+function vLockScreen(u){
+  $('#nav').classList.add('hide'); hideAction();
+  $('#topbar').classList.add('hide'); $('#topbar').innerHTML='';
+  $('#screen').style.padding='0';
+  $('#screen').innerHTML=`<div class="lock">
+    <div class="who">${u.emoji}</div>
+    <h2 style="margin:0">${esc(u.name)}</h2>
+    <p class="muted">הזינו את קוד הכניסה</p>
+    <div id="kpwrap" style="width:100%;display:flex;flex-direction:column;align-items:center"></div>
+  </div>`;
+  keypad($('#kpwrap'), 4, c=>{
+    if(!codeOk(u,c)) return false;
+    UNLOCKED[u.id]=1; CUR=u.id; Store.set(K_CUR,CUR);
+    $('#screen').style.padding=''; $('#topbar').classList.remove('hide');
+    TAB='home'; render();
+  }, {cancel:'החלפה', onCancel:()=>{ CUR=null; Store.set(K_CUR,null);
+      $('#screen').style.padding=''; $('#topbar').classList.remove('hide'); TAB='users'; render(); }});
+}
+
+/* ---------- שער הורה או מורה ---------- */
+function askParent(then){
+  const ps=parents();
+  if(!ps.length) return sheet(`<h2>אין עדיין קוד הורה</h2>
+    <p class="sub">כדי להשתמש בבקרת הורים צריך פרופיל אחד לפחות מסוג "הורה או מורה" עם קוד כניסה.</p>
+    <button class="btn" style="margin-top:16px" onclick="closeSheet();addUser(true)">יצירת פרופיל הורה</button>
+    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">לא עכשיו</button>`);
+  sheet(`<h2>קוד הורה</h2><p class="sub" style="margin-bottom:6px">האזור הזה נעול. הזינו את קוד ההורה או המורה.</p>
+    <div id="kpwrap" style="display:flex;flex-direction:column;align-items:center;padding-top:8px"></div>`, sh=>{
+    keypad(sh.querySelector('#kpwrap'), 4, c=>{
+      if(!ps.some(p=>codeOk(p,c))) return false;
+      closeSheet(); then();
+    });
+  });
+}
+
+/* ---------- קביעה או שינוי של קוד ---------- */
+function setCode(u){
+  let first=null;
+  sheet(`<h2>קוד כניסה · ${esc(u.name)}</h2>
+    <p class="sub" id="msg">בחרו קוד בן ארבע ספרות.</p>
+    <div id="kpwrap" style="display:flex;flex-direction:column;align-items:center;padding-top:10px"></div>
+    ${u.code?'<button class="btn ghost" style="margin-top:14px" id="clr">הסרת הקוד</button>':''}`, sh=>{
+    const kp=keypad(sh.querySelector('#kpwrap'), 4, c=>{
+      if(!first){ first=c; sh.querySelector('#msg').textContent='שוב, לאימות.'; kp.reset(); return; }
+      if(first!==c){ first=null; sh.querySelector('#msg').textContent='הקודים לא תאמו. מתחילים מחדש.'; return false; }
+      u.code=hashCode(c); UNLOCKED[u.id]=1; saveUsers(); closeSheet(); toast('הקוד נשמר'); render();
+    });
+    if(sh.querySelector('#clr')) sh.querySelector('#clr').onclick=()=>{
+      u.code=null; saveUsers(); closeSheet(); toast('הקוד הוסר'); render(); };
+  });
+}
+
+/* ---------- לוח בקרת הורים ללומד ---------- */
+function ctrlSheet(u){
+  const c=u.ctrl;
+  const sw=(k,ti,tx)=>`<div class="ctrl"><div class="tx"><b>${ti}</b><span>${tx}</span></div>
+    <button class="sw ${c[k]?'on':''}" data-sw="${k}"></button></div>`;
+  const st=(k,ti,tx,step,max)=>`<div class="ctrl"><div class="tx"><b>${ti}</b><span>${tx}</span></div>
+    <div class="stepper"><button data-st="${k}" data-d="-${step}">−</button>
+    <span id="v-${k}">${c[k]||'—'}</span><button data-st="${k}" data-d="${step}" data-max="${max}">+</button></div></div>`;
+  sheet(`<h2>בקרה · ${esc(u.name)}</h2>
+    <p class="sub">ההגדרות חלות על הפרופיל הזה בלבד.</p>
+
+    <div class="sec-title">קצב ומסך</div>
+    <div class="card">
+      ${st('daily','יעד יומי','כמה פריטים ביום. מופיע כטבעת התקדמות במסך הבית.',5,60)}
+      ${st('cap','מגבלה יומית','אחרי כמה פריטים האפליקציה נועלת את התרגול להיום. 0 = ללא הגבלה.',10,120)}
+    </div>
+
+    <div class="sec-title">הרשאות</div>
+    <div class="card">
+      ${sw('lockLevel','נעילת הרמה','הלומד לא יוכל לקפוץ רמה ידנית דרך ההגדרות.')}
+      ${sw('lockData','נעילת נתונים','חוסם מחיקת פרופיל, ייצוא וייבוא.')}
+      ${sw('mic','מיקרופון','כשכבוי, תרגילי ההגייה יעברו למצב האזנה בלבד בלי בקשת הרשאה.')}
+    </div>
+
+    <div class="sec-title">מצבי תרגול מותרים</div>
+    <div class="card" id="modes">
+      ${MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>{
+        const on = !c.modes || c.modes.includes(m);
+        return `<div class="ctrl"><div class="tx"><b>${ti}</b></div>
+          <button class="sw ${on?'on':''}" data-mode="${m}"></button></div>`}).join('')}
+      <p class="muted" style="margin-top:8px">אם הכול פתוח, הלומד רואה את כל המצבים.</p>
+    </div>
+
+    <div class="sec-title">משימה</div>
+    <div class="card">
+      ${u.task && !u.task.done ? `<div class="task"><div class="lbl">משימה פעילה</div>
+        <b>${esc(u.task.note||'')}</b><div class="sub" style="margin-top:3px">${u.task.size} פריטים · ${esc(u.task.label)}</div>
+        <div class="progline" style="margin-top:9px"><i style="width:${Math.min(100,(u.task.prog/u.task.size)*100)}%"></i></div></div>
+        <button class="btn ghost sm" style="width:100%;margin-top:10px" id="cleartask">ביטול המשימה</button>`
+      : `<div class="field"><label>סוג התרגול</label><select id="tmode">${
+          MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>`<option value="${m}">${ti}</option>`).join('')}</select></div>
+         <div class="field"><label>מספר פריטים</label><select id="tsize">${[10,15,20,25,30,40].map(n=>`<option${n===20?' selected':''}>${n}</option>`).join('')}</select></div>
+         <div class="field"><label>הערה ללומד</label><input id="tnote" placeholder="למשל: לקראת המבחן ביום שלישי"></div>
+         <button class="btn sm" style="width:100%" id="settask">הקצאת משימה</button>`}
+    </div>
+
+    <div class="sec-title">קוד כניסה</div>
+    <div class="card">
+      <p class="sub">${u.code?'לפרופיל הזה יש קוד. הוא נדרש בכניסה.':'אין קוד. כל אחד יכול להיכנס לפרופיל הזה.'}</p>
+      <button class="btn ghost sm" style="width:100%;margin-top:10px" id="code">${u.code?'שינוי או הסרת הקוד':'קביעת קוד'}</button>
+    </div>
+
+    <div class="sec-title">איפוס</div>
+    <div class="card">
+      <p class="sub">מוחק את כל ההתקדמות והחזרות של הלומד ומחזיר אותו לרמה 0. שאר הפרופילים לא מושפעים.</p>
+      <button class="btn ghost sm" style="width:100%;margin-top:10px;color:var(--bad);border-color:var(--bad)" id="reset">איפוס ההתקדמות</button>
+    </div>`, sh=>{
+    sh.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.sw; c[k]=!c[k]; b.classList.toggle('on',c[k]); u.ctrlAt=Date.now(); saveUsers(); });
+    sh.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{
+      const k=b.dataset.st, d=+b.dataset.d, max=+(b.dataset.max||999);
+      c[k]=Math.max(0, Math.min(max, (c[k]||0)+d));
+      sh.querySelector('#v-'+k).textContent=c[k]||'—'; u.ctrlAt=Date.now(); saveUsers(); });
+    sh.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{
+      const all=[...new Set(MODES.map(m=>m[0]))];
+      let list = c.modes ? [...c.modes] : [...all];
+      const m=b.dataset.mode;
+      list = list.includes(m) ? list.filter(x=>x!==m) : [...list,m];
+      if(!list.length){ toast('חייב להישאר מצב אחד לפחות'); return; }
+      c.modes = list.length===all.length ? null : list;
+      b.classList.toggle('on', list.includes(m)); u.ctrlAt=Date.now(); saveUsers(); });
+    if(sh.querySelector('#settask')) sh.querySelector('#settask').onclick=()=>{
+      const m=sh.querySelector('#tmode').value, sz=+sh.querySelector('#tsize').value;
+      const label=(MODES.find(x=>x[0]===m)||[])[2]||m;
+      u.task={mode:m,size:sz,label,note:sh.querySelector('#tnote').value.trim(),prog:0,done:0,day:today()};
+      u.ctrlAt=Date.now(); saveUsers(); closeSheet(); toast('המשימה הוקצתה'); render(); };
+    if(sh.querySelector('#cleartask')) sh.querySelector('#cleartask').onclick=()=>{
+      u.task=null; saveUsers(); closeSheet(); render(); };
+    sh.querySelector('#code').onclick=()=>setCode(u);
+    sh.querySelector('#reset').onclick=()=>{
+      if(!confirm(`לאפס את כל ההתקדמות של ${u.name}? אי אפשר לבטל.`)) return;
+      u.srs={}; u.log=[]; u.mastered={}; u.lv=0; u.xp=0; u.streak=0; u.lastDay=null; u.task=null;
+      saveUsers(); closeSheet(); toast('אופס'); render(); };
+  });
+}
+
+/* ---------- מסך ההורה: כל הלומדים ---------- */
+function vParent(){
+  sheet(`<h2>בקרת הורים ומורים</h2>
+    <p class="sub">בחרו לומד כדי לקבוע יעדים, הרשאות ומשימות.</p>
+    <div class="userpick" style="margin-top:16px" id="pl"></div>`, sh=>{
+    const pl=sh.querySelector('#pl');
+    USERS.filter(x=>x.role!=='parent').forEach(x=>{
+      const a=analyse(x), dn=doneToday(x);
+      const b=el(`<button class="usercard"><div class="av">${x.emoji}</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.code?'<span class="pill">קוד</span>':''}</div>
+        <div class="muted">רמה ${x.lv} · היום ${dn}${x.ctrl.daily?'/'+x.ctrl.daily:''} פריטים · ${a.vocab} מילים
+        ${x.task&&!x.task.done?' · משימה פעילה':''}</div></div></button>`);
+      b.onclick=()=>{ closeSheet(); ctrlSheet(x); };
+      pl.appendChild(b);
+    });
+    if(!pl.children.length) pl.innerHTML='<div class="card"><p class="sub">אין עדיין לומדים.</p></div>';
+  });
+}
+/* ============================================================
+   שמירה בענן — Firestore דרך REST, בלי SDK.
+   המכשיר הוא מקור האמת; הענן הוא גיבוי וסנכרון בין מכשירים.
+   כל פרופיל נשמר כמסמך נפרד:  ladder/{familyCode}/members/{userId}
+   הנתונים נשמרים כמחרוזת JSON יחידה — חוסך את מיפוי הטיפוסים של Firestore.
+   ============================================================ */
+const K_CLOUD='ladder.cloud';
+let CFG = Store.get(K_CLOUD, {project:'', key:'', family:'', auto:true, last:null, hashes:{}});
+const saveCfg = ()=> Store.set(K_CLOUD, CFG);
+const cloudReady = ()=> !!(CFG.project && CFG.key && CFG.family);
+if(!CFG.hashes) CFG.hashes={};
+
+const newFamilyCode = ()=>{
+  const a='abcdefghjkmnpqrstuvwxyz23456789';
+  const g=n=>[...Array(n)].map(()=>a[Math.floor(Math.random()*a.length)]).join('');
+  return `${g(4)}-${g(4)}-${g(4)}-${g(4)}`;
+};
+const docURL = id =>
+  `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(CFG.project)}/databases/(default)/documents/`+
+  `ladder/${encodeURIComponent(CFG.family)}/members`+(id?'/'+encodeURIComponent(id):'')+`?key=${encodeURIComponent(CFG.key)}`;
+
+/* ---------- מיזוג בטוח ----------
+   שני מכשירים יכולים לתרגל במקביל. אנחנו לא דורסים — מאחדים:
+   לכל כרטיס חזרה נבחר זה שתורגל יותר, וללוג נבחר היום העמוס יותר. */
+function mergeUser(local, remote){
+  if(!remote) return local;
+  if(!local)  return remote;
+  const out = Object.assign({}, remote, local);
+  out.lv      = Math.max(local.lv||0, remote.lv||0);
+  out.xp      = Math.max(local.xp||0, remote.xp||0);
+  out.streak  = Math.max(local.streak||0, remote.streak||0);
+  out.lastDay = [local.lastDay, remote.lastDay].filter(Boolean).sort().pop() || null;
+
+  out.srs={};
+  new Set([...Object.keys(local.srs||{}), ...Object.keys(remote.srs||{})]).forEach(id=>{
+    const a=(local.srs||{})[id], b=(remote.srs||{})[id];
+    out.srs[id] = !a ? b : !b ? a : ((a.seen||0) >= (b.seen||0) ? a : b);
+  });
+
+  out.seenTypes = Object.assign({}, remote.seenTypes||{}, local.seenTypes||{});
+
+  out.mastered={};
+  new Set([...Object.keys(local.mastered||{}), ...Object.keys(remote.mastered||{})]).forEach(k=>
+    out.mastered[k]=Math.max((local.mastered||{})[k]||0, (remote.mastered||{})[k]||0));
+
+  const byDay={};
+  [...(remote.log||[]), ...(local.log||[])].forEach(e=>{
+    const p=byDay[e.d]; byDay[e.d] = (!p || (e.n||0)>=(p.n||0)) ? e : p; });
+  out.log = Object.values(byDay).sort((a,b)=>a.d<b.d?-1:1).slice(-400);
+
+  /* בקרת הורים ומשימה: מה שעודכן לאחרונה גובר */
+  if((remote.ctrlAt||0) > (local.ctrlAt||0)){ out.ctrl=remote.ctrl; out.task=remote.task; out.ctrlAt=remote.ctrlAt; }
+  return normalise(out);
+}
+
+/* ---------- קריאה וכתיבה ---------- */
+async function cloudPush(u){
+  const body={fields:{
+    data:{stringValue:JSON.stringify(u)},
+    updated:{stringValue:new Date().toISOString()},
+    name:{stringValue:u.name||''}
+  }};
+  const r=await fetch(docURL(u.id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error('כתיבה נכשלה ('+r.status+')');
+  return true;
+}
+async function cloudList(){
+  const r=await fetch(docURL(''));
+  if(r.status===404) return [];
+  if(!r.ok) throw new Error('קריאה נכשלה ('+r.status+')');
+  const j=await r.json();
+  return (j.documents||[]).map(d=>{
+    try{ return JSON.parse(d.fields.data.stringValue); }catch(e){ return null; }
+  }).filter(Boolean);
+}
+
+/* ---------- סנכרון מלא ---------- */
+let SYNCING=false;
+async function cloudSync(silent){
+  if(!cloudReady() || SYNCING) return false;
+  SYNCING=true;
+  try{
+    const remote=await cloudList();
+    const byId={}; remote.forEach(r=>byId[r.id]=r);
+    /* מיזוג נכנס */
+    USERS = USERS.map(l => byId[l.id] ? mergeUser(l, byId[l.id]) : l);
+    /* פרופילים שקיימים רק בענן */
+    remote.forEach(r=>{ if(!USERS.some(l=>l.id===r.id)) USERS.push(normalise(r)); });
+    saveUsers();
+    /* דחיפה החוצה — רק פרופילים שהשתנו מאז הסנכרון האחרון */
+    let pushed=0;
+    for(const u of USERS){
+      const h=hashCode(JSON.stringify(u));
+      if(CFG.hashes[u.id]===h) continue;
+      await cloudPush(u); CFG.hashes[u.id]=h; pushed++;
+    }
+    CFG.last=new Date().toISOString(); saveCfg();
+    if(!silent) toast(pushed?`סונכרן · ${pushed} פרופילים`:'הכול מעודכן');
+    return true;
+  }catch(e){
+    if(!silent) toast('הסנכרון נכשל: '+e.message);
+    return false;
+  }finally{ SYNCING=false; }
+}
+/* סנכרון שקט אחרי סשן, עם השהיה קצרה */
+let syncTimer=null;
+function cloudSoon(){ if(!CFG.auto||!cloudReady()) return;
+  clearTimeout(syncTimer); syncTimer=setTimeout(()=>cloudSync(true), 2500); }
+
+/* ---------- ממשק ---------- */
+function cloudCard(){
+  if(!cloudReady()) return `<div class="card"><b>שמירה בענן</b>
+    <div class="sub" style="margin-top:4px">כרגע הכול נשמר במכשיר הזה בלבד. אם הוא יאבד או שתנקה את הדפדפן — ההתקדמות תיעלם.</div>
+    <button class="btn sm" style="width:100%;margin-top:11px" onclick="cloudSheet()">הגדרת ענן</button></div>`;
+  const t=CFG.last?new Date(CFG.last):null;
+  const ago=t?Math.round((Date.now()-t)/60000):null;
+  return `<div class="card"><div style="display:flex;align-items:center;gap:9px">
+      <span class="dot" style="background:var(--good)"></span><b>הענן מחובר</b>
+      <span class="spacer"></span><span class="badge">${ago==null?'—':ago<1?'עכשיו':ago<60?ago+' דק׳':Math.round(ago/60)+' שע׳'}</span></div>
+    <div class="muted" style="margin-top:6px">קוד משפחה: <span class="en">${esc(CFG.family)}</span></div>
+    <div class="row" style="margin-top:11px">
+      <button class="btn sm" style="width:100%" onclick="cloudSync()">סנכרון עכשיו</button>
+      <button class="btn ghost sm" style="width:100%" onclick="cloudSheet()">הגדרות</button>
+    </div></div>`;
+}
+
+function cloudSheet(){
+  sheet(`<h2>שמירה בענן</h2>
+    <p class="sub">מסנכרן את כל פרופילי המשפחה בין מכשירים. התרגול עצמו ממשיך לעבוד גם בלי אינטרנט — הסנכרון קורה ברקע.</p>
+
+    <div class="sec-title">פרויקט Firebase</div>
+    <div class="card">
+      <div class="field"><label>Project ID</label><input id="pr" class="en" value="${esc(CFG.project)}" placeholder="ladder-family"></div>
+      <div class="field" style="margin-bottom:0"><label>Web API Key</label><input id="ky" class="en" value="${esc(CFG.key)}" placeholder="AIza..."></div>
+      <p class="muted" style="margin-top:8px">שני הערכים נמצאים ב‑Firebase Console ← Project settings ← General.</p>
+    </div>
+
+    <div class="sec-title">קוד המשפחה</div>
+    <div class="card">
+      <div class="field" style="margin-bottom:8px"><input id="fm" class="en" value="${esc(CFG.family)}" placeholder="קוד קיים, או צרו חדש"></div>
+      <div class="row">
+        <button class="btn ghost sm" style="width:100%" id="gen">יצירת קוד חדש</button>
+        <button class="btn ghost sm" style="width:100%" id="cp">העתקה</button>
+      </div>
+      <p class="muted" style="margin-top:9px">במכשיר הראשון — צרו קוד. בכל מכשיר נוסף — הדביקו את אותו קוד בדיוק. הקוד הוא המפתח לנתונים; מי שמכיר אותו יכול לגשת אליהם.</p>
+    </div>
+
+    <div class="ctrl"><div class="tx"><b>סנכרון אוטומטי</b><span>אחרי כל סשן תרגול ובכל פתיחה של האפליקציה.</span></div>
+      <button class="sw ${CFG.auto?'on':''}" id="au"></button></div>
+
+    <button class="btn" style="margin-top:14px" id="save">שמירה וסנכרון</button>
+    ${cloudReady()?'<button class="btn ghost" style="margin-top:8px" id="off">ניתוק מהענן</button>':''}
+
+    <div class="sec-title">חוקי אבטחה</div>
+    <div class="card">
+      <p class="sub">הדביקו ב‑Firestore ← Rules. בלי זה, מצב הבדיקה של Firebase יפוג ותאבדו גישה.</p>
+      <div class="ruleblk"><span class="ex" style="white-space:pre;font-size:.78rem;line-height:1.6">rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    match /ladder/{fam}/members/{id} {
+      allow read, write: if fam.size() >= 19;
+    }
+  }
+}</span></div>
+      <p class="muted" style="margin-top:9px">החוק הזה חוסם סריקה אקראית ומחייב קוד ארוך, אבל הוא לא מצריך התחברות. אל תשמרו כאן שמות מלאים או פרטים מזהים.</p>
+    </div>`, sh=>{
+    sh.querySelector('#gen').onclick=()=>{ sh.querySelector('#fm').value=newFamilyCode(); };
+    sh.querySelector('#cp').onclick=()=>{
+      const v=sh.querySelector('#fm').value.trim(); if(!v) return toast('אין קוד להעתקה');
+      (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast('הועתק')).catch(()=>toast('העתיקו ידנית'));
+    };
+    sh.querySelector('#au').onclick=function(){ CFG.auto=!CFG.auto; this.classList.toggle('on',CFG.auto); saveCfg(); };
+    sh.querySelector('#save').onclick=async()=>{
+      CFG.project=sh.querySelector('#pr').value.trim();
+      CFG.key    =sh.querySelector('#ky').value.trim();
+      CFG.family =sh.querySelector('#fm').value.trim();
+      saveCfg();
+      if(!cloudReady()) return toast('צריך למלא את שלושת השדות');
+      toast('מסנכרן…');
+      if(await cloudSync()) { closeSheet(); render(); }
+    };
+    if(sh.querySelector('#off')) sh.querySelector('#off').onclick=()=>{
+      if(!confirm('לנתק את המכשיר מהענן? הנתונים במכשיר יישארו, והעותק בענן לא יימחק.')) return;
+      CFG={project:'',key:'',family:'',auto:true,last:null,hashes:{}}; saveCfg(); closeSheet(); render();
+    };
+  });
+}
 /* ---------------- התקדמות וניתוח ---------------- */
 function vStats(s){
   const u=me(), a=analyse(u);
@@ -2075,6 +3421,18 @@ function vFamily(s){
   s.innerHTML=`<h1>המשפחה</h1><p class="sub">מעבר בין לומדים, מעקב ושליטה.</p>
     <div class="userpick" style="margin-top:14px" id="ul"></div>
     <button class="btn ghost" style="margin-top:10px" onclick="addUser()">+ הוספת לומד</button>
+    <div class="card" style="margin-top:14px">
+      <b>בקרת הורים ומורים</b>
+      <div class="sub" style="margin-top:4px">יעדים יומיים, מגבלת מסך, נעילת רמה, מצבי תרגול מותרים והקצאת משימות.</div>
+      <button class="btn sm" style="width:100%;margin-top:11px" onclick="askParent(vParent)">פתיחה</button>
+    </div>
+
+    <div class="sec-title">קוד הכניסה שלי</div>
+    <div class="card">
+      <p class="sub">${u.code?'לפרופיל שלך יש קוד. הוא נדרש בכל כניסה.':'אין קוד. כל אחד שפותח את האפליקציה יכול להיכנס לפרופיל הזה.'}</p>
+      <button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="setCode(me())">${u.code?'שינוי או הסרת הקוד':'קביעת קוד'}</button>
+    </div>
+
     <div class="sec-title">מראה</div>
     <div class="card">
       <div class="field"><label>ערכת נושא</label><div class="seg" id="th">
@@ -2087,11 +3445,22 @@ function vFamily(s){
 
     <div class="sec-title">קול ודיבור</div>
     <div class="card">
+      ${(()=>{ const cur=pickVoice(), ava=findAva();
+        const tier=cur?voiceTier(cur):null;
+        const badge={premium:['pill g','איכות גבוהה'],good:['pill','תקין'],plain:['pill o','בסיסי'],junk:['pill r','קול דחוס']}[tier]||['pill','—'];
+        return `<div class="ctrl" style="border:0;padding-top:0">
+          <div class="tx"><b>בשימוש כרגע</b>
+            <span class="en" style="direction:ltr;display:block;font-size:.86rem;color:var(--ink);font-weight:600">${cur?esc(cur.name):'—'}</span>
+            <span>${cur?esc(cur.lang):'לא נמצא קול אנגלית במכשיר'}</span></div>
+          <span class="${badge[0]}">${badge[1]}</span></div>
+        ${tier==='junk'?`<p class="muted" style="margin:0 0 12px">זהו קול דחוס והוא יישמע מתכתי. הורידו קול Premium בהגדרות → נגישות → תוכן מדובר → קולות → English.</p>`:''}
+        ${ava && cur!==ava ? `<button class="btn sm" style="width:100%;margin-bottom:12px" id="useava">מעבר ל‑${esc(ava.name)}</button>` : ''}`;})()}
       <div class="field"><label>קול</label>
         <select id="vc"><option value="">בחירה אוטומטית — הטוב ביותר במכשיר</option>${
-          VOICES.map(v=>`<option value="${esc(v.name)}" ${v.name===u.settings.voice?'selected':''}>${esc(v.name)} · ${esc(v.lang)}${voiceScore(v)>=60?' ✦':''}</option>`).join('')}</select>
+          VOICES.map(v=>{const t=voiceTier(v);
+            return `<option value="${esc(v.name)}" ${v.name===u.settings.voice?'selected':''}>${esc(v.name)} · ${esc(v.lang)}${t==='premium'?' ✦✦':t==='good'?' ✦':''}</option>`}).join('')}</select>
         <button class="btn ghost sm" style="width:100%;margin-top:8px" id="tv">השמעת דוגמה</button>
-        <p class="muted" style="margin-top:6px">${VOICES.length?`${VOICES.length} קולות אנגלית זמינים במכשיר. ✦ מסמן קול איכותי.`:'לא נמצאו קולות אנגלית. רעננו את הדף אחרי התקנת קול במכשיר.'}</p></div>
+        <p class="muted" style="margin-top:6px">${VOICES.length?`${VOICES.length} קולות אנגלית במכשיר · ✦✦ איכות גבוהה, ✦ תקין.`:'עדיין נטענים קולות. אם הרשימה נשארת ריקה — רעננו את הדף.'}</p></div>
       <div class="field"><label>מהירות הדיבור</label>
         <select id="sp">${[['0.6','איטית מאוד'],['0.75','איטית'],['0.95','רגילה'],['1.05','מהירה'],['1.2','ילידית']]
           .map(([v,n])=>`<option value="${v}" ${+v===u.settings.speed?'selected':''}>${n}</option>`).join('')}</select></div>
@@ -2102,20 +3471,23 @@ function vFamily(s){
         <select id="au"><option value="1" ${u.settings.autoSpeak?'selected':''}>מופעלת</option><option value="0" ${!u.settings.autoSpeak?'selected':''}>כבויה</option></select></div>
     </div>
 
-    <div class="sec-title">רמה</div>
+    ${u.ctrl.lockLevel?'':`<div class="sec-title">רמה</div>
     <div class="card">
       <div class="field" style="margin-bottom:0"><label>קפיצה ידנית לרמה</label>
         <select id="lv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===u.lv?'selected':''}>${l.id} · ${l.nm}</option>`).join('')}</select>
         <p class="muted" style="margin-top:7px">בדרך כלל לא צריך לגעת בזה — הרמה עולה מעצמה ב‑${LEVELS[u.lv].need}% שליטה. שימושי אם התחלתם נמוך מדי.</p></div>
       <button class="btn sm" style="width:100%;margin-top:12px" id="sv">שמירה</button>
-    </div>
-    <div class="sec-title">גיבוי</div>
+    </div>`}
+    <div class="sec-title">ענן</div>
+    ${cloudCard()}
+
+    ${u.ctrl.lockData?'':`<div class="sec-title">גיבוי מקומי</div>
     <div class="card"><p class="sub">כל הנתונים נשמרים במכשיר בלבד. ייצאו קובץ לפני החלפת מכשיר.</p>
       <div class="row" style="margin-top:10px">
         <button class="btn ghost sm" style="width:100%" onclick="exportData()">ייצוא</button>
         <button class="btn ghost sm" style="width:100%" onclick="importData()">ייבוא</button>
-      </div></div>
-    <button class="btn ghost" style="margin-top:12px" onclick="CUR=null;Store.set(K_CUR,null);TAB='users';render()">החלפת לומד</button>
+      </div></div>`}
+    <button class="btn ghost" style="margin-top:12px" onclick="UNLOCKED={};CUR=null;Store.set(K_CUR,null);TAB='users';render()">החלפת לומד</button>
     ${Store.persistent?'':'<p class="muted" style="margin-top:16px">תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.</p>'}`;
   const ul=$('#ul');
   USERS.forEach(x=>{
@@ -2140,6 +3512,11 @@ function vFamily(s){
     u.settings.pitch=+$('#pt').value;
     u.settings.autoSpeak=$('#au').value==='1';
   };
+  if($('#useava')) $('#useava').onclick=()=>{
+    const a=findAva(); if(!a) return;
+    u.settings.voice=a.name; saveUsers();
+    say('Hi, I am Ava. This is how I will sound.'); render();
+  };
   $('#vc').onchange=()=>{ apply(); say('This is how I will sound. Listen and repeat.'); };
   $('#tv').onclick =()=>{ apply(); say('This is how I will sound. Listen and repeat.'); };
   $('#sp').onchange=()=>{ apply(); say('Listen and repeat.'); };
@@ -2160,11 +3537,14 @@ function userSheet(x){
     ${a.weakTypes.length?`<div class="sec-title">חולשות</div><div class="card">${a.weakTypes.map(w=>
       `<div class="wordrow"><span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}</div>`:''}
     <button class="btn" style="margin-top:14px" id="sw">מעבר ללומד הזה</button>
-    <button class="btn ghost" style="margin-top:8px" id="rm">מחיקת הלומד</button>`, sh=>{
+    <button class="btn ghost" style="margin-top:8px" id="ct">בקרה והרשאות</button>
+    ${x.ctrl.lockData?'':'<button class="btn ghost" style="margin-top:8px" id="rm">מחיקת הלומד</button>'}`, sh=>{
+    sh.querySelector('#ct').onclick=()=>{ closeSheet(); askParent(()=>ctrlSheet(x)); };
     sh.querySelector('#sw').onclick=()=>{ CUR=x.id; Store.set(K_CUR,CUR); closeSheet(); TAB='home'; render(); };
-    sh.querySelector('#rm').onclick=()=>{
+    if(sh.querySelector('#rm')) sh.querySelector('#rm').onclick=()=>{
       if(!confirm(`למחוק את ${x.name} ואת כל ההתקדמות? אי אפשר לבטל.`)) return;
-      USERS=USERS.filter(y=>y.id!==x.id); if(CUR===x.id){CUR=USERS[0]?.id||null;Store.set(K_CUR,CUR);}
+      USERS=USERS.filter(y=>y.id!==x.id); delete UNLOCKED[x.id];
+      if(CUR===x.id){CUR=USERS[0]?.id||null;Store.set(K_CUR,CUR);}
       saveUsers(); closeSheet(); render();
     };
   });
@@ -2202,6 +3582,7 @@ function closeSheet(){ document.querySelector('.sheet-bg')?.remove(); }
 if(CUR && !me()) CUR=null;
 applyTheme();
 render();
+if(CFG.auto && cloudReady()) cloudSync(true);
 /* רשימת הקולות מגיעה מהדפדפן באיחור — מרעננים את מסך ההגדרות כשהיא נטענת */
 if(window.speechSynthesis){
   let once=false;
