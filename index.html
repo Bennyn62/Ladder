@@ -1861,7 +1861,11 @@ function normalise(u){
 }
 USERS.forEach(normalise);
 let CUR   = Store.get(K_CUR, null);
-const saveUsers = ()=> Store.set(K_USERS, USERS);
+/* כל שינוי — פרופיל חדש, בקרת הורים, מחיקה, הגדרות — עובר דרך כאן,
+   ולכן זו הנקודה האחת שממנה מתוזמן סנכרון ענן ברקע. ה-!SYNCING מונע
+   לולאה: cloudSync() עצמו קורא ל-saveUsers() כחלק מהמיזוג, ובלי
+   השומר הזה כל סבב סנכרון היה מתזמן את הסבב הבא עד אינסוף.        */
+const saveUsers = ()=>{ Store.set(K_USERS, USERS); if(typeof cloudSoon==='function' && !SYNCING) cloudSoon(); };
 const me = ()=> USERS.find(u=>u.id===CUR);
 
 function newUser(name, emoji, role, lv){
@@ -2350,6 +2354,7 @@ function vWelcome(){
         <span>המערכת מציפה כל פריט בדיוק לפני שהוא נשכח. רצף יומי שווה יותר מכל מרתון.</span></div></div>
     </div>
     <button class="btn" style="margin-top:28px" onclick="addUser()">יצירת הלומד הראשון</button>
+    <button class="btn ghost" style="margin-top:9px" onclick="cloudSheet()">כבר יש קוד משפחה? התחברות</button>
   </div>`;
 }
 
@@ -2358,7 +2363,8 @@ const EMOJIS='🦊 🐼 🐧 🦁 🐨 🐢 🦉 🐝 🚀 ⚽ 🎸 🌻 🍀 �
 function vUsers(s){
   s.innerHTML=`<h1>מי לומד עכשיו?</h1><p class="sub">לכל אחד התקדמות, רמה ורצף משלו.</p>
     <div class="userpick" style="margin-top:18px" id="ul"></div>
-    <button class="btn ghost" style="margin-top:12px" onclick="addUser()">הוספת לומד</button>`;
+    <button class="btn ghost" style="margin-top:12px" onclick="addUser()">הוספת לומד</button>
+    <button class="btn ghost" style="margin-top:8px" onclick="cloudSheet()">${cloudReady()?'הגדרות ענן':'התחברות למשפחה קיימת'}</button>`;
   const ul=$('#ul');
   USERS.forEach(u=>{
     const b=el(`<button class="usercard"><div class="av">${u.emoji}</div>
@@ -3149,7 +3155,10 @@ function ctrlSheet(u){
     <div class="stepper"><button data-st="${k}" data-d="-${step}">−</button>
     <span id="v-${k}">${c[k]||'—'}</span><button data-st="${k}" data-d="${step}" data-max="${max}">+</button></div></div>`;
   sheet(`<h2>בקרה · ${esc(u.name)}</h2>
-    <p class="sub">ההגדרות חלות על הפרופיל הזה בלבד.</p>
+    <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm}${u.streak?` · רצף ${u.streak} ימים`:''}</p>
+
+    <div class="sec-title">פעילות והתקדמות</div>
+    ${progressBlock(u,{self:false})}
 
     <div class="sec-title">קצב ומסך</div>
     <div class="card">
@@ -3236,12 +3245,13 @@ function vParent(){
       const a=analyse(x), dn=doneToday(x);
       const b=el(`<button class="usercard"><div class="av">${x.emoji}</div>
         <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.code?'<span class="pill">קוד</span>':''}</div>
-        <div class="muted">רמה ${x.lv} · היום ${dn}${x.ctrl.daily?'/'+x.ctrl.daily:''} פריטים · ${a.vocab} מילים
+        <div class="muted">רמה ${x.lv} · ${Math.round(a.accAll*100)||0}% דיוק · ${a.vocab} מילים${x.streak?' · 🔥'+x.streak:''}</div>
+        <div class="muted" style="margin-top:2px">היום ${dn}${x.ctrl.daily?'/'+x.ctrl.daily:''} פריטים
         ${x.task&&!x.task.done?' · משימה פעילה':''}</div></div></button>`);
       b.onclick=()=>{ closeSheet(); ctrlSheet(x); };
       pl.appendChild(b);
     });
-    if(!pl.children.length) pl.innerHTML='<div class="card"><p class="sub">אין עדיין לומדים.</p></div>';
+    if(!pl.children.length) pl.innerHTML='<div class="card"><p class="sub">אין עדיין לומדים במשפחה.</p></div>';
   });
 }
 /* ============================================================
@@ -3431,16 +3441,22 @@ service cloud.firestore {
     };
   });
 }
-/* ---------------- התקדמות וניתוח ---------------- */
-function vStats(s){
-  const u=me(), a=analyse(u);
+/* ---------------- התקדמות וניתוח ----------------
+   progressBlock בונה את כל בלוק הניתוח — משמש גם למסך "ההתקדמות שלי"
+   וגם ללוח הבקרה של ההורה, כדי שההורה יראה בדיוק את אותו עומק נתונים
+   שהלומד רואה על עצמו, בלי לשכפל את הלוגיקה פעמיים.
+   opts.self=true מוסיף כפתור "תרגול חולשות" שמפעיל סשן על המשתמש
+   הפעיל כרגע — ולכן הוא מוצג רק כשמסתכלים על עצמך, לא כשהורה צופה
+   בפרופיל של הילד מהמכשיר שלו (שם startSession() היה מפעיל סשן
+   בטעות על ההורה עצמו, לא על הילד).                                 */
+function progressBlock(u, opts={}){
+  const a=analyse(u);
   const days=[...Array(14)].map((_,i)=>{
     const d=new Date(Date.now()-(13-i)*864e5).toISOString().slice(0,10);
     return u.log.find(x=>x.d===d)||{d,n:0,ok:0,ms:0};
   });
   const mx=Math.max(1,...days.map(d=>d.n));
-  s.innerHTML=`<h1>ההתקדמות של ${esc(u.name)}</h1>
-   <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm} · ${levelPct(u,u.lv)}% שליטה</p>
+  return `
    <div class="grid2" style="margin-top:14px">
      <div class="stat"><div class="n">${a.vocab}</div><div class="l">מילים בשליטה מלאה</div></div>
      <div class="stat"><div class="n">${a.learning}</div><div class="l">בתהליך למידה</div></div>
@@ -3455,7 +3471,7 @@ function vStats(s){
    ${a.weakTypes.length?`<div class="sec-title">איפה כדאי להתמקד</div><div class="card">${
      a.weakTypes.map(w=>`<div class="wordrow"><span class="dot" style="background:${w.acc<.6?'var(--bad)':'var(--gold)'}"></span>
        <span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}
-     <button class="btn sm" style="margin-top:12px;width:100%" onclick="startSession('weak',12)">תרגול ממוקד חולשות</button></div>`:''}
+     ${opts.self?'<button class="btn sm" style="margin-top:12px;width:100%" onclick="startSession(\'weak\',12)">תרגול ממוקד חולשות</button>':''}</div>`:''}
    ${a.weakWords.length?`<div class="sec-title">מילים שעדיין לא יושבות</div><div class="card">${
      a.weakWords.map(x=>{const w=WORDS.find(y=>y.en===x.w)||{he:''};
        return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span>
@@ -3467,6 +3483,12 @@ function vStats(s){
          <span>${l.id} · ${l.nm}</span><span class="badge">${p}%</span></div>
          <div class="progline" style="margin-top:5px"><i style="width:${p}%"></i></div></div>`}).join('')}</div>
    <p class="muted" style="margin-top:14px">${a.dueNow} פריטים ממתינים לחזרה. אלגוריתם החזרות מציג כל פריט בדיוק לפני שהוא נשכח — לכן חשוב יותר לתרגל כל יום מעט, מאשר הרבה פעם בשבוע.</p>`;
+}
+function vStats(s){
+  const u=me();
+  s.innerHTML=`<h1>ההתקדמות של ${esc(u.name)}</h1>
+   <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm} · ${levelPct(u,u.lv)}% שליטה</p>
+   ${progressBlock(u,{self:true})}`;
 }
 
 /* ---------------- משפחה / ניהול ---------------- */
@@ -3596,11 +3618,17 @@ function userSheet(x){
     ${x.ctrl.lockData?'':'<button class="btn ghost" style="margin-top:8px" id="rm">מחיקת הלומד</button>'}`, sh=>{
     sh.querySelector('#ct').onclick=()=>{ closeSheet(); askParent(()=>ctrlSheet(x)); };
     sh.querySelector('#sw').onclick=()=>{ CUR=x.id; Store.set(K_CUR,CUR); closeSheet(); TAB='home'; render(); };
+    /* מחיקה תמיד עוברת דרך שער הורה, גם אם לפרופיל הזה עצמו אין קוד —
+       lockData קובע אם הכפתור בכלל מוצג, אבל לא סומך רק על זה: מי
+       שרוצה למחוק בפועל חייב להקליד את קוד ההורה שלו.               */
     if(sh.querySelector('#rm')) sh.querySelector('#rm').onclick=()=>{
-      if(!confirm(`למחוק את ${x.name} ואת כל ההתקדמות? אי אפשר לבטל.`)) return;
-      USERS=USERS.filter(y=>y.id!==x.id); delete UNLOCKED[x.id];
-      if(CUR===x.id){CUR=USERS[0]?.id||null;Store.set(K_CUR,CUR);}
-      saveUsers(); closeSheet(); render();
+      closeSheet();
+      askParent(()=>{
+        if(!confirm(`למחוק את ${x.name} ואת כל ההתקדמות? אי אפשר לבטל.`)) return;
+        USERS=USERS.filter(y=>y.id!==x.id); delete UNLOCKED[x.id];
+        if(CUR===x.id){CUR=USERS[0]?.id||null;Store.set(K_CUR,CUR);}
+        saveUsers(); render();
+      });
     };
   });
 }
