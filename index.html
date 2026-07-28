@@ -109,7 +109,8 @@ input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
 /* ---------- nav ---------- */
 .nav{
   position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--card);
-  border-top:1px solid var(--line);padding:5px 8px calc(env(safe-area-inset-bottom) + 5px)
+  border-top:1px solid var(--line);padding:5px 8px calc(env(safe-area-inset-bottom) + 5px);
+  transition:transform .15s ease-out
 }
 .nav-in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
 .nav button{
@@ -304,7 +305,8 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
    ============================================================ */
 .actionbar{
   position:fixed;bottom:0;left:0;right:0;z-index:60;background:var(--card);
-  border-top:1px solid var(--line);padding:10px 18px calc(env(safe-area-inset-bottom) + 10px)
+  border-top:1px solid var(--line);padding:10px 18px calc(env(safe-area-inset-bottom) + 10px);
+  transition:transform .15s ease-out
 }
 .actionbar-in{max-width:600px;margin:0 auto;display:flex;gap:9px;align-items:center}
 .actionbar-in>.btn{
@@ -351,7 +353,7 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .seg button.on{background:var(--card);color:var(--brand);box-shadow:var(--sh)}
 
 /* ---------- sheet ---------- */
-.sheet-bg{position:fixed;inset:0;background:rgba(6,14,17,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s;backdrop-filter:blur(3px)}
+.sheet-bg{position:fixed;inset:0;background:rgba(6,14,17,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s;backdrop-filter:blur(3px);transition:transform .15s ease-out}
 @keyframes fade{from{opacity:0}to{opacity:1}}
 .sheet{background:var(--paper);width:100%;max-width:600px;border-radius:var(--r-xl) var(--r-xl) 0 0;padding:16px 18px calc(env(safe-area-inset-bottom) + 20px);max-height:90dvh;overflow:auto;animation:up .28s cubic-bezier(.2,.9,.3,1)}
 @keyframes up{from{transform:translateY(100%)}to{transform:none}}
@@ -2288,6 +2290,27 @@ function focusInput(inp){
   inp.focus(); bring();
 }
 
+/* ---------- תיקון מקלדת ל-iOS: position:fixed מול המקלדת ----------
+   ספארי ב-iOS ממקם position:fixed:bottom ביחס לגובה המלא של הדף,
+   כאילו אין מקלדת פתוחה — כך שסרגל תחתון קבוע עלול להיעלם מתחתיה,
+   באופן לא עקבי (תלוי גלילה, תלוי מסך). VisualViewport מדווח את
+   הגובה שבאמת נראה למשתמש; מזיזים את האלמנטים הקבועים בדיוק בכמות
+   שהמקלדת מכסה, כדי שיישארו צמודים מעל המקלדת תמיד.                */
+function pinFixedBars(){
+  if(!window.visualViewport) return;
+  const vv=window.visualViewport;
+  const update=()=>{
+    const covered=Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    const shift=covered>1 ? `translateY(-${covered}px)` : '';
+    const ab=document.querySelector('#actionbar'); if(ab) ab.style.transform=shift;
+    const nv=document.querySelector('#nav'); if(nv) nv.style.transform=shift;
+    const sb=document.querySelector('.sheet-bg'); if(sb) sb.style.transform=shift;
+  };
+  vv.addEventListener('resize', update);
+  vv.addEventListener('scroll', update);
+  update();
+}
+
 /* ---------- ניתוב ---------- */
 function render(){
   applyTheme();
@@ -3957,6 +3980,7 @@ function closeSheet(){ document.querySelector('.sheet-bg')?.remove(); }
 if(CUR && !me()) CUR=null;
 applyTheme();
 render();
+pinFixedBars();
 if(CFG.auto && cloudReady()) cloudSync(true);
 
 /* קישור הצטרפות שנפתח מסריקת QR: ?join=קוד-המשפחה.
