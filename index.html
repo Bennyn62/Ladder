@@ -3255,6 +3255,240 @@ function vParent(){
   });
 }
 /* ============================================================
+   מחולל QR עצמאי בג'אווהסקריפט טהור — בלי ספריות חיצוניות.
+   תומך ב-Byte mode בלבד, גרסאות 1-5, תיקון שגיאות L או M,
+   בלוק יחיד (אין צורך בפיצול Reed-Solomon למספר בלוקים בגדלים האלה).
+   מטרת הפיתוח: להטמיע בתוך Ladder בלי לפנות לרשת כדי להציג QR.
+   ============================================================ */
+
+/* --- שדה גלואה GF(256), פולינום פרימיטיבי 0x11D (התקן ל-QR) --- */
+const GF_EXP = new Array(512);
+const GF_LOG = new Array(256);
+(function initGF(){
+  let x = 1;
+  for(let i=0;i<255;i++){
+    GF_EXP[i]=x; GF_LOG[x]=i;
+    x <<= 1;
+    if(x & 0x100) x ^= 0x11D;
+  }
+  for(let i=255;i<512;i++) GF_EXP[i]=GF_EXP[i-255];
+})();
+const gfMul=(a,b)=> (a===0||b===0)?0:GF_EXP[GF_LOG[a]+GF_LOG[b]];
+
+/* פולינום יוצר Reed-Solomon למספר נתון של קודוורדים לתיקון שגיאות */
+function rsGenPoly(ec){
+  let poly=[1];
+  for(let i=0;i<ec;i++){
+    const next=new Array(poly.length+1).fill(0);
+    for(let j=0;j<poly.length;j++){
+      next[j]   ^= poly[j];
+      next[j+1] ^= gfMul(poly[j], GF_EXP[i]);
+    }
+    poly=next;
+  }
+  return poly; // מדרגה גבוהה לנמוכה
+}
+function rsEncode(data, ec){
+  const gen=rsGenPoly(ec);
+  const res=new Array(data.length+ec).fill(0);
+  for(let i=0;i<data.length;i++) res[i]=data[i];
+  for(let i=0;i<data.length;i++){
+    const coef=res[i];
+    if(coef===0) continue;
+    for(let j=0;j<gen.length;j++) res[i+j] ^= gfMul(gen[j], coef);
+  }
+  return res.slice(data.length);
+}
+
+/* --- טבלאות קיבולת: גרסאות 1-5, בלוק יחיד בלבד --- */
+const VER = {
+  1:{size:21, total:26, remBits:0},
+  2:{size:25, total:44, remBits:7},
+  3:{size:29, total:70, remBits:7},
+  4:{size:33, total:100,remBits:7},
+  5:{size:37, total:134,remBits:7},
+};
+const EC_CODEWORDS = { // [level][version] -> כמה קודוורדים מתוך total מיועדים לתיקון שגיאות
+  L:{1:7, 2:10, 3:15, 4:20, 5:26},
+  M:{1:10,2:16, 3:26, 4:36, 5:48},
+};
+const ALIGN_POS = {1:[],2:[6,18],3:[6,22],4:[6,26],5:[6,30]};
+const FORMAT_BITS = {L:0b01, M:0b00, Q:0b11, H:0b10}; // שני הביטים הראשונים של format info
+
+function bestVersion(byteLen, level){
+  for(const v of [1,2,3,4,5]){
+    const total=VER[v].total, ec=EC_CODEWORDS[level][v], dataCw=total-ec;
+    const capacity = dataCw - 2; // מוד(4 סיביות)+מונה(8 סיביות)=12 סיביות≈2 בתים, מעוגל למטה
+    if(byteLen<=capacity) return v;
+  }
+  return null; // אין גרסה מתאימה עד 5 — הקורא יטפל בזה בעדינות
+}
+
+/* --- בניית זרם הנתונים (מוד בתים) --- */
+function buildDataCodewords(bytes, version, level){
+  const total=VER[version].total, ec=EC_CODEWORDS[level][version], dataCw=total-ec;
+  const bits=[];
+  const push=(val,len)=>{ for(let i=len-1;i>=0;i--) bits.push((val>>i)&1); };
+  push(0b0100, 4);          // מציין מוד: Byte
+  push(bytes.length, 8);    // מונה תווים (8 סיביות בגרסאות 1-9)
+  for(const b of bytes) push(b, 8);
+  // מסיים (עד 4 אפסים), רק אם יש מקום
+  const maxBits=dataCw*8;
+  for(let i=0;i<4 && bits.length<maxBits;i++) bits.push(0);
+  while(bits.length%8!==0) bits.push(0);
+  const codewords=[];
+  for(let i=0;i<bits.length;i+=8){
+    let byte=0; for(let j=0;j<8;j++) byte=(byte<<1)|bits[i+j];
+    codewords.push(byte);
+  }
+  const pad=[0xEC,0x11];
+  let pi=0;
+  while(codewords.length<dataCw){ codewords.push(pad[pi%2]); pi++; }
+  return {data:codewords.slice(0,dataCw), ec, dataCw};
+}
+
+/* --- מטריצת המודולים --- */
+function makeMatrix(version){
+  const size=VER[version].size;
+  const m=Array.from({length:size},()=>new Array(size).fill(null));
+  const reserved=Array.from({length:size},()=>new Array(size).fill(false));
+  const setFinder=(r0,c0)=>{
+    for(let r=-1;r<=7;r++)for(let c=-1;c<=7;c++){
+      const rr=r0+r, cc=c0+c; if(rr<0||cc<0||rr>=size||cc>=size) continue;
+      reserved[rr][cc]=true;
+      const inBorder = r===-1||r===7||c===-1||c===7;
+      const inRing   = r>=0&&r<=6&&c>=0&&c<=6&&(r===0||r===6||c===0||c===6);
+      const inCore   = r>=2&&r<=4&&c>=2&&c<=4;
+      m[rr][cc] = !inBorder && (inRing||inCore) ? true : (!inBorder && !inRing && !inCore ? false : false);
+    }
+  };
+  setFinder(0,0); setFinder(0,size-7); setFinder(size-7,0);
+  // תזמון (טיימינג)
+  for(let i=8;i<size-8;i++){ if(m[6][i]===null){ m[6][i]=(i%2===0); reserved[6][i]=true; }
+                              if(m[i][6]===null){ m[i][6]=(i%2===0); reserved[i][6]=true; } }
+  // יישור
+  const pos=ALIGN_POS[version];
+  const nearFinder=(r,c)=> (r<=8&&c<=8)||(r<=8&&c>=size-9)||(r>=size-9&&c<=8);
+  for(const r of pos) for(const c of pos){
+    if(nearFinder(r,c)) continue;
+    for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){
+      const rr=r+dr, cc=c+dc;
+      reserved[rr][cc]=true;
+      const ring = Math.max(Math.abs(dr),Math.abs(dc));
+      m[rr][cc] = ring!==1;
+    }
+  }
+  // מודול כהה קבוע
+  m[size-8][8]=true; reserved[size-8][8]=true;
+  // שמירת מקום למידע העיצוב (format info) — יתמלא בסוף
+  for(let i=0;i<9;i++){ if(m[8][i]===null){ m[8][i]=false; reserved[8][i]=true; }
+                         if(m[i][8]===null){ m[i][8]=false; reserved[i][8]=true; } }
+  for(let i=0;i<8;i++){ m[8][size-1-i]=false; reserved[8][size-1-i]=true;
+                         m[size-1-i][8]=false; reserved[size-1-i][8]=true; }
+  return {m, reserved, size};
+}
+
+function placeData(mat, allBits){
+  const {m, reserved, size} = mat;
+  let bitIdx=0;
+  let dir=-1; // עולים למעלה קודם
+  let col=size-1;
+  while(col>0){
+    if(col===6) col--; // דילוג על עמודת התזמון
+    for(let i=0;i<size;i++){
+      const row = dir===-1 ? size-1-i : i;
+      for(const c of [col, col-1]){
+        if(reserved[row][c]) continue;
+        const bit = bitIdx<allBits.length ? allBits[bitIdx] : 0;
+        m[row][c] = !!bit;
+        bitIdx++;
+      }
+    }
+    dir=-dir; col-=2;
+  }
+}
+
+/* מסכה 0 — פשוטה, תקנית וחוקית; לא מיישמים כאן את כל שמונה המסכות עם ניקוד */
+function applyMask(mat){
+  const {m, reserved, size}=mat;
+  for(let r=0;r<size;r++)for(let c=0;c<size;c++){
+    if(reserved[r][c]) continue;
+    if((r+c)%2===0) m[r][c]=!m[r][c];
+  }
+}
+
+function bchFormat(data5){ // BCH(15,5), פולינום 0x537, XOR עם 0x5412 — לפי תקן QR
+  let g=data5<<10;
+  for(let i=4;i>=0;i--){
+    if(g & (1<<(i+10))) g ^= (0x537<<i);
+  }
+  return ((data5<<10)|g) ^ 0x5412;
+}
+function placeFormat(mat, level, maskId){
+  const {m, size}=mat;
+  const data5 = (FORMAT_BITS[level]<<3) | maskId;
+  const f = bchFormat(data5);
+  const bit=i=>(f>>i)&1;
+  // עותק 1 — עוטף את הפינדר הימני-עליון בצורת L, לאורך שורה8 ואז עמודה8
+  for(let i=0;i<=5;i++) m[8][i]=!!bit(i);
+  m[8][7]=!!bit(6); m[8][8]=!!bit(7); m[7][8]=!!bit(8);
+  for(let i=9;i<15;i++) m[14-i][8]=!!bit(i);
+  // עותק 2 — כפול ליתירות: ביטים 0-7 לאורך שורה8 ליד הפינדר הימני,
+  // ביטים 8-14 לאורך עמודה8 ליד הפינדר התחתון
+  for(let i=0;i<8;i++) m[8][size-1-i]=!!bit(i);
+  for(let i=8;i<15;i++) m[size-15+i][8]=!!bit(i);
+  m[size-8][8]=true;
+}
+
+function encodeQR(text, level){
+  level = level||'L';
+  const bytes=[...unescape(encodeURIComponent(text))].map(c=>c.charCodeAt(0));
+  const version=bestVersion(bytes.length, level);
+  if(!version) return null;
+  const {data, ec, dataCw}=buildDataCodewords(bytes, version, level);
+  const ecCw=rsEncode(data, ec);
+  const allCw=[...data, ...ecCw];
+  const bits=[];
+  for(const b of allCw) for(let i=7;i>=0;i--) bits.push((b>>i)&1);
+  for(let i=0;i<VER[version].remBits;i++) bits.push(0);
+  const mat=makeMatrix(version);
+  placeData(mat, bits);
+  applyMask(mat);
+  placeFormat(mat, level, 0);
+  return {size:mat.size, matrix:mat.m, version};
+}
+
+
+
+/* ---------- ציור ה-QR כ-SVG והצגתו ----------
+   רקע לבן קבוע בכוונה, גם במצב כהה — סורק מצלמה צריך ניגודיות
+   אמיתית של שחור-על-לבן, לא תלוי בערכת הנושא של האפליקציה.        */
+function qrSVG(text, boxPx){
+  const res=encodeQR(text,'L');
+  if(!res) return '';
+  const {size:n, matrix}=res, quiet=4, N=n+quiet*2;
+  const px=(boxPx||280)/N;
+  let rects='';
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++){
+    if(matrix[r][c]) rects+=`<rect x="${((c+quiet)*px).toFixed(2)}" y="${((r+quiet)*px).toFixed(2)}" width="${px.toFixed(2)}" height="${px.toFixed(2)}"/>`;
+  }
+  return `<svg viewBox="0 0 ${N*px} ${N*px}" style="width:100%;height:auto;display:block;border-radius:12px">
+    <rect width="100%" height="100%" fill="#fff"/><g fill="#000">${rects}</g></svg>`;
+}
+
+/* כתובת ההצטרפות: הדף הנוכחי בדיוק כפי שהוא באמת מתארח, בלי query string קיים */
+const joinURL = code => location.href.split('?')[0].split('#')[0] + '?join=' + encodeURIComponent(code);
+
+function showJoinQR(){
+  const url=joinURL(CFG.family);
+  const svg=qrSVG(url, 280);
+  sheet(`<h2>סריקה להצטרפות</h2>
+    <p class="sub">התלמיד פותח את מצלמת המכשיר שלו ומכוון אל הקוד. לא צריך להתקין שום דבר — מצלמת ה‑iPhone וה‑Android מזהות QR ישירות.</p>
+    <div class="card" style="padding:16px;margin-top:12px">${svg||'<p class="sub">לא ניתן ליצור קוד QR — הקוד ארוך מדי.</p>'}</div>
+    <p class="muted" style="text-align:center;margin-top:10px" class="en">${esc(CFG.family)}</p>
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">סגירה</button>`);
+}
+/* ============================================================
    שמירה בענן — Firestore דרך REST, בלי SDK.
    המכשיר הוא מקור האמת; הענן הוא גיבוי וסנכרון בין מכשירים.
    כל פרופיל נשמר כמסמך נפרד:  ladder/{familyCode}/members/{userId}
@@ -3272,8 +3506,8 @@ function vParent(){
    איפה מוצאים את הערכים: Firebase Console → Project settings →
    General → "Your apps" → Web app → SDK setup and configuration.
    ========================================================== */
-const FIREBASE_PROJECT = 'ladder-app-74f7a';   // לדוגמה: 'ladder-family-a1b2c'
-const FIREBASE_KEY     = 'AIzaSyAq_sF_qVHDcgt9WE_8feDTN77zibm53fc';   // לדוגמה: 'AIzaSyD-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+const FIREBASE_PROJECT = 'ladder-app-74f7a';
+const FIREBASE_KEY     = 'AIzaSyAq_sF_qVHDcgt9WE_8feDTN77zibm53fc';
 
 const K_CLOUD='ladder.cloud';
 let CFG = Store.get(K_CLOUD, {project:'', key:'', family:'', auto:true, last:null, hashes:{}});
@@ -3411,22 +3645,24 @@ function cloudSheet(){
   return cloudConfigured() ? joinSheet() : setupSheet();
 }
 
-function joinSheet(){
-  sheet(`<h2>${cloudReady()?'המשפחה שלי':'התחברות למשפחה'}</h2>
-    <p class="sub">${cloudReady()
-      ?'המכשיר הזה מחובר ומסנכרן. ההתקדמות ממשיכה לעבוד גם בלי אינטרנט.'
-      :'הזינו את קוד המשפחה שקיבלתם מההורה או מהמורה. זה כל מה שצריך.'}</p>
+function joinSheet(prefill){
+  const scanned = !!prefill;
+  sheet(`<h2>${scanned?'זוהה קוד מהקישור':cloudReady()?'המשפחה שלי':'התחברות למשפחה'}</h2>
+    <p class="sub">${scanned?'סרקתם או פתחתם קישור עם קוד משפחה. אשרו כדי להתחבר.'
+      :cloudReady()?'המכשיר הזה מחובר ומסנכרן. ההתקדמות ממשיכה לעבוד גם בלי אינטרנט.'
+      :'הזינו את קוד המשפחה שקיבלתם, או סרקו את קוד ה‑QR שלו במצלמת המכשיר.'}</p>
     <div class="card">
       <div class="field" style="margin-bottom:10px">
-        <input id="fm" class="en" style="text-align:center;font-size:1.1rem;letter-spacing:.03em" value="${esc(CFG.family)}" placeholder="xxxx-xxxx-xxxx-xxxx"></div>
-      <button class="btn" id="join">${cloudReady()?'עדכון':'התחברות'}</button>
+        <input id="fm" class="en" style="text-align:center;font-size:1.1rem;letter-spacing:.03em" value="${esc(prefill||CFG.family)}" placeholder="xxxx-xxxx-xxxx-xxxx"></div>
+      <button class="btn" id="join">${scanned?'התחברות':cloudReady()?'עדכון':'התחברות'}</button>
     </div>
-    ${cloudReady()?`<div class="ctrl" style="margin-top:6px"><div class="tx"><b>סנכרון אוטומטי</b><span>אחרי כל תרגול ובכל פתיחה של האפליקציה.</span></div>
+    ${cloudReady() && !scanned?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="showJoinQR()">הצגת קוד QR לשיתוף עם תלמיד</button>
+      <div class="ctrl" style="margin-top:6px"><div class="tx"><b>סנכרון אוטומטי</b><span>אחרי כל תרגול ובכל פתיחה של האפליקציה.</span></div>
       <button class="sw ${CFG.auto?'on':''}" id="au"></button></div>
       <button class="btn ghost sm" style="width:100%;margin-top:12px" onclick="cloudSync()">סנכרון עכשיו</button>
       <button class="btn ghost" style="margin-top:8px" id="off">ניתוק מהמשפחה</button>`:''}
-    <p class="muted" style="margin-top:16px">מקימים משפחה בפעם הראשונה?
-      <button class="en" style="text-decoration:underline;color:var(--brand);font-weight:700" id="newfam">יצירת קוד חדש</button></p>`, sh=>{
+    ${!scanned?`<p class="muted" style="margin-top:16px">מקימים משפחה בפעם הראשונה?
+      <button class="en" style="text-decoration:underline;color:var(--brand);font-weight:700" id="newfam">יצירת קוד חדש</button></p>`:''}`, sh=>{
     const doJoin=async()=>{
       const v=sh.querySelector('#fm').value.trim();
       if(!v) return toast('צריך להזין קוד');
@@ -3435,7 +3671,19 @@ function joinSheet(){
       if(await cloudSync()){ closeSheet(); render(); } else toast('לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.');
     };
     sh.querySelector('#join').onclick=doJoin;
-    sh.querySelector('#newfam').onclick=()=>{ sh.querySelector('#fm').value=newFamilyCode(); doJoin(); };
+    /* יצירת קוד חדש = תביעת בעלות על משפחה חדשה בענן. בלי שער כאן, כל
+       מי שפותח את הקישור — כולל תלמיד — יכול היה ליצור משפחה משלו
+       בטעות בלחיצה אחת. לא נשענים על ה-sh של המסך הזה בתוך ה-callback,
+       כי askParent סוגר את הגיליון הנוכחי לפני שהוא פותח את שער הקוד. */
+    if(sh.querySelector('#newfam')) sh.querySelector('#newfam').onclick=()=>{
+      askParent(async()=>{
+        const code=newFamilyCode();
+        CFG.project=FIREBASE_PROJECT; CFG.key=FIREBASE_KEY; CFG.family=code; saveCfg();
+        toast('יוצר משפחה חדשה…');
+        if(await cloudSync()) render();
+        else toast('לא הצלחנו ליצור את המשפחה. בדקו את החיבור לאינטרנט.');
+      });
+    };
     if(sh.querySelector('#au')) sh.querySelector('#au').onclick=function(){ CFG.auto=!CFG.auto; this.classList.toggle('on',CFG.auto); saveCfg(); };
     if(sh.querySelector('#off')) sh.querySelector('#off').onclick=()=>{
       if(!confirm('להתנתק מהמשפחה? הנתונים במכשיר הזה יישארו, והעותק בענן לא יימחק.')) return;
@@ -3710,6 +3958,16 @@ if(CUR && !me()) CUR=null;
 applyTheme();
 render();
 if(CFG.auto && cloudReady()) cloudSync(true);
+
+/* קישור הצטרפות שנפתח מסריקת QR: ?join=קוד-המשפחה.
+   מנקים את הפרמטר מהכתובת מיד, כדי שלא יישאר בהיסטוריה/סימניה
+   ולא יפעיל שוב את אותה בקשת הצטרפות ברענון הבא.                */
+(function(){
+  const p=new URLSearchParams(location.search).get('join');
+  if(!p || !cloudConfigured()) return;
+  history.replaceState(null,'',location.pathname);
+  setTimeout(()=>joinSheet(p.trim()), 250);
+})();
 /* רשימת הקולות מגיעה מהדפדפן באיחור — מרעננים את מסך ההגדרות כשהיא נטענת */
 if(window.speechSynthesis){
   let once=false;
