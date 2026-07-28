@@ -447,16 +447,21 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
    פורמט מילה:  en|he|ipa|pos|משפט דוגמה|תרגום המשפט
    ============================================================ */
 
+/* cefr הוא הערכה מקורבת, לא ציון רשמי — נבנתה מהתאמת תוכן הדקדוק/אוצר
+   המילים של כל רמה מול טבלאות CEFR מקובלות. שימושי בעיקר לכיוון כללי
+   בקניית ספרי קריאה ברמה מתאימה, לא כתחליף למבחן מיון אמיתי.
+   רמות 0-1 הן טרום-קריאה — אין להן מקבילה ב-CEFR (שמניח קריאה בסיסית). */
 const LEVELS = [
- {id:0,nm:'האותיות',   dsc:'שמות האותיות, צורה גדולה וקטנה',            need:0},
- {id:1,nm:'הצלילים',   dsc:'פונטיקה — לחבר אותיות למילה',                need:75},
- {id:2,nm:'מילים ראשונות',dsc:'מילות הליבה + הצלילים שאין בעברית',       need:75},
- {id:3,nm:'משפט ראשון',dsc:'to be, הווה פשוט, סדר המילים',              need:75},
- {id:4,nm:'שאלות ושלילה',dsc:'שאלות, שלילה, הווה ממושך',                need:75},
- {id:5,nm:'עבר ועתיד', dsc:'זמנים בסיסיים ופעלים חריגים',               need:75},
- {id:6,nm:'קישור והרחבה',dsc:'מילות יחס, קישור, השוואה',                need:75},
- {id:7,nm:'זמנים מורכבים',dsc:'Perfect, תנאי, סביל, דיבור עקיף',        need:75},
- {id:8,nm:'שטף ילידי',  dsc:'Phrasal verbs, ניבים, דיבור מהיר ושיחה',   need:75}
+ {id:0,nm:'האותיות',   dsc:'שמות האותיות, צורה גדולה וקטנה',            need:0,  cefr:'טרום-קריאה'},
+ {id:1,nm:'הצלילים',   dsc:'פונטיקה — לחבר אותיות למילה',                need:75, cefr:'טרום-קריאה'},
+ {id:2,nm:'מילים ראשונות',dsc:'מילות הליבה + הצלילים שאין בעברית',       need:75, cefr:'A1'},
+ {id:3,nm:'משפט ראשון',dsc:'to be, הווה פשוט, סדר המילים',              need:75, cefr:'A1'},
+ {id:4,nm:'שאלות ושלילה',dsc:'שאלות, שלילה, הווה ממושך',                need:75, cefr:'A1'},
+ {id:5,nm:'עבר ועתיד', dsc:'זמנים בסיסיים, עבר מתמשך ופעלים חריגים',    need:75, cefr:'A2'},
+ {id:6,nm:'קישור והרחבה',dsc:'מילות יחס, קישור, השוואה',                need:75, cefr:'A2'},
+ {id:7,nm:'השלמת ההווה',dsc:'Present Perfect, מודאלים, תנאי ראשון',     need:75, cefr:'B1'},
+ {id:8,nm:'מבנים מתקדמים',dsc:'תנאי שני, סביל, דיבור עקיף',             need:75, cefr:'B1'},
+ {id:9,nm:'שטף ילידי',  dsc:'Phrasal verbs, ניבים, דיבור מהיר ושיחה',   need:75, cefr:'B1–B2'}
 ];
 
 const LETTERS = 'A,eɪ,apple,תפוח,æ|B,biː,ball,כדור,b|C,siː,cat,חתול,k|D,diː,dog,כלב,d|E,iː,egg,ביצה,ɛ|F,ɛf,fish,דג,f|G,dʒiː,goat,עז,ɡ|H,eɪtʃ,hat,כובע,h|I,aɪ,ink,דיו,ɪ|J,dʒeɪ,jam,ריבה,dʒ|K,keɪ,key,מפתח,k|L,ɛl,lion,אריה,l|M,ɛm,moon,ירח,m|N,ɛn,nose,אף,n|O,oʊ,orange,תפוז,ɒ|P,piː,pen,עט,p|Q,kjuː,queen,מלכה,kw|R,ɑːr,rain,גשם,r|S,ɛs,sun,שמש,s|T,tiː,tree,עץ,t|U,juː,umbrella,מטריה,ʌ|V,viː,van,טנדר,v|W,ˈdʌbəljuː,water,מים,w|X,ɛks,box,קופסה,ks|Y,waɪ,yellow,צהוב,j|Z,ziː,zebra,זברה,z'
@@ -791,6 +796,7 @@ const GRAMMAR = `
 5|עתיד — will|will + פועל בסיס. להחלטה ברגע, הבטחה או תחזית.|I will call you~אני אתקשר אליך;It will rain~ירד גשם
 5|עתיד — going to|be going to + פועל = תוכנית שכבר קיימת, או משהו שרואים שעומד לקרות.|I am going to study~אני הולך ללמוד;She is going to win~היא עומדת לנצח
 5|there is / there are|"יש" באנגלית. is ליחיד, are לרבים. לא to have.|There is a problem~יש בעיה;There are two options~יש שתי אפשרויות
+5|Past Continuous|was/were + ing — פעולה שהייתה באמצע כשמשהו קטע אותה.|I was driving when he called~נהגתי כשהוא התקשר
 6|מילות יחס של מקום|in = בתוך שטח סגור. on = על משטח. at = בנקודה מסוימת.|in the room~בחדר;on the table~על השולחן;at the door~בדלת
 6|מילות יחס של זמן|in לחודש/שנה, on ליום ותאריך, at לשעה.|in June~ביוני;on Monday~ביום שני;at 8 o'clock~בשעה 8
 6|השוואה|קצר: er + than. ארוך: more + than. מצטיין: the + est / the most.|faster than me~מהר ממני;more useful~יותר שימושי;the best~הכי טוב
@@ -800,17 +806,16 @@ const GRAMMAR = `
 7|Present Perfect|have/has + צורה שלישית. לפעולה שקרתה בלי זמן מוגדר, או שנמשכת עד עכשיו. לא משתמשים עם yesterday.|I have finished~סיימתי;She has lived here for years~היא גרה כאן שנים
 7|Perfect מול Past Simple|Past Simple כשיש זמן מוגדר בעבר. Present Perfect כשהזמן פתוח או רלוונטי להווה.|I saw him yesterday~ראיתי אותו אתמול;I have seen this film~ראיתי את הסרט הזה
 7|for / since|for = משך זמן. since = נקודת התחלה.|for two hours~במשך שעתיים;since 2019~מאז 2019
-7|Past Continuous|was/were + ing — פעולה שהייתה באמצע כשמשהו קטע אותה.|I was driving when he called~נהגתי כשהוא התקשר
 7|Conditional 1|If + הווה פשוט , will + בסיס. מצב אמיתי ואפשרי.|If it rains, I will stay~אם ירד גשם, אשאר
-7|Conditional 2|If + עבר פשוט , would + בסיס. מצב דמיוני או לא סביר.|If I had time, I would help~אילו היה לי זמן, הייתי עוזר
-7|סביל — Passive|be + צורה שלישית. כשהפעולה חשובה יותר מהמבצע.|The report was sent~הדוח נשלח;English is spoken here~מדברים כאן אנגלית
-7|דיבור עקיף|כשמדווחים על דברי מישהו, הזמן "נסוג" צעד אחורה.|He said he was tired~הוא אמר שהוא עייף
 7|Modals|can=יכולת, must=חובה, should=המלצה, might=אולי. תמיד + פועל בסיס בלי to.|You should rest~כדאי שתנוח;It might work~זה אולי יעבוד
-8|Phrasal verbs|פועל + מילית שמשנה את המשמעות לגמרי. אי אפשר לתרגם מילה במילה — צריך לזכור כיחידה אחת.|give up~לוותר;look after~לטפל ב;put up with~לסבול
-8|Collocations|צירופים קבועים. אנגלית "נשמעת נכון" בזכותם — make a decision ולא do a decision.|make a decision~לקבל החלטה;take a photo~לצלם;heavy rain~גשם כבד
-8|תווית מרככת|באנגלית מדוברת מרככים אמירות ישירות. תרגום ישיר מעברית נשמע בוטה.|Could you possibly help me?~האם תוכל אולי לעזור לי;I'm not sure I agree~אני לא בטוח שאני מסכים
-8|Articles מתקדם|the למשהו ידוע ומסוים. בלי תווית להכללות ולמושגים מופשטים.|Music is important~מוזיקה חשובה;The music was loud~המוזיקה הייתה רועשת
-8|טעויות עבריות נפוצות|גיל: לא "I have 30 years" אלא I am 30. הסבר: לא "explain me" אלא explain to me. אלה תרגומים ישירים מעברית שלא קיימים באנגלית.|I am 30 years old~אני בן 30;Please explain it to me~תסביר לי את זה
+8|Conditional 2|If + עבר פשוט , would + בסיס. מצב דמיוני או לא סביר.|If I had time, I would help~אילו היה לי זמן, הייתי עוזר
+8|סביל — Passive|be + צורה שלישית. כשהפעולה חשובה יותר מהמבצע.|The report was sent~הדוח נשלח;English is spoken here~מדברים כאן אנגלית
+8|דיבור עקיף|כשמדווחים על דברי מישהו, הזמן "נסוג" צעד אחורה.|He said he was tired~הוא אמר שהוא עייף
+9|Phrasal verbs|פועל + מילית שמשנה את המשמעות לגמרי. אי אפשר לתרגם מילה במילה — צריך לזכור כיחידה אחת.|give up~לוותר;look after~לטפל ב;put up with~לסבול
+9|Collocations|צירופים קבועים. אנגלית "נשמעת נכון" בזכותם — make a decision ולא do a decision.|make a decision~לקבל החלטה;take a photo~לצלם;heavy rain~גשם כבד
+9|תווית מרככת|באנגלית מדוברת מרככים אמירות ישירות. תרגום ישיר מעברית נשמע בוטה.|Could you possibly help me?~האם תוכל אולי לעזור לי;I'm not sure I agree~אני לא בטוח שאני מסכים
+9|Articles מתקדם|the למשהו ידוע ומסוים. בלי תווית להכללות ולמושגים מופשטים.|Music is important~מוזיקה חשובה;The music was loud~המוזיקה הייתה רועשת
+9|טעויות עבריות נפוצות|גיל: לא "I have 30 years" אלא I am 30. הסבר: לא "explain me" אלא explain to me. אלה תרגומים ישירים מעברית שלא קיימים באנגלית.|I am 30 years old~אני בן 30;Please explain it to me~תסביר לי את זה
 `.trim().split('\n').map(l=>{
   const p=l.split('|');
   return {lv:+p[0], ti:p[1], he:p[2], ex:p[3].split(';').map(e=>{const[en,h]=e.split('~');return{en,he:h}})};
@@ -854,18 +859,18 @@ const SENTS = `
 6|He explained the reason to the whole team.|הוא הסביר את הסיבה לכל הצוות
 7|I have already finished the report.|כבר סיימתי את הדוח
 7|She has been working here since 2019.|היא עובדת כאן מאז 2019
-7|If I had more time, I would learn Spanish.|אילו היה לי יותר זמן, הייתי לומד ספרדית
-7|The email was sent this morning.|המייל נשלח הבוקר
-7|I was driving when the phone rang.|נהגתי כשהטלפון צלצל
+8|If I had more time, I would learn Spanish.|אילו היה לי יותר זמן, הייתי לומד ספרדית
+8|The email was sent this morning.|המייל נשלח הבוקר
+5|I was driving when the phone rang.|נהגתי כשהטלפון צלצל
 7|You should have told me earlier.|היית צריך לספר לי קודם
-7|He said that he would come later.|הוא אמר שהוא יבוא מאוחר יותר
+8|He said that he would come later.|הוא אמר שהוא יבוא מאוחר יותר
 7|This might take longer than expected.|זה עלול לקחת יותר זמן מהצפוי
-8|To be honest, I would rather stay home.|למען האמת, אני מעדיף להישאר בבית
-8|We ran out of time before the meeting ended.|נגמר לנו הזמן לפני שהפגישה הסתיימה
-8|I cannot figure out what went wrong.|אני לא מצליח להבין מה השתבש
-8|As far as I know, the office is closed.|למיטב ידיעתי, המשרד סגור
-8|Let us make a decision and move on.|בוא נקבל החלטה ונתקדם
-8|It depends on what you are trying to achieve.|זה תלוי במה שאתה מנסה להשיג
+9|To be honest, I would rather stay home.|למען האמת, אני מעדיף להישאר בבית
+9|We ran out of time before the meeting ended.|נגמר לנו הזמן לפני שהפגישה הסתיימה
+9|I cannot figure out what went wrong.|אני לא מצליח להבין מה השתבש
+9|As far as I know, the office is closed.|למיטב ידיעתי, המשרד סגור
+9|Let us make a decision and move on.|בוא נקבל החלטה ונתקדם
+9|It depends on what you are trying to achieve.|זה תלוי במה שאתה מנסה להשיג
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],en:p[1],he:p[2]}});
 
 /* ---------------- השלמת חסר ---------------- */
@@ -894,13 +899,13 @@ const CLOZE = `
 7|I ___ lived here for ten years.|have|has,am,did|I → have
 7|She ___ already left.|has|have,is,was|She → has
 7|If it rains, I ___ stay home.|will|would,am,did|תנאי ראשון → will
-7|If I ___ rich, I would travel.|were|am,is,will be|תנאי שני → were לכל הגופים
-7|The car ___ repaired last week.|was|is,has,were|סביל בעבר יחיד → was
+8|If I ___ rich, I would travel.|were|am,is,will be|תנאי שני → were לכל הגופים
+8|The car ___ repaired last week.|was|is,has,were|סביל בעבר יחיד → was
 7|You ___ see a doctor.|should|must to,will to,can to|should = המלצה, בלי to
-8|I am looking forward ___ meeting you.|to|for,at,with|look forward to + ing
-8|Let's ___ a decision.|make|do,take,have|collocation: make a decision
-8|We ran ___ of milk.|out|off,over,away|run out of = נגמר
-8|He gave ___ smoking last year.|up|on,in,off|give up = לוותר / להפסיק
+9|I am looking forward ___ meeting you.|to|for,at,with|look forward to + ing
+9|Let's ___ a decision.|make|do,take,have|collocation: make a decision
+9|We ran ___ of milk.|out|off,over,away|run out of = נגמר
+9|He gave ___ smoking last year.|up|on,in,off|give up = לוותר / להפסיק
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],s:p[1],a:p[2],d:p[3].split(','),he:p[4]}});
 
 /* ---------------- הגהה: מצא את הטעות ---------------- */
@@ -926,11 +931,11 @@ const PROOF = `
 7|I have seen him yesterday.|have seen|saw|עם yesterday משתמשים ב־Past Simple
 7|She is living here since 2019.|is living|has lived|since מחייב Present Perfect
 7|If I will have time, I will call.|will have|have|אחרי If בתנאי ראשון — הווה פשוט
-7|The letter was write by Dan.|write|written|סביל דורש צורה שלישית
-8|Please explain me the rule.|explain me|explain to me|explain דורש to לפני המושא
-8|I did a mistake.|did|made|collocation: make a mistake
-8|He said me the truth.|said me|told me|say something to me / tell me
-8|I have a good relation with him.|relation|relationship|relationship לקשר בין אנשים
+8|The letter was write by Dan.|write|written|סביל דורש צורה שלישית
+9|Please explain me the rule.|explain me|explain to me|explain דורש to לפני המושא
+9|I did a mistake.|did|made|collocation: make a mistake
+9|He said me the truth.|said me|told me|say something to me / tell me
+9|I have a good relation with him.|relation|relationship|relationship לקשר בין אנשים
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],s:p[1],bad:p[2],fix:p[3],he:p[4]}});
 
 /* ---------------- שיחה ---------------- */
@@ -953,11 +958,11 @@ const TALK = `
 6|What is the biggest difference between Israel and other countries you visited?|מה ההבדל הגדול ביותר?|The biggest difference is ___|The biggest difference is the pace of life.
 6|Describe your typical workday.|תאר יום עבודה טיפוסי|First ___, then ___, after that ___|First I check my email, then I run tests.
 7|What have you learned in the last year?|מה למדת בשנה האחרונה?|I have learned ___|I have learned how to manage my time better.
-7|If you could live anywhere, where would you live?|אילו יכולת לגור בכל מקום, איפה?|If I could, I would live in ___|If I could, I would live near the sea.
-7|What would you do if you lost your job tomorrow?|מה היית עושה אילו איבדת את עבודתך מחר?|I would ___|I would start looking immediately and update my CV.
-8|What is one thing people often get wrong about your profession?|מה אנשים לרוב לא מבינים במקצוע שלך?|People tend to think ___, but actually ___|People tend to think it is only coding, but actually most of it is testing.
-8|Tell me about a time you had to change your mind about something.|ספר על פעם שהיית צריך לשנות את דעתך|I used to think ___, but then ___|I used to think speed mattered most, but then I saw the cost of bugs.
-8|How would you explain your job to a ten-year-old?|איך היית מסביר את עבודתך לילד בן עשר?|Imagine ___. That is basically what I do.|Imagine a plane that flies itself. I make sure it does not get lost.
+8|If you could live anywhere, where would you live?|אילו יכולת לגור בכל מקום, איפה?|If I could, I would live in ___|If I could, I would live near the sea.
+8|What would you do if you lost your job tomorrow?|מה היית עושה אילו איבדת את עבודתך מחר?|I would ___|I would start looking immediately and update my CV.
+9|What is one thing people often get wrong about your profession?|מה אנשים לרוב לא מבינים במקצוע שלך?|People tend to think ___, but actually ___|People tend to think it is only coding, but actually most of it is testing.
+9|Tell me about a time you had to change your mind about something.|ספר על פעם שהיית צריך לשנות את דעתך|I used to think ___, but then ___|I used to think speed mattered most, but then I saw the cost of bugs.
+9|How would you explain your job to a ten-year-old?|איך היית מסביר את עבודתך לילד בן עשר?|Imagine ___. That is basically what I do.|Imagine a plane that flies itself. I make sure it does not get lost.
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],q:p[1],he:p[2],hint:p[3],ans:p[4]}});
 /* ---------------- זוגות מינימליים ---------------- */
 /* רמה | מילה א | מילה ב | ipa א | ipa ב | עברית א | עברית ב | הניגוד | טיפ הגייה */
@@ -1026,9 +1031,9 @@ const CONTRACT = `
 6|I would like some water.|I'd like some water.|הייתי רוצה מים
 6|We could not find it.|We couldn't find it.|לא הצלחנו למצוא את זה
 7|There is not enough time.|There isn't enough time.|אין מספיק זמן
-7|I would have told you.|I'd have told you.|הייתי מספר לך
-7|That would not have helped.|That wouldn't have helped.|זה לא היה עוזר
 7|Who is going to pay?|Who's going to pay?|מי הולך לשלם?
+8|I would have told you.|I'd have told you.|הייתי מספר לך
+8|That would not have helped.|That wouldn't have helped.|זה לא היה עוזר
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0], full:p[1], short:p[2], he:p[3]}});
 
 /* ---------------- אנגלית מדוברת מהירה ---------------- */
@@ -1043,13 +1048,13 @@ const SPOKEN = `
 6|dunno|do not know|לא יודע|I dunno what happened.|קיצור של I don't know
 6|'cause|because|כי|I left 'cause it was late.|ה־be נבלעת לגמרי
 6|ya|you|אתה|See ya tomorrow.|נפוץ בפרידה: see ya
-7|whatcha|what are you|מה אתה|Whatcha doing?|שלוש מילים שנמחצות לאחת
-7|sorta|sort of|די / סוג של|I'm sorta busy.|תאום של kinda
-7|outta|out of|מתוך / החוצה מ|Get outta here.|נבלע כמעט תמיד
-7|shoulda|should have|היה צריך|You shoulda told me.|גם coulda ו־woulda באותה צורה
-7|betcha|bet you|בטוח לך|I betcha he forgot.|דיבור לא רשמי מאוד
-8|Whaddya think?|What do you think?|מה דעתך?|Whaddya think about it?|do you נמחץ ל־dya
-8|Howzit going?|How is it going?|מה נשמע?|Howzit going, man?|ברכה מדוברת שגורה
+9|whatcha|what are you|מה אתה|Whatcha doing?|שלוש מילים שנמחצות לאחת
+9|sorta|sort of|די / סוג של|I'm sorta busy.|תאום של kinda
+9|outta|out of|מתוך / החוצה מ|Get outta here.|נבלע כמעט תמיד
+9|shoulda|should have|היה צריך|You shoulda told me.|גם coulda ו־woulda באותה צורה
+9|betcha|bet you|בטוח לך|I betcha he forgot.|דיבור לא רשמי מאוד
+9|Whaddya think?|What do you think?|מה דעתך?|Whaddya think about it?|do you נמחץ ל־dya
+9|Howzit going?|How is it going?|מה נשמע?|Howzit going, man?|ברכה מדוברת שגורה
 `.trim().split('\n').map(l=>{const p=l.split('|');
   return {lv:+p[0], sp:p[1], full:p[2], he:p[3], ex:p[4], note:p[5]}});
 /* ============================================================
@@ -1752,7 +1757,7 @@ subsequent|עוקב|ˈsʌbsɪkwənt|adj
 sufficient|מספיק|səˈfɪʃənt|adj
 `;
 
-WC[8] = `
+WC[9] = `
 account for|להסביר / להוות|əˈkaʊnt fɔːr|phr
 back up|לגבות|bæk ʌp|phr
 break down|להתקלקל / לפרק|breɪk daʊn|phr
@@ -2262,6 +2267,7 @@ const ICONS={
 };
 const svg = n => `<svg viewBox="0 0 24 24">${ICONS[n]}</svg>`;
 
+function cefrPill(lv){ return `<span class="pill">${esc(LEVELS[lv].cefr)}</span>`; }
 function toast(t){ const x=el(`<div class="toast">${esc(t)}</div>`); document.body.appendChild(x); setTimeout(()=>x.remove(),1900); }
 
 /* ---------- ערכת נושא וגודל טקסט ----------
@@ -2429,7 +2435,7 @@ function addUser(asParent){
     <div class="field"><label>אווטאר</label><div class="emojipick" id="ep"></div></div>
     <div class="field"><label>גודל טקסט</label><div class="seg" id="sz">
       <button data-v="m" class="on">רגיל</button><button data-v="l">גדול</button><button data-v="xl">ענק</button></div></div>
-    <div class="field"><label>רמת פתיחה</label><select id="lv">${LEVELS.map(l=>`<option value="${l.id}">${l.id} · ${l.nm}</option>`).join('')}</select>
+    <div class="field"><label>רמת פתיחה</label><select id="lv">${LEVELS.map(l=>`<option value="${l.id}">${l.id} · ${l.nm} (${l.cefr})</option>`).join('')}</select>
       <p class="muted" style="margin-top:6px">לא בטוחים? התחילו מ‑0. אפשר לשנות בכל רגע.</p></div>
     <div class="ctrl" style="border:0"><div class="tx"><b>קוד כניסה</b>
       <span>ארבע ספרות. נדרש בכניסה לפרופיל ולפתיחת בקרת ההורים.</span></div>
@@ -2473,7 +2479,7 @@ function vHome(s){
    ${taskCard(u)}
    <div class="card" style="margin-top:16px;border-color:var(--brand)">
      <div style="display:flex;align-items:baseline;gap:8px">
-       <b style="font-size:1.05rem">רמה ${u.lv} · ${LEVELS[u.lv].nm}</b>
+       <b style="font-size:1.05rem">רמה ${u.lv} · ${LEVELS[u.lv].nm}</b> ${cefrPill(u.lv)}
        <span class="spacer"></span><span class="badge">${pct}%</span>
      </div>
      <div class="progline" style="margin-top:9px"><i style="width:${pct}%"></i></div>
@@ -2500,7 +2506,7 @@ function vHome(s){
     const b=el(`<button class="rung ${cls}">
       <div class="fillbar" style="width:${l.id<=u.lv?p:0}%"></div>
       <div class="lv">${l.id}</div>
-      <div style="flex:1;min-width:0"><div class="nm">${l.nm}</div><div class="dsc">${l.dsc}</div></div>
+      <div style="flex:1;min-width:0"><div class="nm">${l.nm} <span class="badge" style="font-weight:600">${l.cefr}</span></div><div class="dsc">${l.dsc}</div></div>
       <div class="pct">${l.id<=u.lv?p+'%':'—'}</div></button>`);
     b.onclick=()=> l.id<=u.lv ? levelSheet(l) : toast(`נפתח ב־${LEVELS[u.lv].need}% ברמה ${u.lv}`);
     ld.appendChild(b);
@@ -2532,7 +2538,11 @@ function taskCard(u){
 function levelSheet(l){
   const u=me();
   const ws=WORDS.filter(w=>w.lv===l.id), gs=GRAMMAR.filter(g=>g.lv===l.id);
-  sheet(`<h2>רמה ${l.id} · ${l.nm}</h2><p class="sub">${l.dsc}</p>
+  const cefrNote = l.cefr==='טרום-קריאה'
+    ? 'שלב טרום-קריאה — אין לו מקבילה בסולם CEFR, שמניח קריאה בסיסית.'
+    : `הערכה מקורבת לפי תוכן הרמה — שימושית לכיוון כללי בבחירת ספרי קריאה, לא תחליף למבחן מיון רשמי.`;
+  sheet(`<h2>רמה ${l.id} · ${l.nm}</h2><p class="sub">${l.cefr} · ${l.dsc}</p>
+    <p class="muted" style="margin-top:2px">${cefrNote}</p>
     <div class="row" style="margin-top:16px">
       <button class="btn sm" style="width:100%" onclick="closeSheet();startSession('mix',12,${l.id})">תרגול הרמה</button>
       <button class="btn ghost sm" style="width:100%" onclick="closeSheet();startSession('rules',10,${l.id})">דקדוק בלבד</button>
@@ -2709,7 +2719,7 @@ function drawDone(s){
     ${u.task&&u.task.done===1?`<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">
       <b>המשימה הושלמה</b><div class="sub" style="margin-top:3px">${esc(u.task.note||u.task.label)}</div></div>`:''}
     ${promoted?`<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">
-      <b>עלית לרמה ${u.lv} · ${LEVELS[u.lv].nm}</b><div class="sub" style="margin-top:3px">${LEVELS[u.lv].dsc}</div></div>`:''}
+      <b>עלית לרמה ${u.lv} · ${LEVELS[u.lv].nm}</b> ${cefrPill(u.lv)}<div class="sub" style="margin-top:3px">${LEVELS[u.lv].dsc}</div></div>`:''}
     ${S.hardIds.length?`<div class="sec-title">לחזרה קרובה</div><div class="card">${
       S.items.filter(x=>S.hardIds.includes(x.id)).map(x=>{
         const lbl = x.t.startsWith('w-')?`${x.d.en} — ${x.d.he}` : x.t==='rule'?x.d.ti
@@ -3220,7 +3230,7 @@ function ctrlSheet(u){
     <div class="stepper"><button data-st="${k}" data-d="-${step}">−</button>
     <span id="v-${k}">${c[k]||'—'}</span><button data-st="${k}" data-d="${step}" data-max="${max}">+</button></div></div>`;
   sheet(`<h2>בקרה · ${esc(u.name)}</h2>
-    <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm}${u.streak?` · רצף ${u.streak} ימים`:''}</p>
+    <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm} · ${LEVELS[u.lv].cefr}${u.streak?` · רצף ${u.streak} ימים`:''}</p>
 
     <div class="sec-title">פעילות והתקדמות</div>
     ${progressBlock(u,{self:false})}
@@ -3844,7 +3854,7 @@ function progressBlock(u, opts={}){
 function vStats(s){
   const u=me();
   s.innerHTML=`<h1>ההתקדמות של ${esc(u.name)}</h1>
-   <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm} · ${levelPct(u,u.lv)}% שליטה</p>
+   <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm} · ${LEVELS[u.lv].cefr} · ${levelPct(u,u.lv)}% שליטה</p>
    ${progressBlock(u,{self:true})}`;
 }
 
@@ -3908,7 +3918,7 @@ function vFamily(s){
     ${u.ctrl.lockLevel?'':`<div class="sec-title">רמה</div>
     <div class="card">
       <div class="field" style="margin-bottom:0"><label>קפיצה ידנית לרמה</label>
-        <select id="lv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===u.lv?'selected':''}>${l.id} · ${l.nm}</option>`).join('')}</select>
+        <select id="lv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===u.lv?'selected':''}>${l.id} · ${l.nm} (${l.cefr})</option>`).join('')}</select>
         <p class="muted" style="margin-top:7px">בדרך כלל לא צריך לגעת בזה — הרמה עולה מעצמה ב‑${LEVELS[u.lv].need}% שליטה. שימושי אם התחלתם נמוך מדי.</p></div>
       <button class="btn sm" style="width:100%;margin-top:12px" id="sv">שמירה</button>
     </div>`}
@@ -3961,7 +3971,7 @@ function vFamily(s){
 function userSheet(x){
   const a=analyse(x);
   sheet(`<div style="display:flex;align-items:center;gap:12px"><div class="av" style="width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:27px;background:var(--brand-soft)">${x.emoji}</div>
-    <div><h2 style="margin:0">${esc(x.name)}</h2><div class="muted">רמה ${x.lv} · ${LEVELS[x.lv].nm}</div></div></div>
+    <div><h2 style="margin:0">${esc(x.name)}</h2><div class="muted">רמה ${x.lv} · ${LEVELS[x.lv].nm} · ${LEVELS[x.lv].cefr}</div></div></div>
     <div class="grid2" style="margin-top:14px">
       <div class="stat"><div class="n">${a.vocab}</div><div class="l">מילים בשליטה</div></div>
       <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">דיוק</div></div>
