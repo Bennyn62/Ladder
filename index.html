@@ -2199,14 +2199,23 @@ function modeAllowed(u,m){ return !u.ctrl.modes || u.ctrl.modes.includes(m); }
 
 /* --- זיהוי דיבור --- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+/* מעקב אחרי הפעלת ההאזנה הפעילה. בלי זה, מעבר לשאלה הבאה — גם אחת
+   שלא נוגעת במיקרופון בכלל — לא היה מפסיק סשן זיהוי דיבור שנשאר תלוי
+   מהשאלה הקודמת, וה-iOS ממשיך להראות את המיקרופון כפעיל.            */
+let ACTIVE_REC = null;
+function stopListening(){
+  if(ACTIVE_REC){ try{ ACTIVE_REC.abort(); }catch(e){} ACTIVE_REC=null; }
+}
 function listen(onResult, onEnd){
   if(!SR) return null;
+  stopListening();  // ליתר ביטחון — לא אמור להיות סשן קודם, אבל לא מזיקה
   const r=new SR();
   r.lang='en-US'; r.interimResults=false; r.maxAlternatives=3;
   r.onresult=e=>{ onResult([...e.results[0]].map(a=>a.transcript)); };
-  r.onerror=()=>onEnd&&onEnd();
-  r.onend =()=>onEnd&&onEnd();
+  r.onerror=()=>{ if(ACTIVE_REC===r) ACTIVE_REC=null; onEnd&&onEnd(); };
+  r.onend =()=>{ if(ACTIVE_REC===r) ACTIVE_REC=null; onEnd&&onEnd(); };
   try{ r.start(); }catch(e){ return null; }
+  ACTIVE_REC=r;
   return r;
 }
 
@@ -2214,6 +2223,11 @@ function listen(onResult, onEnd){
 /* iOS ממיר גרש ישר לגרש מסולסל, מקף למקף ארוך ורווח לרווח לא שובר.
    בלי הנרמול הזה תשובה שנראית זהה לחלוטין נדחית.                      */
 const norm = s => (s||'')
+  /* תווי בקרה בלתי נראים לגמרי — LRM/RLM/ALM ודומיהם. ה-iOS מכניס אותם
+     לפעמים אוטומטית בשדה אנגלי (dir=ltr) שיושב בתוך עמוד עברי (dir=rtl),
+     בעיקר סביב סימני פיסוק או בסוף המילה. בלי זה, "yes" תקין חזותית
+     יכול להיכשל מול "yes" בגלל תו שאף אחד לא רואה.                    */
+  .replace(/[\u200B-\u200F\u2060\uFEFF\u061C]/g,'')
   .replace(/[\u2018\u2019\u02BC\u00B4]/g,"'")
   .replace(/[\u201C\u201D]/g,'"')
   .replace(/[\u2010-\u2015]/g,'-')
@@ -2343,7 +2357,7 @@ function askQuit(then){
     <button class="btn" id="stay">להמשיך לתרגל</button>
     <button class="btn ghost" style="margin-top:8px" id="quit">יציאה</button>`, sh=>{
     sh.querySelector('#stay').onclick=closeSheet;
-    sh.querySelector('#quit').onclick=()=>{ closeSheet(); clearInterval(TICK); then(); };
+    sh.querySelector('#quit').onclick=()=>{ closeSheet(); clearInterval(TICK); stopListening(); then(); };
   });
 }
 
@@ -2607,7 +2621,7 @@ function drawQ(s){
   const target=TARGET[it.t]||6000;
   const card=u.srs[it.id];
   const isNew=!card;
-  S.reveal=null; S.primary=null; S.answered=false;
+  S.reveal=null; S.primary=null; S.revealInline=false; S.answered=false;
 
   s.innerHTML=`<div style="padding-top:calc(env(safe-area-inset-top) + 10px)">
     <div class="readout">
@@ -2627,6 +2641,7 @@ function drawQ(s){
 
   S.t0=performance.now();
   clearInterval(TICK);
+  stopListening();
   TICK=setInterval(()=>{
     if(!S||S.answered) return;
     const ms=performance.now()-S.t0, r=ms/target;
@@ -2653,7 +2668,7 @@ function buildBar(){
 
 /* סיום שאלה */
 function answer(it, correct, target, extraHtml){
-  if(S.answered) return; S.answered=true; clearInterval(TICK);
+  if(S.answered) return; S.answered=true; clearInterval(TICK); stopListening();
   const u=me(), ms=Math.round(performance.now()-S.t0);
   const {q}=review(u,it.id,correct,ms,target);
   touchDay(u,correct,ms); u.xp += correct?(q>=5?12:q>=4?9:6):2;
