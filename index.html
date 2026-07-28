@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0f1b21">
+<meta name="theme-color" id="themeColorMeta" content="#eceeed">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Ladder · לימוד אנגלית למשפחה</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +17,7 @@
    שתי מערכות כתב, שני כיווני קריאה, שלוש משפחות גופנים.
    ============================================================ */
 :root{
+  color-scheme: light dark;
   --he:'Assistant',system-ui,sans-serif;
   --en:'Bricolage Grotesque',system-ui,sans-serif;
   --mono:'JetBrains Mono',ui-monospace,monospace;
@@ -36,6 +37,7 @@
   --fs:16px;
 }
 [data-theme="dark"]{
+  color-scheme: dark;
   --ink:#e8edee; --ink2:#a7bcc2; --ink3:#7b9199; --ink4:#546a72;
   --paper:#0c1418; --card:#141f24; --line:#243239; --line2:#1b272c;
   --brand:#2bb3bd; --brand2:#1d8b95; --brand-soft:#123239;
@@ -46,8 +48,10 @@
   --sh:0 1px 1px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.35);
   --sh-lift:0 2px 4px rgba(0,0,0,.4), 0 18px 44px rgba(0,0,0,.5);
 }
+[data-theme="light"]{ color-scheme: light; }
 @media (prefers-color-scheme:dark){
   [data-theme="auto"]{
+    color-scheme: dark;
     --ink:#e8edee; --ink2:#a7bcc2; --ink3:#7b9199; --ink4:#546a72;
     --paper:#0c1418; --card:#141f24; --line:#243239; --line2:#1b272c;
     --brand:#2bb3bd; --brand2:#1d8b95; --brand-soft:#123239;
@@ -2207,16 +2211,11 @@ const norm = s => (s||'')
   .replace(/[.,!?;:'"()\-]/g,'')
   .replace(/\s+/g,' ').trim();
 function near(a,b){
-  a=norm(a); b=norm(b);
-  if(a===b) return true;
-  if(!a) return false;
-  // מרחק לוינשטיין קטן — סובלנות לשגיאת הקלדה אחת במילים ארוכות
-  const m=a.length,n=b.length; if(Math.abs(m-n)>2) return false;
-  const dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
-  for(let j=0;j<=n;j++)dp[0][j]=j;
-  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)
-    dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
-  return dp[m][n] <= (m>6?2:1);
+  /* בלי שום סובלנות לטעויות — התאמה מדויקת בלבד, אחרי נורמליזציה.
+     norm() רק מנטרל הבדלים טכניים שהם לא באמת טעות: אותיות גדולות/קטנות,
+     גרשיים חכמים של iOS, מקף ארוך, רווח לא שובר, רווחים כפולים, וסימני
+     פיסוק בסוף. כל הבדל אחר במילה — נדחה.                              */
+  return norm(a)===norm(b) && !!norm(a);
 }
 /* ============================================================
    UI — מעטפת
@@ -2240,11 +2239,31 @@ const svg = n => `<svg viewBox="0 0 24 24">${ICONS[n]}</svg>`;
 
 function toast(t){ const x=el(`<div class="toast">${esc(t)}</div>`); document.body.appendChild(x); setTimeout(()=>x.remove(),1900); }
 
-/* ---------- ערכת נושא וגודל טקסט ---------- */
+/* ---------- ערכת נושא וגודל טקסט ----------
+   שני חלקים: (1) data-theme על ה-html, שה-CSS מגיב אליו — כולל
+   [data-theme="auto"] שמאזין ל-prefers-color-scheme של עצמו.
+   (2) meta[theme-color], שצובעת את שורת הסטטוס/הכרום של הדפדפן.
+   הדפדפן לא מעדכן את השורה הזו לבד — היא נשארת קבועה עד שמישהו
+   כותב לה ערך חדש, ולכן צריך לחשב את הצבע הנכון בכל קריאה.        */
+const PAPER = { light:'#eceeed', dark:'#0c1418' };
+const sysDark = () => !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+
 function applyTheme(){
   const s = me()?.settings || {};
-  document.documentElement.dataset.theme = s.theme || 'auto';
-  document.documentElement.dataset.size  = s.size  || 'm';
+  const mode = s.theme || 'auto';
+  document.documentElement.dataset.theme = mode;
+  document.documentElement.dataset.size  = s.size || 'm';
+  const effective = mode==='dark' ? 'dark' : mode==='light' ? 'light' : (sysDark()?'dark':'light');
+  const meta=document.querySelector('#themeColorMeta');
+  if(meta) meta.setAttribute('content', PAPER[effective]);
+}
+/* אם ההגדרה היא "לפי המכשיר" והמכשיר עצמו עובר בין בהיר לכהה
+   (למשל Night Shift מתוזמן) בזמן שהאפליקציה פתוחה — ה-CSS כבר
+   מגיב לבד, אבל שורת הסטטוס לא; מאזין הזה מסנכרן אותה. */
+if(window.matchMedia){
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+    if((me()?.settings?.theme||'auto')==='auto') applyTheme();
+  });
 }
 
 /* ---------- סרגל הפעולה ---------- */
@@ -2265,11 +2284,11 @@ function focusInput(inp){
 
 /* ---------- ניתוב ---------- */
 function render(){
+  applyTheme();
   if(!USERS.length){ return vWelcome(); }
   const cu=me();
   if(cu && cu.code && !UNLOCKED[cu.id]) return vLockScreen(cu);
   if(!cu) TAB='users';
-  applyTheme();
   const inPractice = TAB==='practice' && S;
   $('#nav').classList.toggle('hide', !me() || inPractice);
   if(!inPractice) hideAction();
@@ -2312,7 +2331,6 @@ addEventListener('scroll',()=>$('#topbar')?.classList.toggle('scrolled',scrollY>
 
 /* ---------- מסך פתיחה (הפעלה ראשונה בלבד) ---------- */
 function vWelcome(){
-  applyTheme();
   $('#nav').classList.add('hide'); hideAction();
   $('#topbar').classList.add('hide'); $('#topbar').innerHTML='';
   $('#screen').style.padding='0';
@@ -3006,7 +3024,10 @@ function irrRender(q,it,u,tg,which){
     <br><span class="muted">תבנית: ${esc(IRR_GROUPS[d.grp]||'')}</span>`;
   const done=ok=>{ inp.classList.add(ok?'ok':'no'); say(`${d.base}, ${d.past}, ${d.pp}`,.8);
     answer(it,ok,tg,table); };
-  const chk=()=>done(want.split(' / ').some(x=>near(inp.value,x)));
+  /* התאמה מדויקת בלבד — לא near(). זו בדיוק התכלית של התרגיל: להבחין
+     בין spoke ל‑spoken, בין became ל‑become. סובלנות לטעות הקלדה הייתה
+     סותרת את המטרה ומקבלת בטעות צורה לא נכונה של אותו פועל.            */
+  const chk=()=>done(want.split(' / ').some(x=>norm(inp.value)===norm(x)));
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
   S.primary={label:'בדיקה',fn:chk};
   S.reveal=()=>done(false);
