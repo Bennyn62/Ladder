@@ -369,13 +369,15 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
   padding:30px 24px calc(env(safe-area-inset-bottom) + 30px);max-width:600px;margin:0 auto}
 .lock .who{width:74px;height:74px;border-radius:22px;display:grid;place-items:center;font-size:38px;
   background:var(--card);border:1px solid var(--line);margin-bottom:14px}
-.dots{display:flex;gap:13px;justify-content:center;margin:20px 0 26px}
+.dots{display:flex;gap:13px;justify-content:center;margin:20px 0 26px;direction:ltr}
 .dots i{width:13px;height:13px;border-radius:50%;background:var(--line);transition:.15s}
 .dots i.on{background:var(--brand);transform:scale(1.15)}
 .dots.err i{background:var(--bad)}
 .dots.err{animation:shake .38s}
 @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
-.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;width:100%;max-width:270px}
+/* מקלדת המספרים תמיד LTR — כמו כל מקלדת חיוג, גם בתוך ממשק עברי.
+   ב-RTL כללי, גריד ממלא מימין לשמאל וההגרלה 1-2-3 הייתה יוצאת הפוכה. */
+.keypad{display:grid;direction:ltr;grid-template-columns:repeat(3,1fr);gap:11px;width:100%;max-width:270px}
 .keypad button{aspect-ratio:1;border-radius:50%;background:var(--card);border:1px solid var(--line);
   font-family:var(--mono);font-size:1.45rem;font-weight:700;transition:.1s;display:grid;place-items:center}
 .keypad button:active{background:var(--brand-soft);transform:scale(.93)}
@@ -3066,7 +3068,7 @@ function keypad(host, len, onDone, opts={}){
   let buf='';
   host.innerHTML=`
     <div class="dots" id="dots">${'<i></i>'.repeat(len)}</div>
-    <div class="keypad" id="kp">
+    <div class="keypad" id="kp" dir="ltr">
       ${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-n="${n}">${n}</button>`).join('')}
       <button class="act" data-a="cancel">${opts.cancel||'ביטול'}</button>
       <button data-n="0">0</button>
