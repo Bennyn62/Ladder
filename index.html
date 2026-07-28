@@ -258,6 +258,7 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .answerbox input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
 .answerbox input.ok{border-color:var(--good);background:var(--good-soft)}
 .answerbox input.no{border-color:var(--bad);background:var(--bad-soft)}
+.answerbox .btn{width:auto;flex:none;padding:0 20px;border-radius:12px;white-space:nowrap}
 
 .tiles{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;justify-content:center}
 .tile{
@@ -2757,7 +2758,7 @@ RENDER['w-recall']=(q,it,u,tg)=>{
   const d=it.d;
   q.innerHTML=`<div class="prompt"><div class="kicker">שליפה — כתבו באנגלית</div>
     <div class="big he">${d.he}</div><div class="small">${d.pos==='v'?'פועל':d.pos==='n'?'שם עצם':d.pos==='adj'?'שם תואר':''}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type here"></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type here"><button class="btn" id="chk">בדיקה</button></div>
     <p class="muted" style="margin-top:8px;text-align:center">${'_ '.repeat(Math.min(d.en.length,14))}</p>`;
   const inp=$('#in'); focusInput(inp);
   /* אם שתי מילים חולקות תרגום ("ילד" = boy / child), שתיהן תשובה נכונה */
@@ -2769,7 +2770,8 @@ RENDER['w-recall']=(q,it,u,tg)=>{
     answer(it,ok,tg, ok?`<b class="en">${esc(near(v,d.en)?d.en:accept.find(a=>near(v,a))||d.en)}</b> <span class="ipa">/${d.ipa}/</span>${alt.length?`<br><span class="muted">גם נכון: </span><span class="en">${esc(alt.join(', '))}</span>`:''}${exLine}`
       :`התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${v?`<br>כתבתם: <b class="en">${esc(v)}</b>`:''}${exLine}`); };
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
-  S.primary={label:'בדיקה',fn:chk};
+  $('#chk').onclick=chk;
+  S.primary=null;
   S.reveal=()=>{ inp.classList.add('no'); say(d.en); answer(it,false,tg,
     `התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${d.ex?`<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`:''}`); };
 };
@@ -2780,12 +2782,13 @@ RENDER['w-listen']=(q,it,u,tg)=>{
     <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button>
     <div class="small">הקשיבו וכתבו את המילה</div>
     <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.6)">האטה</button></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type what you hear"></div>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type what you hear"><button class="btn" id="chk">בדיקה</button></div>`;
   say(d.en); const inp=$('#in'); focusInput(inp);
   const chk=()=>{ const ok=near(inp.value,d.en); inp.classList.add(ok?'ok':'no'); say(d.en);
     answer(it,ok,tg,`<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span> = ${d.he}`); };
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
-  S.primary={label:'בדיקה',fn:chk};
+  $('#chk').onclick=chk;
+  S.primary=null;
   S.reveal=()=>{ inp.classList.add('no'); say(d.en); answer(it,false,tg,
     `<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span> = ${d.he}`); };
 };
@@ -2845,12 +2848,13 @@ RENDER.dictate=(q,it,u,tg)=>{
     <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button>
     <div class="small">הקשיבו וכתבו את המשפט המלא</div>
     <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.55)">האטה</button></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write the sentence"></div>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write the sentence"><button class="btn" id="chk">בדיקה</button></div>`;
   say(d.en,.8); const inp=$('#in'); focusInput(inp);
   const chk=()=>{ const ok=near(inp.value,d.en); inp.classList.add(ok?'ok':'no'); say(d.en);
     answer(it,ok,tg,`<b class="en">${esc(d.en)}</b><br>${esc(d.he)}${ok?'':`<br><span class="muted">כתבתם: </span><span class="en">${esc(inp.value)}</span>`}`); };
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
-  S.primary={label:'בדיקה',fn:chk};
+  $('#chk').onclick=chk;
+  S.primary=null;
   S.reveal=()=>{ inp.classList.add('no'); say(d.en); answer(it,false,tg,
     `<b class="en">${esc(d.en)}</b><br>${esc(d.he)}`); };
 };
@@ -2899,13 +2903,14 @@ RENDER.rule=(q,it,u,tg)=>{
     <div class="ruleblk">${d.ex.map(e=>`<span class="ex en">${esc(e.en)}</span><span class="muted">${esc(e.he)}</span>`).join('')}</div></div>
     <div class="prompt" style="margin-top:12px"><div class="kicker">בדיקה מיידית</div>
       <div class="big he" style="font-size:22px">${esc(ex.he)}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write it in English"></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write it in English"><button class="btn" id="chk">בדיקה</button></div>
 `;
   const inp=$('#in'); focusInput(inp);
   const done=(ok)=>{ inp.classList.add(ok?'ok':'no'); say(ex.en);
     answer(it,ok,tg,`<b class="en">${esc(ex.en)}</b><br>${esc(ex.he)}<br><span class="muted">${esc(d.he)}</span>`); };
   inp.onkeydown=e=>{if(e.key==='Enter')done(near(inp.value,ex.en))};
-  S.primary={label:'בדיקה',fn:()=>done(near(inp.value,ex.en))};
+  $('#chk').onclick=()=>done(near(inp.value,ex.en));
+  S.primary=null;
   S.reveal=()=>done(false);
 };
 
@@ -2917,7 +2922,7 @@ RENDER.talk=(q,it,u,tg)=>{
     <div class="ruleblk" style="margin-top:12px">מבנה מומלץ: <span class="ex en">${esc(d.hint)}</span></div>
     <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
       <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?'ענו בקול — או כתבו למטה':'כתבו את התשובה למטה'}</p></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="your answer"></div>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="your answer"><button class="btn" id="chk">שליחה</button></div>`;
   say(d.q,.9);
   const finish=(txt)=>{
     const words=norm(txt).split(' ').filter(Boolean).length;
@@ -2927,7 +2932,8 @@ RENDER.talk=(q,it,u,tg)=>{
       <br><span class="muted">${good?'קראו את תשובת המודל בקול פעמיים — זה מקבע את המבנה.':'תשובה קצרה מדי. נסו משפט שלם עם נושא ופועל.'}</span>`);
   };
   $('#in').onkeydown=e=>{if(e.key==='Enter')finish(e.target.value.trim())};
-  S.primary={label:'שליחה',fn:()=>finish($('#in').value.trim())};
+  $('#chk').onclick=()=>finish($('#in').value.trim());
+  S.primary=null;
   S.reveal=()=>answer(it,false,tg,
     `<span class="muted">תשובת מודל: </span><b class="en">${esc(d.ans)}</b><br><span class="muted">קראו אותה בקול פעמיים.</span>`);
   $('#mic').onclick=()=>{
@@ -3049,7 +3055,7 @@ function irrRender(q,it,u,tg,which){
     <div class="big">${d.base}</div><div class="ipa">/${d.ipa}/</div>
     <div class="small">${d.he}</div>
     <div class="muted" style="font-size:.78rem">${help}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${which==='past'?'past':'participle'}"></div>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${which==='past'?'past':'participle'}"><button class="btn" id="chk">בדיקה</button></div>`;
   const inp=$('#in'); focusInput(inp);
   const table = `<b class="en">${d.base} · ${d.past} · ${d.pp}</b><br>${esc(d.he)}
     <br><span class="muted">תבנית: ${esc(IRR_GROUPS[d.grp]||'')}</span>`;
@@ -3060,7 +3066,8 @@ function irrRender(q,it,u,tg,which){
      סותרת את המטרה ומקבלת בטעות צורה לא נכונה של אותו פועל.            */
   const chk=()=>done(want.split(' / ').some(x=>norm(inp.value)===norm(x)));
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
-  S.primary={label:'בדיקה',fn:chk};
+  $('#chk').onclick=chk;
+  S.primary=null;
   S.reveal=()=>done(false);
 }
 RENDER['irr-past']=(q,it,u,tg)=>irrRender(q,it,u,tg,'past');
