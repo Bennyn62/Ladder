@@ -3259,11 +3259,32 @@ function vParent(){
    המכשיר הוא מקור האמת; הענן הוא גיבוי וסנכרון בין מכשירים.
    כל פרופיל נשמר כמסמך נפרד:  ladder/{familyCode}/members/{userId}
    הנתונים נשמרים כמחרוזת JSON יחידה — חוסך את מיפוי הטיפוסים של Firestore.
-   ============================================================ */
+
+   ==========================================================
+   הגדרה חד-פעמית — ממלאים כאן פעם אחת, לפני ההעלאה ל-GitHub.
+   ==========================================================
+   שני הערכים האלה מזהים את פרויקט ה-Firebase, לא סיסמה. הגישה
+   בפועל מוגנת על ידי חוקי האבטחה שמוגדרים ב-Firestore (מוצגים
+   בהמשך הקובץ הזה, בתוך cloudSheet), ולכן זה בטוח לחשוף אותם
+   בקוד עצמו — כך שכל מי שפותח את האפליקציה, כולל תלמיד במכשיר
+   אחר, מקבל אותם אוטומטית ולא צריך להזין שום דבר טכני. התלמיד
+   מזין רק את קוד המשפחה שקיבל.
+   איפה מוצאים את הערכים: Firebase Console → Project settings →
+   General → "Your apps" → Web app → SDK setup and configuration.
+   ========================================================== */
+const FIREBASE_PROJECT = '';   // לדוגמה: 'ladder-family-a1b2c'
+const FIREBASE_KEY     = '';   // לדוגמה: 'AIzaSyD-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+
 const K_CLOUD='ladder.cloud';
 let CFG = Store.get(K_CLOUD, {project:'', key:'', family:'', auto:true, last:null, hashes:{}});
+/* השלמה אוטומטית מהקבועים למי שעדיין לא שמר project/key בעצמו —
+   כך שגרסה קודמת שנשמרה עם ערכים ריקים תבריא לבד ברגע שהם נוספים כאן. */
+if(!CFG.project && FIREBASE_PROJECT) CFG.project = FIREBASE_PROJECT;
+if(!CFG.key     && FIREBASE_KEY)     CFG.key     = FIREBASE_KEY;
+
 const saveCfg = ()=> Store.set(K_CLOUD, CFG);
 const cloudReady = ()=> !!(CFG.project && CFG.key && CFG.family);
+const cloudConfigured = ()=> !!(FIREBASE_PROJECT && FIREBASE_KEY);
 if(!CFG.hashes) CFG.hashes={};
 
 const newFamilyCode = ()=>{
@@ -3367,7 +3388,7 @@ function cloudSoon(){ if(!CFG.auto||!cloudReady()) return;
 function cloudCard(){
   if(!cloudReady()) return `<div class="card"><b>שמירה בענן</b>
     <div class="sub" style="margin-top:4px">כרגע הכול נשמר במכשיר הזה בלבד. אם הוא יאבד או שתנקה את הדפדפן — ההתקדמות תיעלם.</div>
-    <button class="btn sm" style="width:100%;margin-top:11px" onclick="cloudSheet()">הגדרת ענן</button></div>`;
+    <button class="btn sm" style="width:100%;margin-top:11px" onclick="cloudSheet()">${cloudConfigured()?'התחברות למשפחה':'הגדרת ענן'}</button></div>`;
   const t=CFG.last?new Date(CFG.last):null;
   const ago=t?Math.round((Date.now()-t)/60000):null;
   return `<div class="card"><div style="display:flex;align-items:center;gap:9px">
@@ -3380,32 +3401,67 @@ function cloudCard(){
     </div></div>`;
 }
 
+/* שני מסכים שונים לגמרי, לפי מי פותח אותם:
+   - configured=true (הרגיל, אחרי שההורה מילא project/key בקובץ):
+     מסך אחד ופשוט — קוד משפחה ולחיצה. זה מה שתלמיד רואה.
+   - configured=false (אף אחד עוד לא הגדיר Firebase לקובץ הזה):
+     מסך "הקמה" להורה, עם אפשרות למלא כאן זמנית למכשיר הזה בלבד,
+     והסבר ברור שהדרך הנכונה היא לערוך את הקובץ פעם אחת.            */
 function cloudSheet(){
-  sheet(`<h2>שמירה בענן</h2>
-    <p class="sub">מסנכרן את כל פרופילי המשפחה בין מכשירים. התרגול עצמו ממשיך לעבוד גם בלי אינטרנט — הסנכרון קורה ברקע.</p>
+  return cloudConfigured() ? joinSheet() : setupSheet();
+}
 
+function joinSheet(){
+  sheet(`<h2>${cloudReady()?'המשפחה שלי':'התחברות למשפחה'}</h2>
+    <p class="sub">${cloudReady()
+      ?'המכשיר הזה מחובר ומסנכרן. ההתקדמות ממשיכה לעבוד גם בלי אינטרנט.'
+      :'הזינו את קוד המשפחה שקיבלתם מההורה או מהמורה. זה כל מה שצריך.'}</p>
+    <div class="card">
+      <div class="field" style="margin-bottom:10px">
+        <input id="fm" class="en" style="text-align:center;font-size:1.1rem;letter-spacing:.03em" value="${esc(CFG.family)}" placeholder="xxxx-xxxx-xxxx-xxxx"></div>
+      <button class="btn" id="join">${cloudReady()?'עדכון':'התחברות'}</button>
+    </div>
+    ${cloudReady()?`<div class="ctrl" style="margin-top:6px"><div class="tx"><b>סנכרון אוטומטי</b><span>אחרי כל תרגול ובכל פתיחה של האפליקציה.</span></div>
+      <button class="sw ${CFG.auto?'on':''}" id="au"></button></div>
+      <button class="btn ghost sm" style="width:100%;margin-top:12px" onclick="cloudSync()">סנכרון עכשיו</button>
+      <button class="btn ghost" style="margin-top:8px" id="off">ניתוק מהמשפחה</button>`:''}
+    <p class="muted" style="margin-top:16px">מקימים משפחה בפעם הראשונה?
+      <button class="en" style="text-decoration:underline;color:var(--brand);font-weight:700" id="newfam">יצירת קוד חדש</button></p>`, sh=>{
+    const doJoin=async()=>{
+      const v=sh.querySelector('#fm').value.trim();
+      if(!v) return toast('צריך להזין קוד');
+      CFG.project=FIREBASE_PROJECT; CFG.key=FIREBASE_KEY; CFG.family=v; saveCfg();
+      toast('מתחבר…');
+      if(await cloudSync()){ closeSheet(); render(); } else toast('לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.');
+    };
+    sh.querySelector('#join').onclick=doJoin;
+    sh.querySelector('#newfam').onclick=()=>{ sh.querySelector('#fm').value=newFamilyCode(); doJoin(); };
+    if(sh.querySelector('#au')) sh.querySelector('#au').onclick=function(){ CFG.auto=!CFG.auto; this.classList.toggle('on',CFG.auto); saveCfg(); };
+    if(sh.querySelector('#off')) sh.querySelector('#off').onclick=()=>{
+      if(!confirm('להתנתק מהמשפחה? הנתונים במכשיר הזה יישארו, והעותק בענן לא יימחק.')) return;
+      CFG.family=''; CFG.last=null; CFG.hashes={}; saveCfg(); closeSheet(); render();
+    };
+  });
+}
+
+function setupSheet(){
+  sheet(`<h2>הגדרת ענן — פעם אחת</h2>
+    <p class="sub">השלב הזה שייך למי שמקים את המערכת, ונעשה פעם אחת בלבד לפני שמשתפים את הקוד עם אף אחד.</p>
     <div class="sec-title">פרויקט Firebase</div>
     <div class="card">
       <div class="field"><label>Project ID</label><input id="pr" class="en" value="${esc(CFG.project)}" placeholder="ladder-family"></div>
       <div class="field" style="margin-bottom:0"><label>Web API Key</label><input id="ky" class="en" value="${esc(CFG.key)}" placeholder="AIza..."></div>
       <p class="muted" style="margin-top:8px">שני הערכים נמצאים ב‑Firebase Console ← Project settings ← General.</p>
     </div>
-
-    <div class="sec-title">קוד המשפחה</div>
-    <div class="card">
-      <div class="field" style="margin-bottom:8px"><input id="fm" class="en" value="${esc(CFG.family)}" placeholder="קוד קיים, או צרו חדש"></div>
-      <div class="row">
-        <button class="btn ghost sm" style="width:100%" id="gen">יצירת קוד חדש</button>
-        <button class="btn ghost sm" style="width:100%" id="cp">העתקה</button>
-      </div>
-      <p class="muted" style="margin-top:9px">במכשיר הראשון — צרו קוד. בכל מכשיר נוסף — הדביקו את אותו קוד בדיוק. הקוד הוא המפתח לנתונים; מי שמכיר אותו יכול לגשת אליהם.</p>
+    <div class="card" style="border-color:var(--brand)">
+      <b>הדרך הנכונה — לעשות את זה פעם אחת לתמיד</b>
+      <p class="sub" style="margin-top:5px">פתחו את קובץ ה‑index.html בעורך טקסט, חפשו את השורות</p>
+      <div class="ruleblk"><span class="ex" style="white-space:pre">const FIREBASE_PROJECT = '';
+const FIREBASE_KEY     = '';</span></div>
+      <p class="sub" style="margin-top:8px">והדביקו ביניהן את שני הערכים, בין הגרשיים. אחר כך שמרו והעלו מחדש ל‑GitHub. מהרגע הזה, כל מי שפותח את הקישור — כולל כל תלמיד במכשיר משלו — מקבל את החיבור אוטומטית, ומזין רק קוד משפחה. אף אחד לא צריך לגעת במסך הזה שוב.</p>
     </div>
-
-    <div class="ctrl"><div class="tx"><b>סנכרון אוטומטי</b><span>אחרי כל סשן תרגול ובכל פתיחה של האפליקציה.</span></div>
-      <button class="sw ${CFG.auto?'on':''}" id="au"></button></div>
-
-    <button class="btn" style="margin-top:14px" id="save">שמירה וסנכרון</button>
-    ${cloudReady()?'<button class="btn ghost" style="margin-top:8px" id="off">ניתוק מהענן</button>':''}
+    <button class="btn" style="margin-top:6px" id="tmp">שמירה על המכשיר הזה בלבד, לבדיקה</button>
+    <p class="muted" style="margin-top:8px">זמני בלבד — לא יעבור למכשיר אחר. שימושי כדי לוודא שהחיבור עובד לפני שעורכים את הקובץ.</p>
 
     <div class="sec-title">חוקי אבטחה</div>
     <div class="card">
@@ -3420,24 +3476,12 @@ service cloud.firestore {
 }</span></div>
       <p class="muted" style="margin-top:9px">החוק הזה חוסם סריקה אקראית ומחייב קוד ארוך, אבל הוא לא מצריך התחברות. אל תשמרו כאן שמות מלאים או פרטים מזהים.</p>
     </div>`, sh=>{
-    sh.querySelector('#gen').onclick=()=>{ sh.querySelector('#fm').value=newFamilyCode(); };
-    sh.querySelector('#cp').onclick=()=>{
-      const v=sh.querySelector('#fm').value.trim(); if(!v) return toast('אין קוד להעתקה');
-      (navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast('הועתק')).catch(()=>toast('העתיקו ידנית'));
-    };
-    sh.querySelector('#au').onclick=function(){ CFG.auto=!CFG.auto; this.classList.toggle('on',CFG.auto); saveCfg(); };
-    sh.querySelector('#save').onclick=async()=>{
+    sh.querySelector('#tmp').onclick=()=>{
       CFG.project=sh.querySelector('#pr').value.trim();
       CFG.key    =sh.querySelector('#ky').value.trim();
-      CFG.family =sh.querySelector('#fm').value.trim();
       saveCfg();
-      if(!cloudReady()) return toast('צריך למלא את שלושת השדות');
-      toast('מסנכרן…');
-      if(await cloudSync()) { closeSheet(); render(); }
-    };
-    if(sh.querySelector('#off')) sh.querySelector('#off').onclick=()=>{
-      if(!confirm('לנתק את המכשיר מהענן? הנתונים במכשיר יישארו, והעותק בענן לא יימחק.')) return;
-      CFG={project:'',key:'',family:'',auto:true,last:null,hashes:{}}; saveCfg(); closeSheet(); render();
+      if(!CFG.project||!CFG.key) return toast('צריך למלא את שני השדות');
+      closeSheet(); joinSheet();
     };
   });
 }
