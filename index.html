@@ -3709,112 +3709,6 @@ const CONJUG = `
 const TENSE_BY_ID = {};
 CORE_TENSES.forEach(t=>TENSE_BY_ID[t.id]=t);
 /* ============================================================
-   אסוציאציות — שכבת עיגון לזיכרון
-   ------------------------------------------------------------
-   שתי טכניקות נפרדות:
-
-   1. אסוציאציית צורה לאותיות (רמה 0). ילד בן 4 לא זוכר "האות B"
-      כסמל מופשט — הוא זוכר "בטן על מקל". קישור הצורה למשהו מוכר
-      הופך סימן שרירותי לתמונה.
-
-   2. שיטת מילת המפתח לאוצר מילים. קושרים את צליל המילה האנגלית
-      למילה עברית שנשמעת דומה, ובונים תמונה שמחברת ביניהן. זו
-      אחת מטכניקות השינון המבוססות ביותר — היא עובדת כי היא
-      מוסיפה נתיב שליפה שני, צלילי-חזותי, לצד התרגום היבש.
-      לא לכל מילה צריך אסוציאציה — רק למה שלא נדבק לבד.
-   ============================================================ */
-
-/* אות | אסוציאציית צורה בעברית | מילת עוגן */
-const LETTER_SHAPE = `
-A|גג של בית עם קורה באמצע|גג
-B|בטן עם שתי כרסים, נשענת על מקל|בטן
-C|ירח בחצי, או פִּיתָה פתוחה|סהר
-D|קשת מתוחה על מיתר ישר|קשת
-E|מסרק עם שלוש שיניים|מסרק
-F|דגל על תורן|דגל
-G|כמו C, אבל עם מדף קטן בפנים|סהר עם מדף
-H|סולם עם שלב אחד באמצע|סולם
-I|מקל ישר עם כובע ונעליים|מקל
-J|מקל עם וו בתחתית, כמו מטרייה הפוכה|וו
-K|אדם עם יד ורגל מושטות הצידה|בעיטה
-L|פינה ישרה, כמו סרגל|פינה
-M|שני הרים עם עמק ביניהם|הרים
-N|הר אחד עם מדרון חד|מדרון
-O|עיגול שלם, כמו כדור|עיגול
-P|מקל עם ראש עגול בצד|סהרון על מקל
-Q|עיגול עם זנב קטן שיוצא החוצה|עיגול עם זנב
-R|כמו P, אבל עם רגל שיוצאת לצד|רגל
-S|נחש מתפתל|נחש
-T|עמוד עם קורה על הראש|פטיש
-U|כוס פתוחה למעלה|כוס
-V|משולש הפוך, כמו מקור של ציפור|מקור
-W|שני V צמודים, כמו גלים|גלים
-X|שני מקלות מצטלבים, כמו סימן טעות|הצטלבות
-Y|גזע עם שני ענפים|עץ מסתעף
-Z|ברק, או דרך שמתפתלת|ברק
-`.trim().split('\n').map(l=>{const p=l.split('|');return {u:p[0], shape:p[1], anchor:p[2]}});
-
-const SHAPE_BY_LETTER = {};
-LETTER_SHAPE.forEach(s=>SHAPE_BY_LETTER[s.u]=s);
-
-/* מילה | מילת המפתח בעברית (איך זה נשמע) | התמונה שמחברת
-   נבחרו מילים שדוברי עברית נוטים לשכוח או לבלבל.        */
-const MNEMONIC = `
-bear|בר|דוב יושב על כיסא בַּר ושותה
-sun|סן|השמש כל כך חמה שהיא נשמעת כמו סן — סנדלים על החול
-door|דוֹר|כל דור פותח את אותה דלת ישנה
-window|וינדוֹוס|החלון של המחשב — Windows זה חלונות
-key|קי|המפתח עושה קליק — קי, ונפתח
-sea|סי|הים אומר סססס כשהגלים נשברים
-tree|טרי|העץ תמיד טרי וירוק
-bread|ברד|הלחם קשה כמו ברד
-cheese|צ'יז|אומרים צ'יז לפני צילום — ובתמונה יש גבינה
-knife|נַייף|הסכין חדה — היא עושה "נַיף" באוויר
-spoon|ספון|הכפית שוקעת בספל — ספון
-chair|צ'ר|נשענים על הכיסא ואומרים אחhhh
-floor|פלור|הרצפה מלאה פרחים — flowers על ה-floor
-wall|וול|הקיר של רחוב וול סטריט
-roof|רוף|הגג מחוספס — rough, ונשמע רוף כמו כלב על הגג
-horse|הוֹרס|הסוס הורס את הגדר
-mouse|מאוס|העכבר מאוס ומגעיל
-fish|פיש|הדג עושה פששש במים
-bird|בֶּרד|הציפור על הברד הקפוא
-snake|סנייק|הנחש מתגנב — sneak, סנייק
-cloud|קלאוד|הענן הוא הקלאוד שבשמיים
-rain|ריין|הגשם מרעיש — ריןןן על הגג
-snow|סנואו|השלג נופל לאט — סנואו, כמו slow
-wind|וינד|הרוח מנדנדת — וינד־וונד
-star|סטאר|הכוכב הוא סטאר, כוכב על
-moon|מוּן|הירח מוּאר בלילה
-light|לייט|האור קל — light זה גם קל וגם אור
-heavy|חֶבִי|הכבד מכביד כמו חבית
-strong|סטרונג|החזק כמו סטרוגונוף — בשר כבד
-weak|וויק|החלש נשבר בסוף השבוע — week
-happy|הפי|שמח כמו ב-happy hour
-angry|אנגרי|הכועס נוהם — אנררר
-tired|טַייֶרד|העייף כמו צמיג שהתרוקן — tire
-hungry|האנגרי|הרעב מחפש המבורגר
-thirsty|ת'רסטי|הצמא רץ — thirst, ומחפש שתייה
-early|אֶרלי|המוקדם קם עם השחר
-late|לֵייט|המאוחר תמיד בלילה
-always|אולווייז|תמיד יש דרך — all ways
-never|נֶבֶר|אף פעם לא — נֶבֶר אֶבֶר
-because|ביקוֹז|כי — בגלל הסיבה, cause
-enough|אינאף|מספיק — די, אין אף אחד שרוצה עוד
-between|ביטווין|בין שני תאומים — twin
-through|ת'רוּ|דרך — עוברים דרך החור
-without|וידאוט|בלי — with-out, בחוץ
-remember|רימֶמבֶּר|לזכור את חבר הקבוצה — member
-forget|פורגֶט|לשכוח — for-get, לא מקבלים
-buy|באי|קונים ואומרים ביי
-sell|סל|מוכרים מהסל בשוק
-expensive|אקספנסיב|יקר — מוציא הרבה, expense
-cheap|צ'יפ|זול כמו צ'יפס
-`.trim().split('\n').map(l=>{const p=l.split('|');return {en:p[0], key:p[1], img:p[2]}});
-
-const MNEM_BY_WORD = {};
-MNEMONIC.forEach(m=>MNEM_BY_WORD[m.en]=m);
-/* ============================================================
    ENGINE — אחסון, משתמשים, חזרות מרווחות, שטף, בניית סשן
    ============================================================ */
 
@@ -4165,7 +4059,8 @@ function warmUp(){
 addEventListener('touchstart', warmUp, {once:true, passive:true});
 addEventListener('mousedown',  warmUp, {once:true});
 
-function say(text, rate){
+/* קול המכשיר — נשאר כברירת מחדל וכגיבוי לקול הענן */
+function sayDevice(text, rate){
   if(!window.speechSynthesis || !text) return false;
   try{
     warmUp();
@@ -4180,6 +4075,20 @@ function say(text, rate){
     speechSynthesis.speak(u2);
     return true;
   }catch(e){ return false; }
+}
+
+/* נקודת הכניסה היחידה לכל הקוד. אם קול הענן מוגדר ופעיל — משתמשים בו,
+   ואם הוא נכשל מכל סיבה (אין רשת, API כבוי, מפתח מוגבל) נופלים מיד
+   לקול המכשיר, כדי שתרגיל האזנה לעולם לא יישאר שקט.                 */
+function say(text, rate){
+  if(!text) return false;
+  if(typeof ttsReady==='function' && ttsReady()){
+    if(window.speechSynthesis){ try{ speechSynthesis.cancel(); }catch(e){} }
+    sayCloud(text, rate).catch(()=>{ sayDevice(text, rate); });
+    return true;
+  }
+  if(typeof stopAudio==='function') stopAudio();
+  return sayDevice(text, rate);
 }
 
 /* --- קודי כניסה ובקרת הורים --- */
@@ -5203,106 +5112,6 @@ function tenseSheet(){
     }).join('')}`);
 }
 /* ============================================================
-   רמה 0 — הכרת אותיות נטו, לגילאי 4-5
-   ------------------------------------------------------------
-   שום קריאה של מילים. הילד רק שומע ומזהה צורות.
-   שלושה תרגילים, מהקל לקשה:
-     letter-hear  — שומעים שם של אות, בוחרים אותה מבין ארבע
-     letter-case  — מתאימים אות גדולה לקטנה
-     letter-name  — רואים אות, בוחרים איך היא נשמעת (שמע בלבד)
-   ============================================================ */
-
-/* אות ענקית לבחירה — בלי טקסט, רק הצורה */
-function bigLetterOpt(txt){
-  return el(`<button class="opt letteropt"><span class="en">${esc(txt)}</span></button>`);
-}
-
-/* --- שומעים אות, בוחרים אותה --- */
-RENDER['letter-hear']=(q,it,u,tg)=>{
-  const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.u,3)]);
-  const sh=SHAPE_BY_LETTER[d.u];
-  q.innerHTML=`<div class="prompt"><div class="kicker">איזו אות שמעתם?</div>
-    <button class="speakbtn" onclick="say('${jq(d.u)}',.7)">${svg('sound')}</button>
-    <div class="small">הקישו על הרמקול כדי לשמוע שוב</div></div>
-    <div class="opts optletters" id="o"></div>`;
-  say(d.u,.7);
-  const reveal = `<div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
-    ${sh?`<div style="text-align:center;margin-top:6px">${esc(sh.shape)}</div>`:''}`;
-  S.reveal=()=>{ say(d.u,.6); answer(it,false,tg,reveal); };
-  opts.forEach(o=>{
-    const b=bigLetterOpt(o.u);
-    b.onclick=()=>{ const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.u,.7);
-      answer(it,ok,tg,reveal); };
-    $('#o').appendChild(b);
-  });
-};
-
-/* --- אות גדולה → אות קטנה --- */
-RENDER['letter-case']=(q,it,u,tg)=>{
-  const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.l,3)]);
-  const sh=SHAPE_BY_LETTER[d.u];
-  q.innerHTML=`<div class="prompt"><div class="kicker">אותה אות, קטנה</div>
-    <div class="letterpair" style="justify-content:center"><b>${d.u}</b></div>
-    <button class="speakbtn" onclick="say('${jq(d.u)}',.7)">${svg('sound')}</button></div>
-    <div class="opts optletters" id="o"></div>`;
-  if(u.settings.autoSpeak) say(d.u,.7);
-  const reveal = `<div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
-    ${sh?`<div style="text-align:center;margin-top:6px">${esc(sh.shape)}</div>`:''}`;
-  S.reveal=()=>{ say(d.u,.6); answer(it,false,tg,reveal); };
-  opts.forEach(o=>{
-    const b=bigLetterOpt(o.l);
-    b.onclick=()=>{ const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.u,.7);
-      answer(it,ok,tg,reveal); };
-    $('#o').appendChild(b);
-  });
-};
-
-/* --- רואים אות, שומעים ארבע אפשרויות, בוחרים את הנכונה --- */
-RENDER['letter-name']=(q,it,u,tg)=>{
-  const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.u,3)]);
-  const sh=SHAPE_BY_LETTER[d.u];
-  q.innerHTML=`<div class="prompt"><div class="kicker">איך קוראים לאות הזאת?</div>
-    <div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
-    ${sh?`<div class="small">${esc(sh.shape)}</div>`:''}</div>
-    <p class="muted" style="text-align:center;margin:12px 0 0">הקישו על הרמקולים והקישו על הנכון</p>
-    <div class="opts" id="o"></div>`;
-  const reveal = `<div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
-    ${sh?`<div style="text-align:center;margin-top:6px">${esc(sh.shape)}</div>`:''}`;
-  S.reveal=()=>{ say(d.u,.6); answer(it,false,tg,reveal); };
-  opts.forEach(o=>{
-    const b=el(`<button class="opt" style="display:flex;align-items:center;gap:12px;justify-content:center">
-      <span style="width:34px;height:34px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;flex:none">
-        <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">${ICONS.sound}</svg></span>
-      <span class="muted">הקשה לשמיעה</span></button>`);
-    let heard=false;
-    b.onclick=()=>{
-      if(!heard){ heard=true; say(o.u,.7); b.querySelector('.muted').textContent='הקישו שוב אם זו האות'; return; }
-      const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.u,.7);
-      answer(it,ok,tg,reveal);
-    };
-    $('#o').appendChild(b);
-  });
-};
-
-/* ---------------- גיליון האותיות עם אסוציאציות ---------------- */
-function alphabetSheet(){
-  const u=me();
-  sheet(`<h2>האלף-בית</h2>
-    <p class="sub">לכל אות יש אסוציאציית צורה — משהו מוכר שהצורה מזכירה. זה מה שהופך סימן מופשט לתמונה שנדבקת.</p>
-    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('letters',12)">תרגול אותיות</button>
-    <div class="card" style="margin-top:12px">
-      ${LETTERS.map(L=>{
-        const sh=SHAPE_BY_LETTER[L.u];
-        const st=Math.max(strength(u.srs['L:'+L.u+'#h']), strength(u.srs['L:'+L.u+'#c']), strength(u.srs['L:'+L.u+'#n']));
-        const col=st>=.7?'var(--good)':st>0?'var(--gold)':'var(--line)';
-        return `<div class="wordrow">
-          <span class="dot" style="background:${col}"></span>
-          <button class="en" style="font-weight:700;font-size:1.15rem;min-width:52px;text-align:start" onclick="say('${jq(L.u)}',.7)">${L.u} ${L.l}</button>
-          <span class="h" style="flex:2">${sh?esc(sh.shape):''}</span></div>`;
-      }).join('')}
-    </div>`);
-}
-/* ============================================================
    קודי כניסה, בקרת הורים ומשימות
    ============================================================ */
 let UNLOCKED = {};   // מי כבר הזין קוד בהפעלה הנוכחית של האפליקציה
@@ -6029,6 +5838,230 @@ service cloud.firestore {
     };
   });
 }
+/* ============================================================
+   קול ענן — Google Cloud Text-to-Speech
+   ------------------------------------------------------------
+   למה זה נחוץ: ספארי ב-iOS חושף לדפי אינטרנט רק את קולות המערכת
+   הדחוסים. הם נשמעים מתכתיים, וזו מגבלת דפדפן — אי אפשר לתקן
+   אותה בקוד. TTS ענן מייצר אודיו נוירוני אמיתי בצד השרת.
+
+   למה זה זול/פשוט כאן: פרויקט Firebase הוא פרויקט Google Cloud,
+   ולכן אותו Project ID ואותו API key שכבר בקובץ יכולים לשמש גם
+   כאן — צריך רק להפעיל את ה-API בקונסולה.
+
+   שלוש שכבות הגנה מפני עלות ואיטיות:
+   1. מטמון IndexedDB — כל מילה נשלפת פעם אחת בחיים ואז מנוגנת מקומית
+   2. מטמון זיכרון לסשן הנוכחי
+   3. נפילה חיננית לקול המכשיר אם הענן כבוי, נכשל, או אין רשת
+   ============================================================ */
+
+const K_TTS='ladder.tts';
+let TTS = Store.get(K_TTS, {on:false, voice:'', rate:1.0});
+
+const saveTTS = ()=> Store.set(K_TTS, TTS);
+const ttsReady = ()=> !!(TTS.on && TTS.voice && FIREBASE_PROJECT && FIREBASE_KEY);
+
+/* ---------- מטמון IndexedDB ---------- */
+const TTS_DB='ladder-tts', TTS_STORE='clips';
+let _ttsDB=null;
+function ttsDB(){
+  return new Promise((res,rej)=>{
+    if(_ttsDB) return res(_ttsDB);
+    if(!window.indexedDB) return rej(new Error('no indexedDB'));
+    const r=indexedDB.open(TTS_DB,1);
+    r.onupgradeneeded=()=>{ if(!r.result.objectStoreNames.contains(TTS_STORE)) r.result.createObjectStore(TTS_STORE); };
+    r.onsuccess=()=>{ _ttsDB=r.result; res(_ttsDB); };
+    r.onerror=()=>rej(r.error);
+  });
+}
+async function clipGet(k){
+  try{
+    const db=await ttsDB();
+    return await new Promise((res,rej)=>{
+      const q=db.transaction(TTS_STORE,'readonly').objectStore(TTS_STORE).get(k);
+      q.onsuccess=()=>res(q.result||null); q.onerror=()=>rej(q.error);
+    });
+  }catch(e){ return null; }
+}
+async function clipSet(k,v){
+  try{
+    const db=await ttsDB();
+    await new Promise((res,rej)=>{
+      const q=db.transaction(TTS_STORE,'readwrite').objectStore(TTS_STORE).put(v,k);
+      q.onsuccess=()=>res(); q.onerror=()=>rej(q.error);
+    });
+  }catch(e){}
+}
+async function clipCount(){
+  try{
+    const db=await ttsDB();
+    return await new Promise((res,rej)=>{
+      const q=db.transaction(TTS_STORE,'readonly').objectStore(TTS_STORE).count();
+      q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error);
+    });
+  }catch(e){ return 0; }
+}
+async function clipClear(){
+  try{
+    const db=await ttsDB();
+    await new Promise((res,rej)=>{
+      const q=db.transaction(TTS_STORE,'readwrite').objectStore(TTS_STORE).clear();
+      q.onsuccess=()=>res(); q.onerror=()=>rej(q.error);
+    });
+  }catch(e){}
+}
+
+/* ---------- שליפת רשימת הקולות מה-API ----------
+   לא מקודדים שמות קולות בקוד — שואלים את ה-API מה באמת זמין,
+   כדי שלא נצביע על קול שלא קיים או שהוחלף.                    */
+let CLOUD_VOICES=null;
+async function fetchCloudVoices(){
+  const url=`https://texttospeech.googleapis.com/v1/voices?languageCode=en-US&key=${encodeURIComponent(FIREBASE_KEY)}`;
+  const r=await fetch(url);
+  if(!r.ok){
+    const msg = r.status===403 ? 'ה-API לא מופעל בפרויקט, או שהמפתח מוגבל'
+              : r.status===400 ? 'המפתח או הפרויקט לא תקינים'
+              : 'שגיאה '+r.status;
+    throw new Error(msg);
+  }
+  const j=await r.json();
+  /* דירוג: Studio ו-Chirp הם האיכותיים ביותר, אחריהם Neural2, אחריהם
+     Wavenet, ולבסוף Standard (שהוא הדחוס והפחות טבעי).            */
+  const tier = n => /studio/i.test(n)?5 : /chirp/i.test(n)?4 : /neural/i.test(n)?3 : /wavenet/i.test(n)?2 : 1;
+  CLOUD_VOICES=(j.voices||[])
+    .filter(v=>/^en-US/i.test(v.name))
+    .map(v=>({name:v.name, gender:v.ssmlGender, tier:tier(v.name)}))
+    .sort((a,b)=>b.tier-a.tier || a.name.localeCompare(b.name));
+  return CLOUD_VOICES;
+}
+const TIER_HE = {5:'Studio · הטבעי ביותר',4:'Chirp · טבעי מאוד',3:'Neural2 · טבעי',2:'WaveNet · טוב',1:'Standard · בסיסי'};
+
+/* ---------- סינתזה ---------- */
+const MEM_CLIPS={};
+let ttsFails=0;
+
+async function ttsSynth(text, voice){
+  const key=voice+'|'+text;
+  if(MEM_CLIPS[key]) return MEM_CLIPS[key];
+  const cached=await clipGet(key);
+  if(cached){ MEM_CLIPS[key]=cached; return cached; }
+
+  const url=`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(FIREBASE_KEY)}`;
+  const body={
+    input:{text:String(text)},
+    voice:{languageCode:'en-US', name:voice},
+    audioConfig:{audioEncoding:'MP3', speakingRate: TTS.rate || 1.0}
+  };
+  const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!r.ok) throw new Error('TTS '+r.status);
+  const j=await r.json();
+  if(!j.audioContent) throw new Error('no audio');
+  const dataURL='data:audio/mp3;base64,'+j.audioContent;
+  MEM_CLIPS[key]=dataURL;
+  clipSet(key,dataURL);   /* לא ממתינים — הכתיבה למטמון לא צריכה לעכב נגינה */
+  return dataURL;
+}
+
+let curAudio=null;
+function stopAudio(){ if(curAudio){ try{ curAudio.pause(); }catch(e){} curAudio=null; } }
+
+async function sayCloud(text, rate){
+  const clip=await ttsSynth(text, TTS.voice);
+  stopAudio();
+  const a=new Audio(clip);
+  /* rate כאן הוא כיוונון עדין מעל הקצב שנקבע בסינתזה — כך שהאטה
+     בתרגיל האזנה עדיין עובדת בלי לבקש קליפ חדש מהשרת.          */
+  a.playbackRate = Math.max(.5, Math.min(2, (rate||1)/( .95 )));
+  curAudio=a;
+  await a.play();
+  return true;
+}
+
+/* ---------- שחרור אודיו ב-iOS ----------
+   אותה מגבלה כמו speechSynthesis: הנגינה הראשונה חייבת לבוא
+   מתוך מחווה של המשתמש. משחררים בשקט במגע הראשון.            */
+let AUDIO_UNLOCKED=false;
+function unlockAudio(){
+  if(AUDIO_UNLOCKED) return;
+  AUDIO_UNLOCKED=true;
+  try{
+    const a=new Audio('data:audio/mp3;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCA');
+    a.volume=0; a.play().catch(()=>{});
+  }catch(e){}
+}
+addEventListener('touchstart', unlockAudio, {once:true, passive:true});
+addEventListener('mousedown',  unlockAudio, {once:true});
+
+/* ---------- ניהול המטמון בהגדרות ---------- */
+async function ttsSheet(){
+  const n=await clipCount();
+  const listed = CLOUD_VOICES ? CLOUD_VOICES.length : 0;
+  sheet(`<h2>קול ענן</h2>
+    <p class="sub">קול נוירוני אמיתי במקום קול המערכת הדחוס. ספארי לא חושף לדפי אינטרנט את הקולות האיכותיים של המכשיר, ולכן זו הדרך היחידה להגיע לקול טבעי באמת.</p>
+
+    <div class="ctrl" style="margin-top:14px"><div class="tx"><b>קול ענן</b>
+      <span>כשכבוי, האפליקציה משתמשת בקול המכשיר.</span></div>
+      <button class="sw ${TTS.on?'on':''}" id="ttson"></button></div>
+
+    <div class="card">
+      <div class="field" style="margin-bottom:8px"><label>קול</label>
+        <select id="tv">${
+          CLOUD_VOICES && CLOUD_VOICES.length
+            ? `<option value="">— בחרו קול —</option>`+CLOUD_VOICES.map(v=>
+                `<option value="${esc(v.name)}" ${v.name===TTS.voice?'selected':''}>${esc(v.name)} · ${esc(TIER_HE[v.tier]||'')}</option>`).join('')
+            : `<option value="">לחצו "טעינת קולות" למטה</option>`
+        }</select></div>
+      <button class="btn ghost sm" style="width:100%" id="load">${listed?`רענון (${listed} קולות)`:'טעינת קולות מהשרת'}</button>
+      <button class="btn sm" style="width:100%;margin-top:8px" id="try">השמעת דוגמה</button>
+      <p class="muted" id="msg" style="margin-top:9px"></p>
+    </div>
+
+    <div class="sec-title">מטמון</div>
+    <div class="card">
+      <p class="sub">כל מילה נשלפת מהשרת פעם אחת ואז נשמרת במכשיר — הנגינה מיידית, ועובדת גם בלי אינטרנט. זה גם מה ששומר את העלות אפסית.</p>
+      <p class="muted" style="margin-top:6px">${n} קטעי אודיו שמורים.</p>
+      <button class="btn ghost sm" style="width:100%;margin-top:10px" id="clr">ניקוי המטמון</button>
+    </div>
+
+    <div class="sec-title">הפעלה חד-פעמית בקונסולה</div>
+    <div class="card">
+      <p class="sub">ה-API משתמש באותו פרויקט ומפתח שכבר בקובץ. צריך רק להפעיל אותו:</p>
+      <div class="ruleblk"><span class="ex" style="white-space:pre-wrap;font-size:.8rem;line-height:1.7">1. console.cloud.google.com
+2. בחרו את הפרויקט ${esc(FIREBASE_PROJECT||'(לא מוגדר)')}
+3. APIs &amp; Services → Library
+4. חפשו "Cloud Text-to-Speech API"
+5. Enable</span></div>
+      <p class="muted" style="margin-top:9px">אם המפתח מוגבל ל-API מסוימים (API restrictions), צריך להוסיף שם גם את Text-to-Speech. יש מדרגה חינמית נדיבה, ולשימוש משפחתי עם מטמון זה כמעט תמיד לא יגיע לחיוב — אבל כדאי לאמת את התמחור העדכני בקונסולה.</p>
+    </div>`, sh=>{
+    const msg=t=>{ const m=sh.querySelector('#msg'); if(m) m.textContent=t; };
+    sh.querySelector('#ttson').onclick=function(){
+      TTS.on=!TTS.on; this.classList.toggle('on',TTS.on); saveTTS();
+      msg(TTS.on ? (TTS.voice?'מופעל.':'מופעל — עוד צריך לבחור קול.') : 'כבוי. חוזרים לקול המכשיר.');
+    };
+    sh.querySelector('#load').onclick=async()=>{
+      msg('טוען…');
+      try{ await fetchCloudVoices(); closeSheet(); ttsSheet(); }
+      catch(e){ msg('לא הצלחנו לטעון: '+e.message); }
+    };
+    sh.querySelector('#tv').onchange=e=>{
+      TTS.voice=e.target.value; saveTTS();
+      if(TTS.voice){ TTS.on=true; saveTTS(); msg('מנגן דוגמה…');
+        sayCloud('This is how I will sound. Listen and repeat.',1)
+          .then(()=>msg('הקול נשמר.')).catch(err=>msg('שגיאה: '+err.message)); }
+    };
+    sh.querySelector('#try').onclick=()=>{
+      if(!TTS.voice) return msg('קודם בחרו קול.');
+      msg('מנגן…');
+      sayCloud('The quick brown fox jumps over the lazy dog.',1)
+        .then(()=>msg('')).catch(err=>msg('שגיאה: '+err.message));
+    };
+    sh.querySelector('#clr').onclick=async()=>{
+      await clipClear();
+      for(const k in MEM_CLIPS) delete MEM_CLIPS[k];
+      closeSheet(); toast('המטמון נוקה');
+    };
+  });
+}
 /* ---------------- התקדמות וניתוח ----------------
    progressBlock בונה את כל בלוק הניתוח — משמש גם למסך "ההתקדמות שלי"
    וגם ללוח הבקרה של ההורה, כדי שההורה יראה בדיוק את אותו עומק נתונים
@@ -6108,6 +6141,19 @@ function vFamily(s){
     </div>
 
     <div class="sec-title">קול ודיבור</div>
+    <div class="card" style="border-color:${ttsReady()?'var(--good)':'var(--line)'}">
+      <div style="display:flex;align-items:center;gap:9px">
+        ${ttsReady()?'<span class="dot" style="background:var(--good)"></span>':''}
+        <b>קול ענן</b><span class="spacer"></span>
+        <span class="badge">${ttsReady()?'פעיל':'כבוי'}</span>
+      </div>
+      <div class="sub" style="margin-top:5px">${ttsReady()
+        ? 'קול נוירוני אמיתי. נשמר במכשיר אחרי השמעה ראשונה, ולכן מיידי וגם עובד ללא רשת.'
+        : 'קול המכשיר בספארי הוא קול דחוס ונשמע מתכתי — זו מגבלת דפדפן. קול ענן פותר את זה.'}</div>
+      <button class="btn ${ttsReady()?'ghost ':''}sm" style="width:100%;margin-top:11px" onclick="ttsSheet()">${ttsReady()?'הגדרות קול הענן':'הגדרת קול ענן'}</button>
+    </div>
+
+    <div class="sec-title">קול המכשיר</div>
     <div class="card">
       ${(()=>{ const cur=pickVoice(), ava=findAva();
         const tier=cur?voiceTier(cur):null;
