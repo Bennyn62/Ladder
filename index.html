@@ -1840,6 +1840,1740 @@ Object.keys(WC).forEach(lv=>{
   });
 });
 /* ============================================================
+   הרחבת אוצר מילים — שכבה שנייה, לעבר 2,000 המילים השכיחות.
+   פורמט: מילה|עברית|ipa|תפקיד   (זהה ל-WC ב-p2c.js)
+   מאורגן לפי רמה, ובתוך כל רמה לפי נושא — כדי שקל יהיה להוסיף עוד.
+   ============================================================ */
+const WD = {};
+
+/* ---------- רמה 4: היום-יום המוחשי ---------- */
+WD[4] = `
+breakfast|ארוחת בוקר|ˈbrɛkfəst|n
+lunch|ארוחת צהריים|lʌntʃ|n
+dinner|ארוחת ערב|ˈdɪnər|n
+meal|ארוחה|miːl|n
+plate|צלחת|pleɪt|n
+bowl|קערה|boʊl|n
+cup|כוס|kʌp|n
+glass|כוס זכוכית|ɡlæs|n
+fork|מזלג|fɔːrk|n
+knife|סכין|naɪf|n
+spoon|כפית|spuːn|n
+bottle|בקבוק|ˈbɒtəl|n
+kitchen|מטבח|ˈkɪtʃən|n
+bathroom|חדר אמבטיה|ˈbæθruːm|n
+bedroom|חדר שינה|ˈbɛdruːm|n
+floor|רצפה / קומה|flɔːr|n
+wall|קיר|wɔːl|n
+roof|גג|ruːf|n
+stairs|מדרגות|stɛrz|n
+garden|גינה|ˈɡɑːrdən|n
+towel|מגבת|ˈtaʊəl|n
+soap|סבון|soʊp|n
+brush|מברשת|brʌʃ|n
+mirror|מראה|ˈmɪrər|n
+blanket|שמיכה|ˈblæŋkɪt|n
+pillow|כרית|ˈpɪloʊ|n
+sheet|סדין|ʃiːt|n
+lamp|מנורה|læmp|n
+fridge|מקרר|frɪdʒ|n
+oven|תנור|ˈʌvən|n
+meat|בשר|miːt|n
+chicken|עוף|ˈtʃɪkɪn|n
+fish|דג|fɪʃ|n
+cheese|גבינה|tʃiːz|n
+butter|חמאה|ˈbʌtər|n
+sugar|סוכר|ˈʃʊɡər|n
+salt|מלח|sɔːlt|n
+pepper|פלפל|ˈpɛpər|n
+oil|שמן|ɔɪl|n
+soup|מרק|suːp|n
+salad|סלט|ˈsæləd|n
+fruit|פרי|fruːt|n
+vegetable|ירק|ˈvɛdʒtəbəl|n
+banana|בננה|bəˈnænə|n
+tomato|עגבנייה|təˈmeɪtoʊ|n
+potato|תפוח אדמה|pəˈteɪtoʊ|n
+onion|בצל|ˈʌnjən|n
+carrot|גזר|ˈkærət|n
+coffee|קפה|ˈkɒfi|n
+tea|תה|tiː|n
+juice|מיץ|dʒuːs|n
+cake|עוגה|keɪk|n
+sweet|מתוק|swiːt|adj
+sour|חמוץ|ˈsaʊər|adj
+spicy|חריף|ˈspaɪsi|adj
+fresh|טרי|frɛʃ|adj
+head|ראש|hɛd|n
+neck|צוואר|nɛk|n
+shoulder|כתף|ˈʃoʊldər|n
+arm|זרוע|ɑːrm|n
+finger|אצבע|ˈfɪŋɡər|n
+leg|רגל|lɛɡ|n
+knee|ברך|niː|n
+back|גב|bæk|n
+stomach|בטן|ˈstʌmək|n
+tooth|שן|tuːθ|n
+tongue|לשון|tʌŋ|n
+skin|עור|skɪn|n
+blood|דם|blʌd|n
+bone|עצם|boʊn|n
+trousers|מכנסיים|ˈtraʊzərz|n
+dress|שמלה|drɛs|n
+skirt|חצאית|skɜːrt|n
+jacket|ז'קט|ˈdʒækɪt|n
+sweater|סוודר|ˈswɛtər|n
+sock|גרב|sɒk|n
+hat|כובע|hæt|n
+glove|כפפה|ɡlʌv|n
+belt|חגורה|bɛlt|n
+pocket|כיס|ˈpɒkɪt|n
+button|כפתור|ˈbʌtən|n
+wear|ללבוש|wɛr|v
+brother-in-law|גיס|ˈbrʌðər ɪn lɔː|n
+uncle|דוד|ˈʌŋkəl|n
+aunt|דודה|ænt|n
+cousin|בן דוד|ˈkʌzən|n
+grandfather|סבא|ˈɡrænfɑːðər|n
+grandmother|סבתא|ˈɡrænmʌðər|n
+husband|בעל|ˈhʌzbənd|n
+wife|אישה נשואה|waɪf|n
+neighbour|שכן|ˈneɪbər|n
+guest|אורח|ɡɛst|n
+birthday|יום הולדת|ˈbɜːrθdeɪ|n
+party|מסיבה|ˈpɑːrti|n
+gift|מתנה|ɡɪft|n
+holiday|חג / חופשה|ˈhɒlɪdeɪ|n
+weekend|סוף שבוע|ˈwiːkɛnd|n
+morning|בוקר|ˈmɔːrnɪŋ|n
+afternoon|אחר הצהריים|ˌæftərˈnuːn|n
+tonight|הלילה|təˈnaɪt|adv
+midnight|חצות|ˈmɪdnaɪt|n
+noon|צהריים|nuːn|n
+Monday|יום שני|ˈmʌndeɪ|n
+Tuesday|יום שלישי|ˈtuːzdeɪ|n
+Wednesday|יום רביעי|ˈwɛnzdeɪ|n
+Thursday|יום חמישי|ˈθɜːrzdeɪ|n
+Friday|יום שישי|ˈfraɪdeɪ|n
+Saturday|יום שבת|ˈsætərdeɪ|n
+Sunday|יום ראשון|ˈsʌndeɪ|n
+January|ינואר|ˈdʒænjuɛri|n
+summer|קיץ|ˈsʌmər|n
+winter|חורף|ˈwɪntər|n
+spring|אביב|sprɪŋ|n
+autumn|סתיו|ˈɔːtəm|n
+snow|שלג|snoʊ|n
+storm|סערה|stɔːrm|n
+sky|שמיים|skaɪ|n
+star|כוכב|stɑːr|n
+moon|ירח|muːn|n
+ground|קרקע|ɡraʊnd|n
+grass|דשא|ɡræs|n
+leaf|עלה|liːf|n
+stone|אבן|stoʊn|n
+sand|חול|sænd|n
+beach|חוף|biːtʃ|n
+lake|אגם|leɪk|n
+forest|יער|ˈfɒrɪst|n
+field|שדה|fiːld|n
+farm|חווה|fɑːrm|n
+village|כפר|ˈvɪlɪdʒ|n
+bridge|גשר|brɪdʒ|n
+building|בניין|ˈbɪldɪŋ|n
+church|כנסייה|tʃɜːrtʃ|n
+hotel|מלון|hoʊˈtɛl|n
+restaurant|מסעדה|ˈrɛstərɒnt|n
+library|ספרייה|ˈlaɪbrɛri|n
+museum|מוזיאון|mjuˈziːəm|n
+park|פארק|pɑːrk|n
+station|תחנה|ˈsteɪʃən|n
+airport|שדה תעופה|ˈɛrpɔːrt|n
+bus|אוטובוס|bʌs|n
+bicycle|אופניים|ˈbaɪsɪkəl|n
+boat|סירה|boʊt|n
+truck|משאית|trʌk|n
+driver|נהג|ˈdraɪvər|n
+passenger|נוסע|ˈpæsɪndʒər|n
+`;
+
+/* ---------- רמה 5: פעולות, מצבים והרחבה ---------- */
+WD[5] = `
+cut|לחתוך|kʌt|v
+fill|למלא|fɪl|v
+pour|למזוג|pɔːr|v
+mix|לערבב|mɪks|v
+boil|להרתיח|bɔɪl|v
+bake|לאפות|beɪk|v
+fry|לטגן|fraɪ|v
+serve|להגיש|sɜːrv|v
+taste|לטעום|teɪst|v
+swallow|לבלוע|ˈswɒloʊ|v
+bite|לנשוך|baɪt|v
+chew|ללעוס|tʃuː|v
+climb|לטפס|klaɪm|v
+jump|לקפוץ|dʒʌmp|v
+kick|לבעוט|kɪk|v
+catch|לתפוס|kætʃ|v
+throw|לזרוק|θroʊ|v
+hide|להסתיר|haɪd|v
+search|לחפש|sɜːrtʃ|v
+follow|לעקוב|ˈfɒloʊ|v
+lead|להוביל|liːd|v
+enter|להיכנס|ˈɛntər|v
+escape|לברוח|ɪˈskeɪp|v
+arrive|להגיע|əˈraɪv|v
+depart|לצאת לדרך|dɪˈpɑːrt|v
+travel|לנסוע|ˈtrævəl|v
+ride|לרכוב|raɪd|v
+fly|לעוף|flaɪ|v
+swim|לשחות|swɪm|v
+sail|להפליג|seɪl|v
+lift|להרים|lɪft|v
+carry|לשאת|ˈkæri|v
+drop|להפיל|drɒp|v
+press|ללחוץ|prɛs|v
+pull|למשוך|pʊl|v
+push|לדחוף|pʊʃ|v
+tie|לקשור|taɪ|v
+untie|להתיר|ʌnˈtaɪ|v
+fold|לקפל|foʊld|v
+tear|לקרוע|tɛr|v
+burn|לשרוף|bɜːrn|v
+melt|להמיס|mɛlt|v
+freeze|להקפיא|friːz|v
+dry|לייבש|draɪ|v
+wet|רטוב|wɛt|adj
+shine|לזרוח|ʃaɪn|v
+glow|לזהור|ɡloʊ|v
+ring|לצלצל|rɪŋ|v
+knock|לדפוק|nɒk|v
+whistle|לשרוק|ˈwɪsəl|v
+sing|לשיר|sɪŋ|v
+dance|לרקוד|dæns|v
+draw|לצייר|drɔː|v
+paint|לצבוע|peɪnt|v
+build|לבנות|bɪld|v
+repair|לתקן|rɪˈpɛr|v
+break|לשבור|breɪk|v
+destroy|להרוס|dɪˈstrɔɪ|v
+grow|לגדל|ɡroʊ|v
+plant|לשתול|plænt|v
+feed|להאכיל|fiːd|v
+raise|לגדל / להרים|reɪz|v
+protect|להגן|prəˈtɛkt|v
+attack|לתקוף|əˈtæk|v
+defend|להתגונן|dɪˈfɛnd|v
+fight|להילחם|faɪt|v
+win|לנצח|wɪn|v
+lose|להפסיד|luːz|v
+beat|לנצח / להכות|biːt|v
+join|להצטרף|dʒɔɪn|v
+leave|לעזוב|liːv|v
+return|לחזור|rɪˈtɜːrn|v
+stay|להישאר|steɪ|v
+remain|להישאר / להיוותר|rɪˈmeɪn|v
+happen|לקרות|ˈhæpən|v
+occur|להתרחש|əˈkɜːr|v
+begin|להתחיל|bɪˈɡɪn|v
+end|לסיים|ɛnd|v
+continue|להמשיך|kənˈtɪnjuː|v
+pause|להשהות|pɔːz|v
+rest|לנוח|rɛst|v
+relax|להירגע|rɪˈlæks|v
+worry|לדאוג|ˈwʌri|v
+fear|לפחד|fɪr|v
+hope|לקוות|hoʊp|v
+trust|לבטוח|trʌst|v
+doubt|לפקפק|daʊt|v
+believe|להאמין|bɪˈliːv|v
+guess|לנחש|ɡɛs|v
+imagine|לדמיין|ɪˈmædʒɪn|v
+dream|לחלום|driːm|v
+wake|להתעורר|weɪk|v
+rise|לקום / לעלות|raɪz|v
+lie|לשכב|laɪ|v
+sit down|להתיישב|sɪt daʊn|phr
+stand up|לקום|stænd ʌp|phr
+angry|כועס|ˈæŋɡri|adj
+calm|רגוע|kɑːm|adj
+nervous|לחוץ|ˈnɜːrvəs|adj
+excited|נרגש|ɪkˈsaɪtɪd|adj
+bored|משועמם|bɔːrd|adj
+proud|גאה|praʊd|adj
+ashamed|מתבייש|əˈʃeɪmd|adj
+jealous|מקנא|ˈdʒɛləs|adj
+lonely|בודד|ˈloʊnli|adj
+friendly|ידידותי|ˈfrɛndli|adj
+polite|מנומס|pəˈlaɪt|adj
+rude|גס רוח|ruːd|adj
+kind|אדיב|kaɪnd|adj
+cruel|אכזרי|ˈkruːəl|adj
+honest|ישר|ˈɒnɪst|adj
+brave|אמיץ|breɪv|adj
+shy|ביישן|ʃaɪ|adj
+clever|חכם|ˈklɛvər|adj
+stupid|טיפש|ˈstuːpɪd|adj
+lazy|עצלן|ˈleɪzi|adj
+serious|רציני|ˈsɪriəs|adj
+funny|מצחיק|ˈfʌni|adj
+strange|מוזר|streɪndʒ|adj
+normal|רגיל|ˈnɔːrməl|adj
+special|מיוחד|ˈspɛʃəl|adj
+simple|פשוט|ˈsɪmpəl|adj
+difficult|קשה|ˈdɪfɪkəlt|adj
+possible|אפשרי|ˈpɒsəbəl|adj
+impossible|בלתי אפשרי|ɪmˈpɒsəbəl|adj
+necessary|הכרחי|ˈnɛsəsɛri|adj
+useful|שימושי|ˈjuːsfəl|adj
+useless|חסר תועלת|ˈjuːsləs|adj
+dangerous|מסוכן|ˈdeɪndʒərəs|adj
+safe|בטוח|seɪf|adj
+healthy|בריא|ˈhɛlθi|adj
+sick|חולה|sɪk|adj
+tired|עייף|ˈtaɪərd|adj
+hungry|רעב|ˈhʌŋɡri|adj
+thirsty|צמא|ˈθɜːrsti|adj
+heavy|כבד|ˈhɛvi|adj
+light|קל|laɪt|adj
+thick|עבה|θɪk|adj
+thin|דק|θɪn|adj
+wide|רחב|waɪd|adj
+narrow|צר|ˈnæroʊ|adj
+deep|עמוק|diːp|adj
+shallow|רדוד|ˈʃæloʊ|adj
+sharp|חד|ʃɑːrp|adj
+smooth|חלק|smuːð|adj
+rough|מחוספס|rʌf|adj
+soft|רך|sɒft|adj
+hard|קשה למגע|hɑːrd|adj
+solid|מוצק|ˈsɒlɪd|adj
+liquid|נוזל|ˈlɪkwɪd|n
+weight|משקל|weɪt|n
+height|גובה|haɪt|n
+length|אורך|lɛŋθ|n
+width|רוחב|wɪdθ|n
+speed|מהירות|spiːd|n
+distance|מרחק|ˈdɪstəns|n
+direction|כיוון|dɪˈrɛkʃən|n
+north|צפון|nɔːrθ|n
+south|דרום|saʊθ|n
+east|מזרח|iːst|n
+west|מערב|wɛst|n
+corner|פינה|ˈkɔːrnər|n
+edge|קצה|ɛdʒ|n
+centre|מרכז|ˈsɛntər|n
+middle|אמצע|ˈmɪdəl|n
+row|שורה|roʊ|n
+circle|עיגול|ˈsɜːrkəl|n
+square|ריבוע|skwɛr|n
+shape|צורה|ʃeɪp|n
+pattern|דוגמה / תבנית|ˈpætərn|n
+`;
+
+/* ---------- רמה 6: חיי יום-יום מורחבים, חברה, לימודים ---------- */
+WD[6] = `
+society|חברה|səˈsaɪəti|n
+community|קהילה|kəˈmjuːnəti|n
+population|אוכלוסייה|ˌpɒpjuˈleɪʃən|n
+government|ממשלה|ˈɡʌvərnmənt|n
+law|חוק|lɔː|n
+rule|כלל|ruːl|n
+right|זכות|raɪt|n
+duty|חובה|ˈduːti|n
+freedom|חופש|ˈfriːdəm|n
+justice|צדק|ˈdʒʌstɪs|n
+crime|פשע|kraɪm|n
+court|בית משפט|kɔːrt|n
+judge|שופט|dʒʌdʒ|n
+lawyer|עורך דין|ˈlɔːjər|n
+prison|כלא|ˈprɪzən|n
+army|צבא|ˈɑːrmi|n
+soldier|חייל|ˈsoʊldʒər|n
+weapon|נשק|ˈwɛpən|n
+enemy|אויב|ˈɛnəmi|n
+victory|ניצחון|ˈvɪktəri|n
+defeat|תבוסה|dɪˈfiːt|n
+border|גבול|ˈbɔːrdər|n
+nation|אומה|ˈneɪʃən|n
+citizen|אזרח|ˈsɪtɪzən|n
+culture|תרבות|ˈkʌltʃər|n
+tradition|מסורת|trəˈdɪʃən|n
+religion|דת|rɪˈlɪdʒən|n
+custom|מנהג|ˈkʌstəm|n
+language|שפה|ˈlæŋɡwɪdʒ|n
+translation|תרגום|trænsˈleɪʃən|n
+education|חינוך|ˌɛdʒuˈkeɪʃən|n
+university|אוניברסיטה|ˌjuːnɪˈvɜːrsəti|n
+college|מכללה|ˈkɒlɪdʒ|n
+degree|תואר|dɪˈɡriː|n
+subject|מקצוע לימוד|ˈsʌbdʒɛkt|n
+lesson|שיעור|ˈlɛsən|n
+homework|שיעורי בית|ˈhoʊmwɜːrk|n
+exam|מבחן|ɪɡˈzæm|n
+grade|ציון|ɡreɪd|n
+notebook|מחברת|ˈnoʊtbʊk|n
+pencil|עיפרון|ˈpɛnsəl|n
+dictionary|מילון|ˈdɪkʃənɛri|n
+chapter|פרק|ˈtʃæptər|n
+sentence|משפט|ˈsɛntəns|n
+paragraph|פסקה|ˈpærəɡræf|n
+title|כותרת|ˈtaɪtəl|n
+author|מחבר|ˈɔːθər|n
+article|כתבה|ˈɑːrtɪkəl|n
+newspaper|עיתון|ˈnuːzpeɪpər|n
+magazine|מגזין|ˌmæɡəˈziːn|n
+news|חדשות|nuːz|n
+message|הודעה|ˈmɛsɪdʒ|n
+letter|מכתב|ˈlɛtər|n
+address|כתובת|əˈdrɛs|n
+signature|חתימה|ˈsɪɡnətʃər|n
+document|מסמך|ˈdɒkjumənt|n
+form|טופס|fɔːrm|n
+list|רשימה|lɪst|n
+note|פתק|noʊt|n
+copy|עותק|ˈkɒpi|n
+file|קובץ|faɪl|n
+folder|תיקייה|ˈfoʊldər|n
+screen|מסך|skriːn|n
+keyboard|מקלדת|ˈkiːbɔːrd|n
+computer|מחשב|kəmˈpjuːtər|n
+software|תוכנה|ˈsɒftwɛr|n
+device|מכשיר|dɪˈvaɪs|n
+machine|מכונה|məˈʃiːn|n
+tool|כלי|tuːl|n
+engine|מנוע|ˈɛndʒɪn|n
+wheel|גלגל|wiːl|n
+battery|סוללה|ˈbætəri|n
+electricity|חשמל|ɪˌlɛkˈtrɪsəti|n
+energy|אנרגיה|ˈɛnərdʒi|n
+fuel|דלק|ˈfjuːəl|n
+metal|מתכת|ˈmɛtəl|n
+plastic|פלסטיק|ˈplæstɪk|n
+wood|עץ (חומר)|wʊd|n
+glass|זכוכית|ɡlæs|n
+material|חומר|məˈtɪriəl|n
+product|מוצר|ˈprɒdʌkt|n
+factory|מפעל|ˈfæktəri|n
+industry|תעשייה|ˈɪndəstri|n
+business|עסק|ˈbɪznəs|n
+customer|לקוח|ˈkʌstəmər|n
+client|לקוח מקצועי|ˈklaɪənt|n
+manager|מנהל|ˈmænɪdʒər|n
+employee|עובד|ɪmˈplɔɪiː|n
+employer|מעסיק|ɪmˈplɔɪər|n
+staff|צוות עובדים|stæf|n
+colleague|עמית|ˈkɒliːɡ|n
+salary|משכורת|ˈsæləri|n
+income|הכנסה|ˈɪnkʌm|n
+tax|מס|tæks|n
+bill|חשבון|bɪl|n
+receipt|קבלה|rɪˈsiːt|n
+cash|מזומן|kæʃ|n
+credit|אשראי|ˈkrɛdɪt|n
+debt|חוב|dɛt|n
+loan|הלוואה|loʊn|n
+budget|תקציב|ˈbʌdʒɪt|n
+cost|עלות|kɒst|n
+profit|רווח|ˈprɒfɪt|n
+loss|הפסד|lɒs|n
+discount|הנחה|ˈdɪskaʊnt|n
+sale|מכירה|seɪl|n
+purchase|רכישה|ˈpɜːrtʃəs|n
+contract|חוזה|ˈkɒntrækt|n
+agreement|הסכם|əˈɡriːmənt|n
+meeting|פגישה|ˈmiːtɪŋ|n
+appointment|תור|əˈpɔɪntmənt|n
+schedule|לוח זמנים|ˈskɛdʒuːl|n
+project|פרויקט|ˈprɒdʒɛkt|n
+task|משימה|tæsk|n
+goal|מטרה|ɡoʊl|n
+plan|תוכנית|plæn|n
+step|שלב|stɛp|n
+stage|שלב בתהליך|steɪdʒ|n
+report|דוח|rɪˈpɔːrt|n
+result|תוצאה|rɪˈzʌlt|n
+solution|פתרון|səˈluːʃən|n
+decision|החלטה|dɪˈsɪʒən|n
+choice|בחירה|tʃɔɪs|n
+option|אפשרות|ˈɒpʃən|n
+opinion|דעה|əˈpɪnjən|n
+advice|עצה|ədˈvaɪs|n
+suggestion|הצעה|səˈdʒɛstʃən|n
+comment|הערה|ˈkɒmɛnt|n
+complaint|תלונה|kəmˈpleɪnt|n
+apology|התנצלות|əˈpɒlədʒi|n
+excuse|תירוץ|ɪkˈskjuːs|n
+promise|הבטחה|ˈprɒmɪs|n
+secret|סוד|ˈsiːkrɪt|n
+surprise|הפתעה|sərˈpraɪz|n
+accident|תאונה|ˈæksɪdənt|n
+emergency|מקרה חירום|ɪˈmɜːrdʒənsi|n
+injury|פציעה|ˈɪndʒəri|n
+pain|כאב|peɪn|n
+medicine|תרופה|ˈmɛdɪsɪn|n
+treatment|טיפול|ˈtriːtmənt|n
+nurse|אחות|nɜːrs|n
+patient|מטופל|ˈpeɪʃənt|n
+dentist|רופא שיניים|ˈdɛntɪst|n
+exercise|התעמלות|ˈɛksərsaɪz|n
+sport|ספורט|spɔːrt|n
+team|קבוצה|tiːm|n
+player|שחקן|ˈpleɪər|n
+match|משחק|mætʃ|n
+score|תוצאה במשחק|skɔːr|n
+prize|פרס|praɪz|n
+competition|תחרות|ˌkɒmpəˈtɪʃən|n
+race|מרוץ|reɪs|n
+hobby|תחביב|ˈhɒbi|n
+instrument|כלי נגינה|ˈɪnstrəmənt|n
+song|שיר|sɒŋ|n
+band|להקה|bænd|n
+concert|קונצרט|ˈkɒnsərt|n
+theatre|תיאטרון|ˈθiːətər|n
+actor|שחקן קולנוע|ˈæktər|n
+scene|סצנה|siːn|n
+camera|מצלמה|ˈkæmərə|n
+photograph|צילום|ˈfoʊtəɡræf|n
+video|וידאו|ˈvɪdioʊ|n
+`;
+
+/* ---------- רמה 7: מופשט, מקצועי, אקדמי בסיסי ---------- */
+WD[7] = `
+approach|גישה|əˈproʊtʃ|n
+aspect|היבט|ˈæspɛkt|n
+background|רקע|ˈbækɡraʊnd|n
+balance|איזון|ˈbæləns|n
+basis|בסיס|ˈbeɪsɪs|n
+capacity|קיבולת / יכולת|kəˈpæsəti|n
+category|קטגוריה|ˈkætəɡɔːri|n
+challenge|אתגר|ˈtʃælɪndʒ|n
+characteristic|מאפיין|ˌkærəktəˈrɪstɪk|n
+circumstance|נסיבה|ˈsɜːrkəmstæns|n
+combination|שילוב|ˌkɒmbɪˈneɪʃən|n
+comparison|השוואה|kəmˈpærɪsən|n
+conclusion|מסקנה|kənˈkluːʒən|n
+connection|קשר|kəˈnɛkʃən|n
+contrast|ניגוד|ˈkɒntræst|n
+definition|הגדרה|ˌdɛfɪˈnɪʃən|n
+demand|דרישה / ביקוש|dɪˈmænd|n
+description|תיאור|dɪˈskrɪpʃən|n
+development|התפתחות|dɪˈvɛləpmənt|n
+difference|הבדל|ˈdɪfrəns|n
+direction|הנחיה|dɪˈrɛkʃən|n
+distinction|הבחנה|dɪˈstɪŋkʃən|n
+element|יסוד|ˈɛlɪmənt|n
+emphasis|דגש|ˈɛmfəsɪs|n
+environment|סביבה|ɪnˈvaɪrənmənt|n
+evaluation|הערכה|ɪˌvæljuˈeɪʃən|n
+exception|יוצא דופן|ɪkˈsɛpʃən|n
+expectation|ציפייה|ˌɛkspɛkˈteɪʃən|n
+explanation|הסבר|ˌɛkspləˈneɪʃən|n
+extent|היקף / מידה|ɪkˈstɛnt|n
+feature|תכונה|ˈfiːtʃər|n
+focus|מיקוד|ˈfoʊkəs|n
+foundation|יסוד / בסיס|faʊnˈdeɪʃən|n
+function|תפקיד|ˈfʌŋkʃən|n
+impact|השפעה|ˈɪmpækt|n
+importance|חשיבות|ɪmˈpɔːrtəns|n
+improvement|שיפור|ɪmˈpruːvmənt|n
+increase|גידול|ˈɪnkriːs|n
+influence|השפעה|ˈɪnfluəns|n
+instance|מקרה|ˈɪnstəns|n
+intention|כוונה|ɪnˈtɛnʃən|n
+interpretation|פרשנות|ɪnˌtɜːrprɪˈteɪʃən|n
+introduction|מבוא|ˌɪntrəˈdʌkʃən|n
+investigation|חקירה|ɪnˌvɛstɪˈɡeɪʃən|n
+involvement|מעורבות|ɪnˈvɒlvmənt|n
+judgement|שיפוט|ˈdʒʌdʒmənt|n
+knowledge|ידע|ˈnɒlɪdʒ|n
+limitation|מגבלה|ˌlɪmɪˈteɪʃən|n
+majority|רוב|məˈdʒɒrəti|n
+minority|מיעוט|maɪˈnɒrəti|n
+motivation|מוטיבציה|ˌmoʊtɪˈveɪʃən|n
+observation|תצפית|ˌɒbzərˈveɪʃən|n
+occasion|הזדמנות / אירוע|əˈkeɪʒən|n
+operation|פעולה|ˌɒpəˈreɪʃən|n
+opposition|התנגדות|ˌɒpəˈzɪʃən|n
+organization|ארגון|ˌɔːrɡənaɪˈzeɪʃən|n
+origin|מקור|ˈɒrɪdʒɪn|n
+participation|השתתפות|pɑːrˌtɪsɪˈpeɪʃən|n
+perception|תפיסה|pərˈsɛpʃən|n
+perspective|נקודת מבט|pərˈspɛktɪv|n
+phase|שלב|feɪz|n
+position|עמדה|pəˈzɪʃən|n
+possibility|אפשרות|ˌpɒsəˈbɪləti|n
+practice|תרגול / נוהג|ˈpræktɪs|n
+preference|העדפה|ˈprɛfərəns|n
+presence|נוכחות|ˈprɛzəns|n
+pressure|לחץ|ˈprɛʃər|n
+principle|עיקרון|ˈprɪnsəpəl|n
+proportion|יחס|prəˈpɔːrʃən|n
+proposal|הצעה רשמית|prəˈpoʊzəl|n
+protection|הגנה|prəˈtɛkʃən|n
+purpose|מטרה|ˈpɜːrpəs|n
+quality|איכות|ˈkwɒləti|n
+quantity|כמות|ˈkwɒntəti|n
+reaction|תגובה|riˈækʃən|n
+recognition|הכרה|ˌrɛkəɡˈnɪʃən|n
+reduction|צמצום|rɪˈdʌkʃən|n
+reference|התייחסות|ˈrɛfərəns|n
+relationship|יחסים|rɪˈleɪʃənʃɪp|n
+relevance|רלוונטיות|ˈrɛləvəns|n
+reliability|אמינות|rɪˌlaɪəˈbɪləti|n
+response|תגובה|rɪˈspɒns|n
+responsibility|אחריות|rɪˌspɒnsəˈbɪləti|n
+restriction|הגבלה|rɪˈstrɪkʃən|n
+role|תפקיד|roʊl|n
+sample|מדגם|ˈsæmpəl|n
+selection|בחירה|sɪˈlɛkʃən|n
+sequence|רצף|ˈsiːkwəns|n
+significance|משמעות|sɪɡˈnɪfɪkəns|n
+similarity|דמיון|ˌsɪmɪˈlærəti|n
+source|מקור|sɔːrs|n
+statement|הצהרה|ˈsteɪtmənt|n
+structure|מבנה|ˈstrʌktʃər|n
+success|הצלחה|səkˈsɛs|n
+suggestion|הצעה|səˈdʒɛstʃən|n
+summary|תקציר|ˈsʌməri|n
+tendency|נטייה|ˈtɛndənsi|n
+theory|תיאוריה|ˈθɪəri|n
+trend|מגמה|trɛnd|n
+understanding|הבנה|ˌʌndərˈstændɪŋ|n
+version|גרסה|ˈvɜːrʒən|n
+view|השקפה|vjuː|n
+achieve|להשיג|əˈtʃiːv|v
+adapt|להסתגל|əˈdæpt|v
+adopt|לאמץ|əˈdɒpt|v
+affect|להשפיע על|əˈfɛkt|v
+apply|ליישם|əˈplaɪ|v
+approve|לאשר|əˈpruːv|v
+arrange|לארגן|əˈreɪndʒ|v
+assist|לסייע|əˈsɪst|v
+attempt|לנסות|əˈtɛmpt|v
+avoid|להימנע|əˈvɔɪd|v
+combine|לשלב|kəmˈbaɪn|v
+compare|להשוות|kəmˈpɛr|v
+complete|להשלים|kəmˈpliːt|v
+concern|להדאיג|kənˈsɜːrn|v
+consist|להיות מורכב מ|kənˈsɪst|v
+contain|להכיל|kənˈteɪn|v
+convince|לשכנע|kənˈvɪns|v
+define|להגדיר|dɪˈfaɪn|v
+describe|לתאר|dɪˈskraɪb|v
+determine|לקבוע|dɪˈtɜːrmɪn|v
+discuss|לדון|dɪˈskʌs|v
+divide|לחלק|dɪˈvaɪd|v
+examine|לבחון|ɪɡˈzæmɪn|v
+exist|להתקיים|ɪɡˈzɪst|v
+expand|להתרחב|ɪkˈspænd|v
+express|לבטא|ɪkˈsprɛs|v
+extend|להאריך|ɪkˈstɛnd|v
+focus|להתמקד|ˈfoʊkəs|v
+gain|להרוויח / לצבור|ɡeɪn|v
+generate|לייצר|ˈdʒɛnəreɪt|v
+ignore|להתעלם|ɪɡˈnɔːr|v
+illustrate|להמחיש|ˈɪləstreɪt|v
+introduce|להציג|ˌɪntrəˈduːs|v
+limit|להגביל|ˈlɪmɪt|v
+measure|למדוד|ˈmɛʒər|v
+obtain|להשיג|əbˈteɪn|v
+occur|להתרחש|əˈkɜːr|v
+prefer|להעדיף|prɪˈfɜːr|v
+prepare|להכין|prɪˈpɛr|v
+present|להציג|prɪˈzɛnt|v
+produce|לייצר|prəˈduːs|v
+promote|לקדם|prəˈmoʊt|v
+provide|לספק|prəˈvaɪd|v
+recognize|לזהות|ˈrɛkəɡnaɪz|v
+recover|להתאושש|rɪˈkʌvər|v
+reduce|להפחית|rɪˈduːs|v
+refer|להתייחס|rɪˈfɜːr|v
+reflect|לשקף|rɪˈflɛkt|v
+regard|להתייחס אל|rɪˈɡɑːrd|v
+relate|לקשר|rɪˈleɪt|v
+remove|להסיר|rɪˈmuːv|v
+represent|לייצג|ˌrɛprɪˈzɛnt|v
+request|לבקש|rɪˈkwɛst|v
+require|לדרוש|rɪˈkwaɪər|v
+respond|להגיב|rɪˈspɒnd|v
+result|לגרום ל|rɪˈzʌlt|v
+select|לבחור|sɪˈlɛkt|v
+separate|להפריד|ˈsɛpəreɪt|v
+suffer|לסבול|ˈsʌfər|v
+supply|לספק|səˈplaɪ|v
+survive|לשרוד|sərˈvaɪv|v
+tend|לנטות|tɛnd|v
+transform|לשנות צורה|trænsˈfɔːrm|v
+treat|לטפל|triːt|v
+`;
+
+/* ---------- רמה 8: תיאורים מדויקים, שיח ומבנים מתקדמים ---------- */
+WD[8] = `
+absolute|מוחלט|ˈæbsəluːt|adj
+abstract|מופשט|ˈæbstrækt|adj
+accessible|נגיש|əkˈsɛsəbəl|adj
+active|פעיל|ˈæktɪv|adj
+actual|ממשי|ˈæktʃuəl|adj
+additional|נוסף|əˈdɪʃənəl|adj
+alternative|חלופי|ɔːlˈtɜːrnətɪv|adj
+annual|שנתי|ˈænjuəl|adj
+apparent|נראה לעין|əˈpærənt|adj
+approximate|מקורב|əˈprɒksɪmət|adj
+artificial|מלאכותי|ˌɑːrtɪˈfɪʃəl|adj
+automatic|אוטומטי|ˌɔːtəˈmætɪk|adj
+available|זמין|əˈveɪləbəl|adj
+aware|מודע|əˈwɛr|adj
+brief|קצר|briːf|adj
+broad|רחב|brɔːd|adj
+capable|מסוגל|ˈkeɪpəbəl|adj
+casual|לא רשמי|ˈkæʒuəl|adj
+central|מרכזי|ˈsɛntrəl|adj
+certain|ודאי|ˈsɜːrtən|adj
+civil|אזרחי|ˈsɪvəl|adj
+clear|ברור|klɪr|adj
+close|קרוב|kloʊs|adj
+commercial|מסחרי|kəˈmɜːrʃəl|adj
+common|נפוץ|ˈkɒmən|adj
+complex|מורכב|ˈkɒmplɛks|adj
+comprehensive|מקיף|ˌkɒmprɪˈhɛnsɪv|adj
+constant|קבוע|ˈkɒnstənt|adj
+convenient|נוח|kənˈviːnjənt|adj
+critical|קריטי / ביקורתי|ˈkrɪtɪkəl|adj
+cultural|תרבותי|ˈkʌltʃərəl|adj
+daily|יומי|ˈdeɪli|adj
+detailed|מפורט|ˈdiːteɪld|adj
+direct|ישיר|dɪˈrɛkt|adj
+distinct|נבדל|dɪˈstɪŋkt|adj
+diverse|מגוון|daɪˈvɜːrs|adj
+dominant|דומיננטי|ˈdɒmɪnənt|adj
+dramatic|דרמטי|drəˈmætɪk|adj
+economic|כלכלי|ˌiːkəˈnɒmɪk|adj
+effective|יעיל|ɪˈfɛktɪv|adj
+electronic|אלקטרוני|ɪlɛkˈtrɒnɪk|adj
+enormous|עצום|ɪˈnɔːrməs|adj
+entire|שלם|ɪnˈtaɪər|adj
+equal|שווה|ˈiːkwəl|adj
+essential|חיוני|ɪˈsɛnʃəl|adj
+eventual|סופי|ɪˈvɛntʃuəl|adj
+exact|מדויק|ɪɡˈzækt|adj
+excellent|מצוין|ˈɛksələnt|adj
+extensive|נרחב|ɪkˈstɛnsɪv|adj
+external|חיצוני|ɪkˈstɜːrnəl|adj
+familiar|מוכר|fəˈmɪljər|adj
+famous|מפורסם|ˈfeɪməs|adj
+final|סופי|ˈfaɪnəl|adj
+financial|פיננסי|faɪˈnænʃəl|adj
+flexible|גמיש|ˈflɛksəbəl|adj
+formal|רשמי|ˈfɔːrməl|adj
+frequent|תכוף|ˈfriːkwənt|adj
+fundamental|יסודי|ˌfʌndəˈmɛntəl|adj
+general|כללי|ˈdʒɛnərəl|adj
+genuine|אמיתי|ˈdʒɛnjuɪn|adj
+global|גלובלי|ˈɡloʊbəl|adj
+gradual|הדרגתי|ˈɡrædʒuəl|adj
+guilty|אשם|ˈɡɪlti|adj
+identical|זהה|aɪˈdɛntɪkəl|adj
+immediate|מיידי|ɪˈmiːdiət|adj
+independent|עצמאי|ˌɪndɪˈpɛndənt|adj
+indirect|עקיף|ˌɪndɪˈrɛkt|adj
+individual|אישי / פרטני|ˌɪndɪˈvɪdʒuəl|adj
+industrial|תעשייתי|ɪnˈdʌstriəl|adj
+informal|לא רשמי|ɪnˈfɔːrməl|adj
+innocent|חף מפשע|ˈɪnəsənt|adj
+intense|עז|ɪnˈtɛns|adj
+internal|פנימי|ɪnˈtɜːrnəl|adj
+international|בינלאומי|ˌɪntərˈnæʃənəl|adj
+legal|חוקי|ˈliːɡəl|adj
+local|מקומי|ˈloʊkəl|adj
+logical|הגיוני|ˈlɒdʒɪkəl|adj
+main|עיקרי|meɪn|adj
+major|מרכזי|ˈmeɪdʒər|adj
+mental|נפשי|ˈmɛntəl|adj
+minor|משני|ˈmaɪnər|adj
+mutual|הדדי|ˈmjuːtʃuəl|adj
+national|לאומי|ˈnæʃənəl|adj
+natural|טבעי|ˈnætʃərəl|adj
+negative|שלילי|ˈnɛɡətɪv|adj
+neutral|ניטרלי|ˈnuːtrəl|adj
+obvious|ברור מאליו|ˈɒbviəs|adj
+official|רשמי|əˈfɪʃəl|adj
+optional|אופציונלי|ˈɒpʃənəl|adj
+ordinary|רגיל|ˈɔːrdənɛri|adj
+original|מקורי|əˈrɪdʒɪnəl|adj
+particular|מסוים|pərˈtɪkjulər|adj
+permanent|קבוע|ˈpɜːrmənənt|adj
+personal|אישי|ˈpɜːrsənəl|adj
+physical|פיזי|ˈfɪzɪkəl|adj
+political|פוליטי|pəˈlɪtɪkəl|adj
+popular|פופולרי|ˈpɒpjulər|adj
+positive|חיובי|ˈpɒzətɪv|adj
+practical|מעשי|ˈpræktɪkəl|adj
+primary|ראשוני|ˈpraɪmɛri|adj
+private|פרטי|ˈpraɪvət|adj
+probable|סביר|ˈprɒbəbəl|adj
+professional|מקצועי|prəˈfɛʃənəl|adj
+public|ציבורי|ˈpʌblɪk|adj
+pure|טהור|pjʊr|adj
+rapid|מהיר|ˈræpɪd|adj
+rare|נדיר|rɛr|adj
+reasonable|סביר|ˈriːzənəbəl|adj
+recent|אחרון|ˈriːsənt|adj
+regular|קבוע / סדיר|ˈrɛɡjulər|adj
+remarkable|יוצא מן הכלל|rɪˈmɑːrkəbəl|adj
+responsible|אחראי|rɪˈspɒnsəbəl|adj
+rural|כפרי|ˈrʊrəl|adj
+secondary|משני|ˈsɛkəndɛri|adj
+secure|מאובטח|sɪˈkjʊr|adj
+sensitive|רגיש|ˈsɛnsətɪv|adj
+severe|חמור|sɪˈvɪr|adj
+similar|דומה|ˈsɪmɪlər|adj
+single|יחיד|ˈsɪŋɡəl|adj
+social|חברתי|ˈsoʊʃəl|adj
+specific|ספציפי|spəˈsɪfɪk|adj
+stable|יציב|ˈsteɪbəl|adj
+standard|תקני|ˈstændərd|adj
+strict|קפדני|strɪkt|adj
+substantial|מהותי|səbˈstænʃəl|adj
+sudden|פתאומי|ˈsʌdən|adj
+suitable|מתאים|ˈsuːtəbəl|adj
+superior|עדיף|suːˈpɪriər|adj
+temporary|זמני|ˈtɛmpərɛri|adj
+theoretical|תיאורטי|ˌθiːəˈrɛtɪkəl|adj
+total|כולל|ˈtoʊtəl|adj
+traditional|מסורתי|trəˈdɪʃənəl|adj
+typical|טיפוסי|ˈtɪpɪkəl|adj
+unique|ייחודי|juˈniːk|adj
+universal|אוניברסלי|ˌjuːnɪˈvɜːrsəl|adj
+unusual|יוצא דופן|ʌnˈjuːʒuəl|adj
+urban|עירוני|ˈɜːrbən|adj
+urgent|דחוף|ˈɜːrdʒənt|adj
+valid|תקף|ˈvælɪd|adj
+valuable|בעל ערך|ˈvæljuəbəl|adj
+various|שונים|ˈvɛriəs|adj
+vast|עצום|væst|adj
+visible|נראה|ˈvɪzəbəl|adj
+vital|חיוני|ˈvaɪtəl|adj
+widespread|נפוץ מאוד|ˈwaɪdsprɛd|adj
+absolutely|לחלוטין|ˈæbsəluːtli|adv
+actively|באופן פעיל|ˈæktɪvli|adv
+apparently|ככל הנראה|əˈpærəntli|adv
+approximately|בקירוב|əˈprɒksɪmətli|adv
+carefully|בזהירות|ˈkɛrfəli|adv
+certainly|בוודאי|ˈsɜːrtənli|adv
+consequently|כתוצאה מכך|ˈkɒnsɪkwɛntli|adv
+constantly|ללא הרף|ˈkɒnstəntli|adv
+currently|כרגע|ˈkʌrəntli|adv
+deeply|עמוקות|ˈdiːpli|adv
+definitely|בהחלט|ˈdɛfɪnətli|adv
+easily|בקלות|ˈiːzəli|adv
+effectively|ביעילות|ɪˈfɛktɪvli|adv
+entirely|לגמרי|ɪnˈtaɪərli|adv
+equally|באופן שווה|ˈiːkwəli|adv
+essentially|למעשה|ɪˈsɛnʃəli|adv
+eventually|בסופו של דבר|ɪˈvɛntʃuəli|adv
+frequently|לעיתים קרובות|ˈfriːkwəntli|adv
+generally|בדרך כלל|ˈdʒɛnərəli|adv
+highly|מאוד|ˈhaɪli|adv
+increasingly|יותר ויותר|ɪnˈkriːsɪŋli|adv
+initially|בתחילה|ɪˈnɪʃəli|adv
+largely|במידה רבה|ˈlɑːrdʒli|adv
+literally|תרתי משמע|ˈlɪtərəli|adv
+mainly|בעיקר|ˈmeɪnli|adv
+naturally|באופן טבעי|ˈnætʃərəli|adv
+necessarily|בהכרח|ˌnɛsəˈsɛrəli|adv
+normally|בדרך כלל|ˈnɔːrməli|adv
+obviously|באופן ברור|ˈɒbviəsli|adv
+occasionally|מדי פעם|əˈkeɪʒənəli|adv
+originally|במקור|əˈrɪdʒɪnəli|adv
+particularly|במיוחד|pərˈtɪkjulərli|adv
+perfectly|באופן מושלם|ˈpɜːrfɪktli|adv
+personally|אישית|ˈpɜːrsənəli|adv
+possibly|ייתכן|ˈpɒsəbli|adv
+previously|קודם לכן|ˈpriːviəsli|adv
+primarily|בעיקר|praɪˈmɛrəli|adv
+properly|כראוי|ˈprɒpərli|adv
+recently|לאחרונה|ˈriːsəntli|adv
+regularly|באופן קבוע|ˈrɛɡjulərli|adv
+relatively|יחסית|ˈrɛlətɪvli|adv
+seriously|ברצינות|ˈsɪriəsli|adv
+significantly|באופן משמעותי|sɪɡˈnɪfɪkəntli|adv
+similarly|באופן דומה|ˈsɪmɪlərli|adv
+simply|פשוט|ˈsɪmpli|adv
+slightly|במקצת|ˈslaɪtli|adv
+specifically|באופן ספציפי|spəˈsɪfɪkli|adv
+strongly|בחוזקה|ˈstrɒŋli|adv
+successfully|בהצלחה|səkˈsɛsfəli|adv
+sufficiently|במידה מספקת|səˈfɪʃəntli|adv
+suddenly|לפתע|ˈsʌdənli|adv
+surely|בוודאי|ˈʃʊrli|adv
+typically|בדרך כלל|ˈtɪpɪkli|adv
+ultimately|בסופו של דבר|ˈʌltɪmətli|adv
+widely|בהרחבה|ˈwaɪdli|adv
+`;
+
+/* ---------- רמה 9: שיח טבעי, ניואנס, ביטויים ---------- */
+WD[9] = `
+bring about|לחולל|brɪŋ əˈbaʊt|phr
+call off|לבטל|kɔːl ɒf|phr
+come across|להיתקל ב|kʌm əˈkrɒs|phr
+come down to|להסתכם ב|kʌm daʊn tuː|phr
+count on|לסמוך על|kaʊnt ɒn|phr
+deal with|להתמודד עם|diːl wɪð|phr
+drop off|להוריד / להירדם|drɒp ɒf|phr
+fall apart|להתפרק|fɔːl əˈpɑːrt|phr
+get around to|להתפנות ל|ɡɛt əˈraʊnd tuː|phr
+get rid of|להיפטר מ|ɡɛt rɪd əv|phr
+give in|להיכנע|ɡɪv ɪn|phr
+go over|לעבור על|ɡoʊ ˈoʊvər|phr
+hold back|לרסן|hoʊld bæk|phr
+lay off|לפטר|leɪ ɒf|phr
+look down on|לזלזל ב|lʊk daʊn ɒn|phr
+narrow down|לצמצם|ˈnæroʊ daʊn|phr
+put together|להרכיב|pʊt təˈɡɛðər|phr
+run into|להיתקל במקרה|rʌn ˈɪntuː|phr
+settle down|להתיישב / להירגע|ˈsɛtəl daʊn|phr
+show up|להופיע|ʃoʊ ʌp|phr
+step down|להתפטר|stɛp daʊn|phr
+stick to|לדבוק ב|stɪk tuː|phr
+take apart|לפרק|teɪk əˈpɑːrt|phr
+take up|להתחיל לעסוק ב|teɪk ʌp|phr
+tell apart|להבחין בין|tɛl əˈpɑːrt|phr
+throw away|לזרוק|θroʊ əˈweɪ|phr
+turn up|להופיע / להגביר|tɜːrn ʌp|phr
+weigh up|לשקול אפשרויות|weɪ ʌp|phr
+work around|לעקוף בעיה|wɜːrk əˈraʊnd|phr
+wrap up|לסכם / לסיים|ræp ʌp|phr
+a far cry from|רחוק מאוד מ|ə fɑːr kraɪ frɒm|idm
+at odds with|בסתירה ל|æt ɒdz wɪð|idm
+beside the point|לא לעניין|bɪˈsaɪd ðə pɔɪnt|idm
+by and large|בגדול|baɪ ənd lɑːrdʒ|idm
+cut to the chase|לגשת לעיקר|kʌt tuː ðə tʃeɪs|idm
+food for thought|חומר למחשבה|fuːd fɔːr θɔːt|idm
+give or take|פלוס מינוס|ɡɪv ɔːr teɪk|idm
+in hindsight|בדיעבד|ɪn ˈhaɪndsaɪt|idm
+in the long run|בטווח הארוך|ɪn ðə lɒŋ rʌn|idm
+make sense of|להבין / לפענח|meɪk sɛns əv|idm
+on par with|ברמה של|ɒn pɑːr wɪð|idm
+play it by ear|לאלתר|pleɪ ɪt baɪ ɪr|idm
+raise the bar|להעלות את הרף|reɪz ðə bɑːr|idm
+take with a grain of salt|לקחת בערבון מוגבל|teɪk wɪð ə ɡreɪn əv sɔːlt|idm
+the tip of the iceberg|קצה הקרחון|ðə tɪp əv ði ˈaɪsbɜːrɡ|idm
+under way|בעיצומו|ˈʌndər weɪ|idm
+coherent|קוהרנטי|koʊˈhɪrənt|adj
+concise|תמציתי|kənˈsaɪs|adj
+contentious|שנוי במחלוקת|kənˈtɛnʃəs|adj
+elaborate|מפורט|ɪˈlæbərət|adj
+explicit|מפורש|ɪkˈsplɪsɪt|adj
+implicit|מרומז|ɪmˈplɪsɪt|adj
+inadvertent|בלתי מכוון|ˌɪnədˈvɜːrtənt|adj
+meticulous|קפדני|məˈtɪkjuləs|adj
+prevalent|רווח|ˈprɛvələnt|adj
+profound|עמוק|prəˈfaʊnd|adj
+prudent|נבון|ˈpruːdənt|adj
+succinct|תמציתי|səkˈsɪŋkt|adj
+tentative|ראשוני / מהוסס|ˈtɛntətɪv|adj
+versatile|רב-תכליתי|ˈvɜːrsətaɪl|adj
+consensus|הסכמה כללית|kənˈsɛnsəs|n
+constraint|אילוץ|kənˈstreɪnt|n
+paradigm|פרדיגמה|ˈpærədaɪm|n
+precedent|תקדים|ˈprɛsɪdənt|n
+scope|היקף|skoʊp|n
+`;
+
+/* ---------- השלמות: מילים תדירות שנותרו בפערים ---------- */
+WD[3] += `
+girl|ילדה|ɡɜːrl|n
+boy|ילד|bɔɪ|n
+food|אוכל|fuːd|n
+drink|משקה|drɪŋk|n
+milk|חלב|mɪlk|n
+egg|ביצה|ɛɡ|n
+apple|תפוח|ˈæpəl|n
+bread|לחם|brɛd|n
+rice|אורז|raɪs|n
+door|דלת|dɔːr|n
+window|חלון|ˈwɪndoʊ|n
+table|שולחן|ˈteɪbəl|n
+chair|כיסא|tʃɛr|n
+bed|מיטה|bɛd|n
+room|חדר|ruːm|n
+car|מכונית|kɑːr|n
+road|דרך|roʊd|n
+tree|עץ|triː|n
+flower|פרח|ˈflaʊər|n
+dog|כלב|dɒɡ|n
+cat|חתול|kæt|n
+bird|ציפור|bɜːrd|n
+horse|סוס|hɔːrs|n
+cow|פרה|kaʊ|n
+sheep|כבשה|ʃiːp|n
+sun|שמש|sʌn|n
+rain|גשם|reɪn|n
+wind|רוח|wɪnd|n
+fire|אש|ˈfaɪər|n
+water|מים|ˈwɔːtər|n
+red|אדום|rɛd|adj
+blue|כחול|bluː|adj
+green|ירוק|ɡriːn|adj
+yellow|צהוב|ˈjɛloʊ|adj
+black|שחור|blæk|adj
+white|לבן|waɪt|adj
+brown|חום|braʊn|adj
+grey|אפור|ɡreɪ|adj
+big|גדול|bɪɡ|adj
+small|קטן|smɔːl|adj
+long|ארוך|lɒŋ|adj
+short|קצר|ʃɔːrt|adj
+old|ישן / זקן|oʊld|adj
+young|צעיר|jʌŋ|adj
+new|חדש|nuː|adj
+good|טוב|ɡʊd|adj
+bad|רע|bæd|adj
+hot|חם|hɒt|adj
+cold|קר|koʊld|adj
+fast|מהיר|fæst|adj
+slow|איטי|sloʊ|adj
+happy|שמח|ˈhæpi|adj
+sad|עצוב|sæd|adj
+open|לפתוח|ˈoʊpən|v
+close|לסגור|kloʊz|v
+give|לתת|ɡɪv|v
+take|לקחת|teɪk|v
+put|לשים|pʊt|v
+get|לקבל|ɡɛt|v
+make|לעשות|meɪk|v
+do|לעשות|duː|v
+say|לומר|seɪ|v
+tell|לספר|tɛl|v
+ask|לשאול|æsk|v
+answer|לענות|ˈænsər|v
+think|לחשוב|θɪŋk|v
+know|לדעת|noʊ|v
+want|לרצות|wɒnt|v
+need|לצרוך|niːd|v
+like|לאהוב|laɪk|v
+love|לאהוב מאוד|lʌv|v
+hate|לשנוא|heɪt|v
+see|לראות|siː|v
+look|להסתכל|lʊk|v
+hear|לשמוע|hɪr|v
+listen|להקשיב|ˈlɪsən|v
+speak|לדבר|spiːk|v
+talk|לשוחח|tɔːk|v
+read|לקרוא|riːd|v
+write|לכתוב|raɪt|v
+walk|ללכת|wɔːk|v
+run|לרוץ|rʌn|v
+come|לבוא|kʌm|v
+go|ללכת|ɡoʊ|v
+eat|לאכול|iːt|v
+drink|לשתות|drɪŋk|v
+sleep|לישון|sliːp|v
+work|לעבוד|wɜːrk|v
+play|לשחק|pleɪ|v
+help|לעזור|hɛlp|v
+buy|לקנות|baɪ|v
+sell|למכור|sɛl|v
+pay|לשלם|peɪ|v
+wait|לחכות|weɪt|v
+stop|לעצור|stɒp|v
+start|להתחיל|stɑːrt|v
+finish|לסיים|ˈfɪnɪʃ|v
+live|לגור|lɪv|v
+die|למות|daɪ|v
+`;
+
+WD[6] += `
+account|חשבון|əˈkaʊnt|n
+advantage|יתרון|ədˈvæntɪdʒ|n
+disadvantage|חיסרון|ˌdɪsədˈvæntɪdʒ|n
+amount|סכום|əˈmaʊnt|n
+argument|ויכוח / טיעון|ˈɑːrɡjumənt|n
+attention|תשומת לב|əˈtɛnʃən|n
+attitude|יחס|ˈætɪtuːd|n
+benefit|תועלת|ˈbɛnɪfɪt|n
+career|קריירה|kəˈrɪr|n
+cause|סיבה|kɔːz|n
+chance|סיכוי|tʃæns|n
+character|אופי|ˈkærəktər|n
+condition|מצב|kənˈdɪʃən|n
+confidence|ביטחון עצמי|ˈkɒnfɪdəns|n
+control|שליטה|kənˈtroʊl|n
+courage|אומץ|ˈkʌrɪdʒ|n
+danger|סכנה|ˈdeɪndʒər|n
+detail|פרט|ˈdiːteɪl|n
+effect|השפעה|ɪˈfɛkt|n
+effort|מאמץ|ˈɛfərt|n
+event|אירוע|ɪˈvɛnt|n
+example|דוגמה|ɪɡˈzæmpəl|n
+experience|ניסיון|ɪkˈspɪriəns|n
+fact|עובדה|fækt|n
+failure|כישלון|ˈfeɪljər|n
+feeling|תחושה|ˈfiːlɪŋ|n
+habit|הרגל|ˈhæbɪt|n
+health|בריאות|hɛlθ|n
+idea|רעיון|aɪˈdɪə|n
+information|מידע|ˌɪnfərˈmeɪʃən|n
+interest|עניין|ˈɪntrəst|n
+issue|נושא / בעיה|ˈɪʃuː|n
+level|רמה|ˈlɛvəl|n
+memory|זיכרון|ˈmɛməri|n
+method|שיטה|ˈmɛθəd|n
+mistake|טעות|mɪˈsteɪk|n
+moment|רגע|ˈmoʊmənt|n
+nature|טבע|ˈneɪtʃər|n
+need|צורך|niːd|n
+opportunity|הזדמנות|ˌɒpərˈtuːnəti|n
+order|סדר / הזמנה|ˈɔːrdər|n
+part|חלק|pɑːrt|n
+peace|שלווה|piːs|n
+period|תקופה|ˈpɪriəd|n
+place|מקום|pleɪs|n
+point|נקודה|pɔɪnt|n
+power|כוח|ˈpaʊər|n
+problem|בעיה|ˈprɒbləm|n
+process|תהליך|ˈprɒsɛs|n
+progress|התקדמות|ˈprɒɡrɛs|n
+quality|טיב|ˈkwɒləti|n
+question|שאלה|ˈkwɛstʃən|n
+reason|סיבה|ˈriːzən|n
+risk|סיכון|rɪsk|n
+safety|בטיחות|ˈseɪfti|n
+service|שירות|ˈsɜːrvɪs|n
+situation|מצב|ˌsɪtʃuˈeɪʃən|n
+skill|מיומנות|skɪl|n
+space|מרחב|speɪs|n
+standard|רמה נדרשת|ˈstændərd|n
+strength|כוח / חוזק|strɛŋθ|n
+weakness|חולשה|ˈwiːknəs|n
+support|תמיכה|səˈpɔːrt|n
+system|מערכת|ˈsɪstəm|n
+term|מונח|tɜːrm|n
+theory|תיאוריה|ˈθɪəri|n
+truth|אמת|truːθ|n
+value|ערך|ˈvæljuː|n
+variety|מגוון|vəˈraɪəti|n
+way|דרך|weɪ|n
+`;
+
+/* ---------- השלמות סופיות: מספרים, תאריכים, נימוס ופערים ---------- */
+WD[3] += `
+six|שש|sɪks|num
+seven|שבע|ˈsɛvən|num
+eight|שמונה|eɪt|num
+nine|תשע|naɪn|num
+eleven|אחת עשרה|ɪˈlɛvən|num
+twelve|שתים עשרה|twɛlv|num
+twenty|עשרים|ˈtwɛnti|num
+thirty|שלושים|ˈθɜːrti|num
+forty|ארבעים|ˈfɔːrti|num
+fifty|חמישים|ˈfɪfti|num
+hundred|מאה|ˈhʌndrəd|num
+thousand|אלף|ˈθaʊzənd|num
+million|מיליון|ˈmɪljən|num
+first|ראשון|fɜːrst|adj
+second|שני|ˈsɛkənd|adj
+third|שלישי|θɜːrd|adj
+last|אחרון|læst|adj
+next|הבא|nɛkst|adj
+sorry|סליחה|ˈsɒri|phr
+thanks|תודה|θæŋks|phr
+welcome|ברוך הבא|ˈwɛlkəm|phr
+excuse me|סליחה, אפשר?|ɪkˈskjuːz miː|phr
+never mind|לא נורא|ˈnɛvər maɪnd|phr
+of course|בוודאי|əv kɔːrs|phr
+`;
+
+WD[4] += `
+February|פברואר|ˈfɛbruɛri|n
+March|מרץ|mɑːrtʃ|n
+April|אפריל|ˈeɪprəl|n
+June|יוני|dʒuːn|n
+July|יולי|dʒuˈlaɪ|n
+August|אוגוסט|ˈɔːɡəst|n
+September|ספטמבר|sɛpˈtɛmbər|n
+October|אוקטובר|ɒkˈtoʊbər|n
+November|נובמבר|noʊˈvɛmbər|n
+December|דצמבר|dɪˈsɛmbər|n
+town|עיירה|taʊn|n
+front|חזית|frʌnt|n
+nose|אף|noʊz|n
+warm|חמים|wɔːrm|adj
+cool|קריר|kuːl|adj
+far|רחוק|fɑːr|adv
+little|קצת|ˈlɪtəl|adj
+before|לפני|bɪˈfɔːr|prep
+after|אחרי|ˈæftər|prep
+once|פעם אחת|wʌns|adv
+twice|פעמיים|twaɪs|adv
+then|אז|ðɛn|adv
+find|למצוא|faɪnd|v
+half|חצי|hæf|n
+quarter|רבע|ˈkwɔːrtər|n
+double|כפול|ˈdʌbəl|adj
+envelope|מעטפה|ˈɛnvəloʊp|n
+stamp|בול|stæmp|n
+box|קופסה|bɒks|n
+bag|שקית|bæɡ|n
+basket|סל|ˈbæskɪt|n
+rope|חבל|roʊp|n
+chain|שרשרת|tʃeɪn|n
+nail|מסמר|neɪl|n
+hammer|פטיש|ˈhæmər|n
+screw|בורג|skruː|n
+scissors|מספריים|ˈsɪzərz|n
+needle|מחט|ˈniːdəl|n
+thread|חוט|θrɛd|n
+candle|נר|ˈkændəl|n
+match|גפרור|mætʃ|n
+smoke|עשן|smoʊk|n
+dust|אבק|dʌst|n
+mud|בוץ|mʌd|n
+ice|קרח|aɪs|n
+steam|אדים|stiːm|n
+shadow|צל|ˈʃædoʊ|n
+noise|רעש|nɔɪz|n
+silence|שקט|ˈsaɪləns|n
+smell|ריח|smɛl|n
+sound|צליל|saʊnd|n
+voice|קול|vɔɪs|n
+touch|מגע|tʌtʃ|n
+`;
+
+WD[5] += `
+borrow|לשאול|ˈbɒroʊ|v
+lend|להשאיל|lɛnd|v
+owe|לחוב|oʊ|v
+earn|להרוויח|ɜːrn|v
+save|לחסוך|seɪv|v
+waste|לבזבז|weɪst|v
+spend|להוציא|spɛnd|v
+count|לספור|kaʊnt|v
+weigh|לשקול|weɪ|v
+measure|למדוד|ˈmɛʒər|v
+compare|להשוות|kəmˈpɛr|v
+choose|לבחור|tʃuːz|v
+decide|להחליט|dɪˈsaɪd|v
+agree|להסכים|əˈɡriː|v
+disagree|לא להסכים|ˌdɪsəˈɡriː|v
+argue|להתווכח|ˈɑːrɡjuː|v
+explain|להסביר|ɪkˈspleɪn|v
+describe|לתאר|dɪˈskraɪb|v
+mention|להזכיר|ˈmɛnʃən|v
+repeat|לחזור על|rɪˈpiːt|v
+remember|לזכור|rɪˈmɛmbər|v
+forget|לשכוח|fərˈɡɛt|v
+remind|להזכיר למישהו|rɪˈmaɪnd|v
+notice|לשים לב|ˈnoʊtɪs|v
+realize|להבין|ˈriːəlaɪz|v
+understand|להבין|ˌʌndərˈstænd|v
+learn|ללמוד|lɜːrn|v
+teach|ללמד|tiːtʃ|v
+practise|לתרגל|ˈpræktɪs|v
+improve|להשתפר|ɪmˈpruːv|v
+succeed|להצליח|səkˈsiːd|v
+fail|להיכשל|feɪl|v
+try|לנסות|traɪ|v
+manage|להצליח לעשות|ˈmænɪdʒ|v
+allow|להרשות|əˈlaʊ|v
+forbid|לאסור|fərˈbɪd|v
+refuse|לסרב|rɪˈfjuːz|v
+accept|לקבל|əkˈsɛpt|v
+offer|להציע|ˈɒfər|v
+invite|להזמין|ɪnˈvaɪt|v
+thank|להודות|θæŋk|v
+apologize|להתנצל|əˈpɒlədʒaɪz|v
+complain|להתלונן|kəmˈpleɪn|v
+shout|לצעוק|ʃaʊt|v
+whisper|ללחוש|ˈwɪspər|v
+laugh|לצחוק|læf|v
+cry|לבכות|kraɪ|v
+smile|לחייך|smaɪl|v
+kiss|לנשק|kɪs|v
+hug|לחבק|hʌɡ|v
+marry|להתחתן|ˈmæri|v
+divorce|להתגרש|dɪˈvɔːrs|v
+born|נולד|bɔːrn|adj
+alive|חי|əˈlaɪv|adj
+dead|מת|dɛd|adj
+married|נשוי|ˈmærid|adj
+single|רווק|ˈsɪŋɡəl|adj
+`;
+
+WD[6] += `
+ability|יכולת|əˈbɪləti|n
+access|גישה|ˈæksɛs|n
+action|פעולה|ˈækʃən|n
+activity|פעילות|ækˈtɪvəti|n
+advantage|יתרון|ədˈvæntɪdʒ|n
+age|גיל|eɪdʒ|n
+aim|מטרה|eɪm|n
+area|אזור|ˈɛriə|n
+attempt|ניסיון|əˈtɛmpt|n
+authority|סמכות|əˈθɒrəti|n
+average|ממוצע|ˈævərɪdʒ|n
+belief|אמונה|bɪˈliːf|n
+capital|בירה / הון|ˈkæpɪtəl|n
+case|מקרה|keɪs|n
+century|מאה שנים|ˈsɛntʃəri|n
+class|מעמד / כיתה|klæs|n
+comfort|נוחות|ˈkʌmfərt|n
+concept|מושג|ˈkɒnsɛpt|n
+content|תוכן|ˈkɒntɛnt|n
+context|הקשר|ˈkɒntɛkst|n
+data|נתונים|ˈdeɪtə|n
+degree|מידה|dɪˈɡriː|n
+demand|דרישה|dɪˈmænd|n
+design|עיצוב|dɪˈzaɪn|n
+distance|מרחק|ˈdɪstəns|n
+duty|תפקיד|ˈduːti|n
+economy|כלכלה|ɪˈkɒnəmi|n
+edge|קצה|ɛdʒ|n
+environment|סביבה|ɪnˈvaɪrənmənt|n
+equipment|ציוד|ɪˈkwɪpmənt|n
+evidence|ראיה|ˈɛvɪdəns|n
+exchange|חילופין|ɪksˈtʃeɪndʒ|n
+existence|קיום|ɪɡˈzɪstəns|n
+expert|מומחה|ˈɛkspɜːrt|n
+figure|נתון / דמות|ˈfɪɡjər|n
+force|כוח|fɔːrs|n
+future|עתיד|ˈfjuːtʃər|n
+generation|דור|ˌdʒɛnəˈreɪʃən|n
+growth|צמיחה|ɡroʊθ|n
+guide|מדריך|ɡaɪd|n
+history|היסטוריה|ˈhɪstəri|n
+honour|כבוד|ˈɒnər|n
+image|תדמית|ˈɪmɪdʒ|n
+impression|רושם|ɪmˈprɛʃən|n
+instruction|הוראה|ɪnˈstrʌkʃən|n
+item|פריט|ˈaɪtəm|n
+journey|מסע|ˈdʒɜːrni|n
+kind|סוג|kaɪnd|n
+lack|מחסור|læk|n
+leader|מנהיג|ˈliːdər|n
+limit|גבול|ˈlɪmɪt|n
+link|קישור|lɪŋk|n
+location|מיקום|loʊˈkeɪʃən|n
+luck|מזל|lʌk|n
+manner|אופן|ˈmænər|n
+mark|סימן|mɑːrk|n
+measure|מדד|ˈmɛʒər|n
+model|דגם|ˈmɒdəl|n
+movement|תנועה|ˈmuːvmənt|n
+object|חפץ|ˈɒbdʒɛkt|n
+past|עבר|pæst|n
+pattern|תבנית|ˈpætərn|n
+percentage|אחוז|pərˈsɛntɪdʒ|n
+piece|חתיכה|piːs|n
+policy|מדיניות|ˈpɒləsi|n
+position|מיקום|pəˈzɪʃən|n
+practice|תרגול|ˈpræktɪs|n
+present|הווה|ˈprɛzənt|n
+pressure|לחץ|ˈprɛʃər|n
+price|מחיר|praɪs|n
+principle|עיקרון|ˈprɪnsəpəl|n
+proof|הוכחה|pruːf|n
+property|רכוש|ˈprɒpərti|n
+range|טווח|reɪndʒ|n
+rate|שיעור|reɪt|n
+record|תיעוד|ˈrɛkərd|n
+region|אזור|ˈriːdʒən|n
+research|מחקר|rɪˈsɜːrtʃ|n
+resource|משאב|ˈriːsɔːrs|n
+respect|כבוד|rɪˈspɛkt|n
+rest|שאר / מנוחה|rɛst|n
+scale|קנה מידה|skeɪl|n
+section|קטע|ˈsɛkʃən|n
+sense|חוש / היגיון|sɛns|n
+series|סדרה|ˈsɪriːz|n
+share|חלק|ʃɛr|n
+sign|סימן|saɪn|n
+size|מידה|saɪz|n
+society|חברה|səˈsaɪəti|n
+sort|סוג|sɔːrt|n
+speed|קצב|spiːd|n
+spirit|רוח|ˈspɪrɪt|n
+state|מצב / מדינה|steɪt|n
+style|סגנון|staɪl|n
+surface|משטח|ˈsɜːrfɪs|n
+target|יעד|ˈtɑːrɡɪt|n
+technology|טכנולוגיה|tɛkˈnɒlədʒi|n
+test|מבחן|tɛst|n
+top|פסגה|tɒp|n
+trade|מסחר|treɪd|n
+trip|טיול|trɪp|n
+type|סוג|taɪp|n
+unit|יחידה|ˈjuːnɪt|n
+use|שימוש|juːs|n
+version|גרסה|ˈvɜːrʒən|n
+weight|כובד|weɪt|n
+whole|מכלול|hoʊl|n
+`;
+
+/* ---------- מקצועות, שירותים ופעולות יומיומיות נוספות ---------- */
+WD[5] += `
+engineer|מהנדס|ˌɛndʒɪˈnɪr|n
+scientist|מדען|ˈsaɪəntɪst|n
+artist|אמן|ˈɑːrtɪst|n
+writer|סופר|ˈraɪtər|n
+singer|זמר|ˈsɪŋər|n
+cook|טבח|kʊk|n
+waiter|מלצר|ˈweɪtər|n
+seller|מוכר|ˈsɛlər|n
+farmer|חקלאי|ˈfɑːrmər|n
+worker|פועל|ˈwɜːrkər|n
+builder|בנאי|ˈbɪldər|n
+cleaner|מנקה|ˈkliːnər|n
+guard|שומר|ɡɑːrd|n
+pilot|טייס|ˈpaɪlət|n
+sailor|מלח|ˈseɪlər|n
+soldier|חייל|ˈsoʊldʒər|n
+president|נשיא|ˈprɛzɪdənt|n
+king|מלך|kɪŋ|n
+queen|מלכה|kwiːn|n
+boss|בוס|bɒs|n
+owner|בעלים|ˈoʊnər|n
+partner|שותף|ˈpɑːrtnər|n
+member|חבר בקבוצה|ˈmɛmbər|n
+group|קבוצה|ɡruːp|n
+crowd|קהל|kraʊd|n
+couple|זוג|ˈkʌpəl|n
+pair|זוג פריטים|pɛr|n
+`;
+
+WD[6] += `
+lock|לנעול|lɒk|v
+unlock|לפתוח נעילה|ʌnˈlɒk|v
+knock|לדפוק בדלת|nɒk|v
+ring|לצלצל בפעמון|rɪŋ|v
+switch|להחליף|swɪtʃ|v
+turn on|להדליק|tɜːrn ɒn|phr
+turn off|לכבות|tɜːrn ɒf|phr
+plug in|לחבר לחשמל|plʌɡ ɪn|phr
+charge|לטעון|tʃɑːrdʒ|v
+download|להוריד|ˈdaʊnloʊd|v
+upload|להעלות|ˈʌploʊd|v
+install|להתקין|ɪnˈstɔːl|v
+update|לעדכן|ʌpˈdeɪt|v
+save|לשמור קובץ|seɪv|v
+share|לשתף|ʃɛr|v
+send|לשלוח|sɛnd|v
+receive|לקבל|rɪˈsiːv|v
+reply|להשיב|rɪˈplaɪ|v
+book|להזמין מראש|bʊk|v
+cancel|לבטל|ˈkænsəl|v
+confirm|לאשר|kənˈfɜːrm|v
+register|להירשם|ˈrɛdʒɪstər|v
+sign|לחתום|saɪn|v
+print|להדפיס|prɪnt|v
+scan|לסרוק|skæn|v
+search|לחפש באינטרנט|sɜːrtʃ|v
+click|ללחוץ|klɪk|v
+type|להקליד|taɪp|v
+delete|למחוק|dɪˈliːt|v
+rent|לשכור|rɛnt|v
+hire|להעסיק|ˈhaɪər|v
+fire|לפטר|ˈfaɪər|v
+apply|להגיש מועמדות|əˈplaɪ|v
+retire|לפרוש לגמלאות|rɪˈtaɪər|v
+deliver|לספק / למסור|dɪˈlɪvər|v
+collect|לאסוף|kəˈlɛkt|v
+pack|לארוז|pæk|v
+unpack|לפרוק|ʌnˈpæk|v
+load|להעמיס|loʊd|v
+store|לאחסן|stɔːr|v
+arrange|לסדר|əˈreɪndʒ|v
+organize|לארגן|ˈɔːrɡənaɪz|v
+sort|למיין|sɔːrt|v
+label|לתייג|ˈleɪbəl|v
+check|לבדוק|tʃɛk|v
+test|לבחון|tɛst|v
+fix|לתקן|fɪks|v
+adjust|לכוונן|əˈdʒʌst|v
+replace|להחליף|rɪˈpleɪs|v
+`;
+
+WD[7] += `
+accompany|ללוות|əˈkʌmpəni|v
+accumulate|לצבור|əˈkjuːmjuleɪt|v
+allocate|להקצות|ˈæləkeɪt|v
+alter|לשנות|ˈɔːltər|v
+appreciate|להעריך / להוקיר|əˈpriːʃieɪt|v
+assess|להעריך|əˈsɛs|v
+assume|להניח|əˈsuːm|v
+attribute|לייחס|əˈtrɪbjuːt|v
+challenge|לאתגר|ˈtʃælɪndʒ|v
+classify|לסווג|ˈklæsɪfaɪ|v
+collapse|לקרוס|kəˈlæps|v
+compensate|לפצות|ˈkɒmpənseɪt|v
+comprise|לכלול|kəmˈpraɪz|v
+conduct|לנהל / לערוך|kənˈdʌkt|v
+confront|להתעמת|kənˈfrʌnt|v
+consult|להתייעץ|kənˈsʌlt|v
+convert|להמיר|kənˈvɜːrt|v
+cooperate|לשתף פעולה|koʊˈɒpəreɪt|v
+coordinate|לתאם|koʊˈɔːrdɪneɪt|v
+correspond|להתאים / להתכתב|ˌkɒrɪˈspɒnd|v
+deduce|להסיק|dɪˈduːs|v
+delegate|להאציל סמכות|ˈdɛlɪɡeɪt|v
+depict|לתאר בתמונה|dɪˈpɪkt|v
+detect|לגלות|dɪˈtɛkt|v
+deviate|לסטות|ˈdiːvieɪt|v
+diminish|להתמעט|dɪˈmɪnɪʃ|v
+dispute|לערער|dɪˈspjuːt|v
+distribute|להפיץ|dɪˈstrɪbjuːt|v
+document|לתעד|ˈdɒkjumɛnt|v
+eliminate|לחסל|ɪˈlɪmɪneɪt|v
+encounter|להיתקל|ɪnˈkaʊntər|v
+evolve|להתפתח|ɪˈvɒlv|v
+exhibit|להציג|ɪɡˈzɪbɪt|v
+facilitate|להקל / לאפשר|fəˈsɪlɪteɪt|v
+formulate|לנסח|ˈfɔːrmjuleɪt|v
+highlight|להדגיש|ˈhaɪlaɪt|v
+hinder|להפריע|ˈhɪndər|v
+incorporate|לשלב|ɪnˈkɔːrpəreɪt|v
+initiate|ליזום|ɪˈnɪʃieɪt|v
+inspect|לבדוק ביסודיות|ɪnˈspɛkt|v
+justify|להצדיק|ˈdʒʌstɪfaɪ|v
+minimize|למזער|ˈmɪnɪmaɪz|v
+maximize|למקסם|ˈmæksɪmaɪz|v
+overlook|להתעלם בטעות|ˌoʊvərˈlʊk|v
+persist|להתמיד|pərˈsɪst|v
+precede|לקדום|prɪˈsiːd|v
+prioritize|לתעדף|praɪˈɒrɪtaɪz|v
+recall|להיזכר|rɪˈkɔːl|v
+reinforce|לחזק|ˌriːɪnˈfɔːrs|v
+restore|לשחזר|rɪˈstɔːr|v
+simulate|לדמות|ˈsɪmjuleɪt|v
+substitute|להחליף|ˈsʌbstɪtuːt|v
+summarize|לסכם|ˈsʌməraɪz|v
+terminate|לסיים|ˈtɜːrmɪneɪt|v
+utilize|לנצל|ˈjuːtɪlaɪz|v
+validate|לתקף|ˈvælɪdeɪt|v
+withstand|לעמוד בפני|wɪðˈstænd|v
+yield|להניב / להיכנע|jiːld|v
+`;
+
+/* ---------- השלמה אחרונה לעבר 2,000 ---------- */
+WD[4] += `
+ceiling|תקרה|ˈsiːlɪŋ|n
+shelf|מדף|ʃɛlf|n
+drawer|מגירה|drɔːr|n
+cupboard|ארון מטבח|ˈkʌbərd|n
+wardrobe|ארון בגדים|ˈwɔːrdroʊb|n
+carpet|שטיח|ˈkɑːrpɪt|n
+curtain|וילון|ˈkɜːrtən|n
+sofa|ספה|ˈsoʊfə|n
+clock|שעון קיר|klɒk|n
+watch|שעון יד|wɒtʃ|n
+ring|טבעת|rɪŋ|n
+necklace|שרשרת תכשיט|ˈnɛkləs|n
+wallet|ארנק|ˈwɒlɪt|n
+umbrella|מטריה|ʌmˈbrɛlə|n
+suitcase|מזוודה|ˈsuːtkeɪs|n
+ticket|כרטיס נסיעה|ˈtɪkɪt|n
+map|מפה|mæp|n
+sign|שלט|saɪn|n
+flag|דגל|flæɡ|n
+toy|צעצוע|tɔɪ|n
+ball|כדור|bɔːl|n
+game|משחק|ɡeɪm|n
+puzzle|פאזל|ˈpʌzəl|n
+card|קלף / כרטיס|kɑːrd|n
+gift|מתנה|ɡɪft|n
+`;
+
+WD[8] += `
+adequately|כראוי|ˈædɪkwətli|adv
+alternatively|לחלופין|ɔːlˈtɜːrnətɪvli|adv
+briefly|בקצרה|ˈbriːfli|adv
+broadly|באופן רחב|ˈbrɔːdli|adv
+clearly|באופן ברור|ˈklɪrli|adv
+closely|מקרוב|ˈkloʊsli|adv
+commonly|בדרך כלל|ˈkɒmənli|adv
+directly|ישירות|dɪˈrɛktli|adv
+extremely|באופן קיצוני|ɪkˈstriːmli|adv
+formally|באופן רשמי|ˈfɔːrməli|adv
+fully|במלואו|ˈfʊli|adv
+gradually|בהדרגה|ˈɡrædʒuəli|adv
+heavily|בכבדות|ˈhɛvɪli|adv
+ideally|באופן אידיאלי|aɪˈdiːəli|adv
+independently|באופן עצמאי|ˌɪndɪˈpɛndəntli|adv
+indirectly|בעקיפין|ˌɪndɪˈrɛktli|adv
+inevitably|באופן בלתי נמנע|ɪnˈɛvɪtəbli|adv
+loosely|באופן רופף|ˈluːsli|adv
+merely|רק / בסך הכול|ˈmɪrli|adv
+notably|במיוחד|ˈnoʊtəbli|adv
+partly|בחלקו|ˈpɑːrtli|adv
+potentially|באופן פוטנציאלי|pəˈtɛnʃəli|adv
+precisely|בדיוק|prɪˈsaɪsli|adv
+presumably|ככל הנראה|prɪˈzuːməbli|adv
+rapidly|במהירות|ˈræpɪdli|adv
+rarely|לעיתים נדירות|ˈrɛrli|adv
+readily|בקלות / ברצון|ˈrɛdɪli|adv
+reasonably|באופן סביר|ˈriːzənəbli|adv
+remarkably|באופן יוצא דופן|rɪˈmɑːrkəbli|adv
+roughly|בערך|ˈrʌfli|adv
+severely|בחומרה|sɪˈvɪrli|adv
+sharply|בחדות|ˈʃɑːrpli|adv
+steadily|בהתמדה|ˈstɛdɪli|adv
+strictly|בקפדנות|ˈstrɪktli|adv
+subsequently|לאחר מכן|ˈsʌbsɪkwəntli|adv
+substantially|באופן מהותי|səbˈstænʃəli|adv
+thoroughly|ביסודיות|ˈθʌroʊli|adv
+truly|באמת|ˈtruːli|adv
+virtually|כמעט לחלוטין|ˈvɜːrtʃuəli|adv
+`;
+
+WD[9] += `
+albeit|אם כי|ɔːlˈbiːɪt|conj
+whereby|שבאמצעותו|wɛrˈbaɪ|conj
+thereby|ובכך|ðɛrˈbaɪ|adv
+nonetheless|אף על פי כן|ˌnʌnðəˈlɛs|adv
+nevertheless|למרות זאת|ˌnɛvərðəˈlɛs|adv
+henceforth|מעתה ואילך|ˌhɛnsˈfɔːrθ|adv
+notwithstanding|על אף|ˌnɒtwɪθˈstændɪŋ|prep
+insofar as|ככל ש|ˌɪnsoʊˈfɑːr æz|conj
+provided that|בתנאי ש|prəˈvaɪdɪd ðæt|conj
+given that|בהינתן ש|ˈɡɪvən ðæt|conj
+in light of|לאור|ɪn laɪt əv|phr
+with regard to|בנוגע ל|wɪð rɪˈɡɑːrd tuː|phr
+on behalf of|בשם|ɒn bɪˈhæf əv|phr
+in accordance with|בהתאם ל|ɪn əˈkɔːrdəns wɪð|phr
+as opposed to|בניגוד ל|æz əˈpoʊzd tuː|phr
+in contrast to|בשונה מ|ɪn ˈkɒntræst tuː|phr
+`;
+
+/* ---------- מיזוג לתוך WORDS, בלי כפילויות ---------- */
+Object.keys(WD).forEach(lv=>{
+  WD[lv].trim().split('\n').forEach(line=>{
+    const p=line.split('|'); if(p.length<4) return;
+    const id='w:'+p[0];
+    if(WORDS.some(w=>w.id===id)) return;
+    WORDS.push({id, en:p[0], he:p[1], ipa:p[2], pos:p[3], ex:'', exhe:'', lv:+lv, core:1});
+  });
+});
+/* ============================================================
+   חמשת הזמנים הליבתיים
+   ------------------------------------------------------------
+   מחקרי תדירות של אנגלית מדוברת מראים שחמישה זמנים מכסים את
+   הרוב המוחלט של השיח היום-יומי. שאר הזמנים (Past Perfect,
+   Future Perfect, Perfect Continuous וכו') קיימים — אבל נדירים
+   בדיבור, ולכן הם לא חלק מהליבה הזו.
+
+   כל זמן כאן מקבל: שם, מתי משתמשים, המבנה, וטבלת הטיה מלאה
+   לשלוש הצורות (חיובי / שלילי / שאלה) — כדי שאפשר יהיה לראות
+   את כל המערכת בבת אחת, לא כלל אחד מבודד בכל פעם.
+   ============================================================ */
+
+const CORE_TENSES = [
+  {
+    id:'pres-simple', lv:3, nm:'הווה פשוט', en:'Present Simple',
+    use:'הרגלים, עובדות קבועות ולוחות זמנים. "כל יום", "בדרך כלל", "תמיד".',
+    form:'I/you/we/they + פועל בסיס · he/she/it + פועל + s',
+    markers:'every day, usually, always, never, often',
+    conj:[
+      ['חיובי','I work / He works','אני עובד / הוא עובד'],
+      ['שלילי','I do not work / He does not work','אני לא עובד / הוא לא עובד'],
+      ['שאלה','Do I work? / Does he work?','אני עובד? / הוא עובד?']
+    ],
+    trap:'הטעות הנפוצה: לשכוח את ה-s בגוף שלישי, או להשאיר אותו אחרי does.'
+  },
+  {
+    id:'pres-cont', lv:4, nm:'הווה ממושך', en:'Present Continuous',
+    use:'מה שקורה ממש עכשיו, או בתקופה הנוכחית. גם לתוכניות סגורות בעתיד הקרוב.',
+    form:'am / is / are + פועל + ing',
+    markers:'now, right now, at the moment, today',
+    conj:[
+      ['חיובי','I am working / He is working','אני עובד עכשיו / הוא עובד עכשיו'],
+      ['שלילי','I am not working / He is not working','אני לא עובד כרגע'],
+      ['שאלה','Am I working? / Is he working?','אני עובד כרגע? / הוא עובד כרגע?']
+    ],
+    trap:'פעלים של מצב (know, want, like, need) כמעט אף פעם לא מקבלים ing.'
+  },
+  {
+    id:'past-simple', lv:5, nm:'עבר פשוט', en:'Past Simple',
+    use:'פעולה שהסתיימה בזמן מוגדר בעבר. זה הזמן הכי שימושי לסיפור.',
+    form:'פועל + ed · פעלים חריגים משנים צורה',
+    markers:'yesterday, last week, in 2020, ago',
+    conj:[
+      ['חיובי','I worked / I went','עבדתי / הלכתי'],
+      ['שלילי','I did not work / I did not go','לא עבדתי / לא הלכתי'],
+      ['שאלה','Did I work? / Did you go?','עבדתי? / הלכת?']
+    ],
+    trap:'אחרי did / did not הפועל תמיד חוזר לצורת הבסיס — לא "didn\'t went".'
+  },
+  {
+    id:'future', lv:5, nm:'עתיד', en:'Future (will / going to)',
+    use:'will להחלטה ברגע, הבטחה ותחזית. going to לתוכנית שכבר קיימת.',
+    form:'will + בסיס · am/is/are going to + בסיס',
+    markers:'tomorrow, next week, soon, later',
+    conj:[
+      ['חיובי','I will work / I am going to work','אני אעבוד / אני מתכוון לעבוד'],
+      ['שלילי','I will not work / I am not going to work','אני לא אעבוד'],
+      ['שאלה','Will I work? / Are you going to work?','אעבוד? / אתה מתכוון לעבוד?']
+    ],
+    trap:'אחרי will הפועל תמיד בבסיס — לא "will comes".'
+  },
+  {
+    id:'pres-perfect', lv:7, nm:'הווה מושלם', en:'Present Perfect',
+    use:'פעולה בלי זמן מוגדר, או שנמשכת עד עכשיו ורלוונטית להווה.',
+    form:'have / has + צורה שלישית',
+    markers:'already, yet, ever, never, since, for, just',
+    conj:[
+      ['חיובי','I have finished / He has finished','סיימתי / הוא סיים'],
+      ['שלילי','I have not finished / He has not finished','לא סיימתי'],
+      ['שאלה','Have I finished? / Has he finished?','סיימתי? / הוא סיים?']
+    ],
+    trap:'לא משתמשים עם זמן מוגדר בעבר. "I have seen him yesterday" שגוי — צריך saw.'
+  }
+];
+
+/* ---- תרגיל הטיה: נתון פועל וזמן, כותבים את הצורה הנכונה ----
+   פורמט: רמה|פועל בסיס|עברית|זמן|גוף|התשובה|רמז          */
+const CONJUG = `
+3|work|לעבוד|pres-simple|he|works|גוף שלישי יחיד בהווה פשוט
+3|live|לגור|pres-simple|she|lives|גוף שלישי יחיד בהווה פשוט
+3|go|ללכת|pres-simple|he|goes|אחרי o מוסיפים es
+3|study|ללמוד|pres-simple|she|studies|y אחרי עיצור הופך ל-ies
+3|watch|לצפות|pres-simple|he|watches|אחרי ch מוסיפים es
+3|have|יש לו|pres-simple|he|has|have הופך ל-has
+3|read|לקרוא|pres-simple|they|read|רבים — בלי s
+3|play|לשחק|pres-simple|we|play|רבים — בלי s
+4|work|לעבוד|pres-cont|I|am working|am + ing
+4|eat|לאכול|pres-cont|he|is eating|is + ing
+4|run|לרוץ|pres-cont|they|are running|כפילות עיצור לפני ing
+4|write|לכתוב|pres-cont|she|is writing|e נשמטת לפני ing
+4|sit|לשבת|pres-cont|we|are sitting|כפילות עיצור לפני ing
+4|come|לבוא|pres-cont|I|am coming|e נשמטת לפני ing
+5|work|לעבוד|past-simple|I|worked|פועל רגיל + ed
+5|play|לשחק|past-simple|she|played|פועל רגיל + ed
+5|stop|לעצור|past-simple|he|stopped|כפילות עיצור לפני ed
+5|study|ללמוד|past-simple|they|studied|y הופך ל-ied
+5|go|ללכת|past-simple|I|went|פועל חריג
+5|see|לראות|past-simple|he|saw|פועל חריג
+5|take|לקחת|past-simple|we|took|פועל חריג
+5|buy|לקנות|past-simple|she|bought|פועל חריג
+5|work|לעבוד|future|I|will work|will + בסיס
+5|come|לבוא|future|she|will come|will + בסיס, בלי s
+5|help|לעזור|future|they|will help|will + בסיס
+5|call|להתקשר|future|he|will call|will + בסיס
+7|finish|לסיים|pres-perfect|I|have finished|have + צורה שלישית
+7|finish|לסיים|pres-perfect|he|has finished|has לגוף שלישי יחיד
+7|go|ללכת|pres-perfect|she|has gone|צורה שלישית חריגה
+7|see|לראות|pres-perfect|they|have seen|צורה שלישית חריגה
+7|write|לכתוב|pres-perfect|I|have written|צורה שלישית חריגה
+7|do|לעשות|pres-perfect|he|has done|צורה שלישית חריגה
+7|eat|לאכול|pres-perfect|we|have eaten|צורה שלישית חריגה
+7|take|לקחת|pres-perfect|she|has taken|צורה שלישית חריגה
+`.trim().split('\n').map(l=>{
+  const p=l.split('|');
+  return {lv:+p[0], base:p[1], he:p[2], tense:p[3], subj:p[4], ans:p[5], hint:p[6]};
+});
+
+const TENSE_BY_ID = {};
+CORE_TENSES.forEach(t=>TENSE_BY_ID[t.id]=t);
+/* ============================================================
    ENGINE — אחסון, משתמשים, חזרות מרווחות, שטף, בניית סשן
    ============================================================ */
 
@@ -1938,6 +3672,8 @@ function poolFor(lv){
     if(w.lv>=2) p.push({t:'w-listen',id:w.id+'#l', d:w, lv:w.lv});
     if(w.lv>=3) p.push({t:'w-speak', id:w.id+'#s', d:w, lv:w.lv});
   });
+  CONJUG.filter(c=>c.lv<=lv).forEach(c=>
+    p.push({t:'conjug', id:'J:'+c.base+'#'+c.tense+'#'+c.subj, d:c, lv:c.lv}));
   IRREG.filter(v=>v.lv<=lv).forEach(v=>{
     p.push({t:'irr-past', id:'V:'+v.base+'#p', d:v, lv:v.lv});
     p.push({t:'irr-pp',   id:'V:'+v.base+'#3', d:v, lv:v.lv});
@@ -1963,7 +3699,7 @@ function poolFor(lv){
 /* יעד זמן שליפה לפי סוג התרגיל (מילישניות) */
 const TARGET = {letter:2500,phonics:3500,'w-recog':3000,'w-recall':5000,'w-listen':6000,
                 'w-speak':6000,build:15000,dictate:14000,cloze:6000,proof:9000,rule:8000,talk:20000,
-                'mp-hear':4000,'mp-say':7000,contract:5000,spoken:6000,'irr-past':5000,'irr-pp':5000};
+                'mp-hear':4000,'mp-say':7000,contract:5000,spoken:6000,'irr-past':5000,'irr-pp':5000,conjug:6000};
 
 /* --- בניית סשן: חזרות שנדרשות קודם, ואז חומר חדש, בשילוב מסוגים שונים --- */
 function buildSession(u, size, mode){
@@ -1986,6 +3722,10 @@ function buildSession(u, size, mode){
   if(mode==='weak'){
     const s=[...weak,...due].sort((a,b)=>strength(u.srs[a.id])-strength(u.srs[b.id]));
     return interleave(fill(s, pool));
+  }
+  if(mode==='tenses'){
+    const t=pool.filter(x=>x.t==='conjug');
+    return t.length? interleave(capTypes(shuffle(t),size)) : buildSession(u,size,'mix');
   }
   if(mode==='irregular'){
     const v=pool.filter(x=>x.t==='irr-past'||x.t==='irr-pp');
@@ -2108,7 +3848,7 @@ function analyse(u){
 const TYPE_HE = {letter:'אותיות',phonics:'פונטיקה','w-recog':'זיהוי מילים','w-recall':'שליפת מילים',
  'w-listen':'הבנת הנשמע','w-speak':'הגייה',build:'בניית משפט',dictate:'הכתבה',cloze:'השלמה',
  proof:'הגהה',rule:'חוקי דקדוק',talk:'שיחה','mp-hear':'אבחנת צלילים','mp-say':'הגייה מדויקת',
- contract:'קיצורים',spoken:'דיבור מהיר','irr-past':'פועל חריג · עבר','irr-pp':'פועל חריג · שלישית'};
+ contract:'קיצורים',spoken:'דיבור מהיר','irr-past':'פועל חריג · עבר','irr-pp':'פועל חריג · שלישית',conjug:'הטיית זמן'};
 
 /* --- דיבור --- */
 /* דירוג קולות: הדפדפן מחזיר גם קולות דחוסים ("compact") שנשמעים מתכתיים.
@@ -2489,6 +4229,7 @@ function vHome(s){
        <button class="btn ghost sm" style="width:100%" onclick="startSession('weak',10)">חיזוק חולשות</button>
        <button class="btn ghost sm" style="width:100%" onclick="startSession('sound',10)">אוזן והגייה</button>
      </div>
+     <button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="tenseSheet()">טבלת חמשת הזמנים</button>
    </div>
 
    <div class="grid3" style="margin-top:14px">
@@ -2547,6 +4288,7 @@ function levelSheet(l){
       <button class="btn sm" style="width:100%" onclick="closeSheet();startSession('mix',12,${l.id})">תרגול הרמה</button>
       <button class="btn ghost sm" style="width:100%" onclick="closeSheet();startSession('rules',10,${l.id})">דקדוק בלבד</button>
     </div>
+    ${CORE_TENSES.some(t=>t.lv===l.id)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();tenseSheet()">טבלת חמשת הזמנים</button>`:''}
     ${IRREG.some(v=>v.lv===l.id)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();irregSheet(${l.id})">טבלת הפעלים החריגים</button>`:''}
     ${gs.length?`<div class="sec-title">חוקים</div>${gs.map(g=>`<div class="card"><b>${esc(g.ti)}</b><div class="sub" style="margin-top:5px">${esc(g.he)}</div>
       <div class="ruleblk">${g.ex.map(e=>`<span class="ex en">${esc(e.en)}</span><span class="muted">${esc(e.he)}</span>`).join('')}</div></div>`).join('')}`:''}
@@ -2562,6 +4304,7 @@ const MODES=[
  ['mix',  14,'תרגול מעורב','חזרות שהגיע זמנן יחד עם חומר חדש, בשזירה בין סוגי תרגיל. המצב היעיל ביותר לזיכרון ארוך טווח.'],
  ['weak', 12,'חיזוק חולשות','רק הפריטים שנכשלת בהם או ששולף אותם לאט מדי.'],
  ['sound',12,'אוזן והגייה','זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. השריר שחסר לרוב דוברי העברית.'],
+ ['tenses',12,'חמשת הזמנים','הטיית פעלים בחמשת הזמנים שמכסים כמעט את כל האנגלית המדוברת. זה מה שנשבר בדיבור — לא הידיעה, אלא המהירות.'],
  ['irregular',12,'פעלים חריגים','מאה פעלים בשלוש צורות, מקובצים ל‑12 תבניות הטיה. התבנית היא הקיצור.'],
  ['rules',12,'דקדוק ותחביר','חוקים, השלמת חסר, בניית משפט, הגהה וקיצורים.'],
  ['talk', 8, 'אימון שיחה','שאלות פתוחות. עונים בקול או בכתב ומשווים לתשובת מודל.'],
@@ -2592,6 +4335,7 @@ const TYPE_INFO={
  talk:['💬','שיחה','שאלה פתוחה. ענו בקול או בכתב, ואז השוו לתשובת מודל וקראו אותה בקול.'],
  'mp-hear':['🎧','אבחנת צלילים','שתי מילים שנשמעות כמעט זהות. שומעים אחת מהן וצריך לזהות איזו. זה מאמן את האוזן.'],
  'mp-say':['🗣','הגייה מדויקת','אומרים מילה שיש לה תאומה מבלבלת. המערכת תגיד אם יצאה לכם התאומה במקום.'],
+ conjug:['🕐','הטיית זמן','נתון פועל בסיס, גוף וזמן — כתבו את הצורה הנכונה. אפשר לכתוב רק את הפועל או את המשפט המלא.'],
  'irr-past':['⏮','פועל חריג · עבר','הפועל בצורת הבסיס — כתבו את צורת העבר. בסוף תראו את שלוש הצורות ואת התבנית שאליה הפועל שייך.'],
  'irr-pp':['✅','פועל חריג · צורה שלישית','הצורה שבאה אחרי have / has / was. זו הצורה שנחוצה ל‑Present Perfect ולסביל.'],
  contract:['⚡','קיצורים','הצורה המלאה מול הצורה המקוצרת. בדיבור טבעי כמעט תמיד משתמשים בקצרה.'],
@@ -3137,6 +4881,57 @@ function irregSheet(lv){
         return `<div class="wordrow"><span class="dot" style="background:${col}"></span>
           <span class="w">${esc(v.base)} · ${esc(v.past)} · ${esc(v.pp)}</span>
           <span class="h">${esc(v.he)}</span></div>`}).join('')}</div>`).join('')}`);
+}
+/* ---------------- הטיית זמן ----------------
+   נתון פועל בסיס, גוף וזמן — כותבים את הצורה הנכונה.
+   זה מאמן בדיוק את מה שנשבר בדיבור: לא לזכור שהזמן קיים,
+   אלא לייצר את הצורה הנכונה מהר, בלי לעצור לחשוב.        */
+RENDER.conjug=(q,it,u,tg)=>{
+  const d=it.d, t=TENSE_BY_ID[d.tense];
+  q.innerHTML=`<div class="prompt"><div class="kicker">הטיית זמן · ${esc(t.nm)}</div>
+    <div class="big">${esc(d.base)}</div>
+    <div class="small">${esc(d.he)}</div>
+    <div class="med" style="font-size:1.15rem;margin-top:6px">${esc(d.subj)} + ?</div>
+    <div class="muted" style="font-size:.78rem">${esc(t.form)}</div></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${esc(d.subj)} ..."><button class="btn" id="chk">בדיקה</button></div>
+    <button class="btn ghost" id="dk">לא יודע</button>`;
+  const inp=$('#in'); focusInput(inp);
+  const full = d.subj+' '+d.ans;
+  const done=ok=>{ inp.classList.add(ok?'ok':'no'); say(full);
+    answer(it,ok,tg,`<b class="en">${esc(full)}</b><br>${esc(d.hint)}
+      <br><span class="muted">${esc(t.nm)} — ${esc(t.use)}</span>`); };
+  /* מקבלים גם "he works" וגם "works" — הגוף כבר מוצג על המסך */
+  const chk=()=>{ const v=norm(inp.value);
+    done(v===norm(d.ans) || v===norm(full)); };
+  inp.onkeydown=e=>{if(e.key==='Enter')chk()};
+  $('#chk').onclick=chk;
+  S.primary=null; S.revealInline=true;
+  S.reveal=()=>done(false);
+  $('#dk').onclick=()=>S.reveal();
+};
+
+/* ---------------- גיליון חמשת הזמנים ----------------
+   טבלת ייחוס אחת שמראה את כל המערכת יחד. הערך שלה הוא
+   דווקא בהצגה המשותפת — ההבדלים נראים רק בהשוואה.      */
+function tenseSheet(){
+  const u=me();
+  sheet(`<h2>חמשת הזמנים</h2>
+    <p class="sub">חמישה זמנים מכסים כמעט את כל האנגלית המדוברת ביום-יום. שאר הזמנים קיימים, אבל נדירים בדיבור — ולכן הם לא הליבה.</p>
+    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('tenses',12)">תרגול הטיות</button>
+    ${CORE_TENSES.map(t=>{
+      const open = t.lv<=u.lv;
+      return `<div class="sec-title">${esc(t.nm)} · <span class="en">${esc(t.en)}</span>${open?'':' 🔒'}</div>
+      <div class="card"${open?'':' style="opacity:.5"'}>
+        <div class="sub">${esc(t.use)}</div>
+        <div class="ruleblk"><span class="ex">${esc(t.form)}</span>
+          <span class="muted" style="display:block;margin-top:5px">מילות סימן: <span class="en">${esc(t.markers)}</span></span></div>
+        ${t.conj.map(([label,en,he])=>`<div class="wordrow">
+          <span class="badge">${esc(label)}</span>
+          <span class="w">${esc(en)}</span>
+          <span class="h">${esc(he)}</span></div>`).join('')}
+        <p class="muted" style="margin-top:9px">⚠ ${esc(t.trap)}</p>
+      </div>`;
+    }).join('')}`);
 }
 /* ============================================================
    קודי כניסה, בקרת הורים ומשימות
