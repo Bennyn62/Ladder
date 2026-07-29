@@ -35,6 +35,11 @@
   --sh-lift:0 2px 4px rgba(15,27,33,.07), 0 18px 44px rgba(15,27,33,.16);
   --bar:78px;
   --fs:16px;
+
+  /* רוחב התוכן וסרגל הצד — מוגדרים כמשתנים כדי שנקודות העצירה
+     ישנו אותם במקום אחד, במקום לשכפל max-width בכל כלל.        */
+  --shell:600px;   /* רוחב עמודת התוכן */
+  --side:0px;      /* רוחב סרגל הניווט הצדי (0 בנייד — הניווט למטה) */
 }
 [data-theme="dark"]{
   color-scheme: dark;
@@ -81,7 +86,7 @@ input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
 .spacer{flex:1}
 
 /* ---------- shell ---------- */
-#app{max-width:600px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
+#app{max-width:var(--shell);margin:0 auto;min-height:100dvh;display:flex;flex-direction:column}
 .screen{flex:1;padding:0 18px calc(var(--bar) + env(safe-area-inset-bottom) + 26px)}
 .topbar{
   position:sticky;top:0;z-index:40;background:var(--paper);
@@ -112,7 +117,8 @@ input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
   border-top:1px solid var(--line);padding:5px 8px calc(env(safe-area-inset-bottom) + 5px);
   transition:transform .15s ease-out
 }
-.nav-in{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
+.nav button span{white-space:nowrap}
+.nav-in{max-width:var(--shell);margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2px}
 .nav button{
   display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 2px;
   border-radius:11px;font-size:11px;font-weight:700;color:var(--ink3);transition:.15s
@@ -307,11 +313,11 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
    סרגל הפעולה — הפעולה הראשית תמיד מתחת לאגודל
    ============================================================ */
 .actionbar{
-  position:fixed;bottom:0;left:0;right:0;z-index:60;background:var(--card);
+  position:fixed;bottom:0;inset-inline-start:var(--side);inset-inline-end:0;z-index:60;background:var(--card);
   border-top:1px solid var(--line);padding:10px 18px calc(env(safe-area-inset-bottom) + 10px);
   transition:transform .15s ease-out
 }
-.actionbar-in{max-width:600px;margin:0 auto;display:flex;gap:9px;align-items:center}
+.actionbar-in{max-width:var(--shell);margin:0 auto;display:flex;gap:9px;align-items:center}
 .actionbar-in>.btn{
   /* חשוב: .btn כולל width:100%. עם flex-basis:auto זה נהיה 100% מרוחב הסרגל
      והכפתור השני נדחף אל מחוץ למסך. אפס בסיס + אפשרות לכיווץ פותר את זה. */
@@ -358,7 +364,7 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 /* ---------- sheet ---------- */
 .sheet-bg{position:fixed;inset:0;background:rgba(6,14,17,.5);z-index:100;display:flex;align-items:flex-end;justify-content:center;animation:fade .2s;backdrop-filter:blur(3px);transition:transform .15s ease-out}
 @keyframes fade{from{opacity:0}to{opacity:1}}
-.sheet{background:var(--paper);width:100%;max-width:600px;border-radius:var(--r-xl) var(--r-xl) 0 0;padding:16px 18px calc(env(safe-area-inset-bottom) + 20px);max-height:90dvh;overflow:auto;animation:up .28s cubic-bezier(.2,.9,.3,1)}
+.sheet{background:var(--paper);width:100%;max-width:var(--shell);border-radius:var(--r-xl) var(--r-xl) 0 0;padding:16px 18px calc(env(safe-area-inset-bottom) + 20px);max-height:90dvh;overflow:auto;animation:up .28s cubic-bezier(.2,.9,.3,1)}
 @keyframes up{from{transform:translateY(100%)}to{transform:none}}
 .sheet .grab{width:36px;height:4px;background:var(--line);border-radius:99px;margin:0 auto 16px}
 
@@ -371,7 +377,7 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 
 /* ---------- מסך נעילה ומקלדת קוד ---------- */
 .lock{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:30px 24px calc(env(safe-area-inset-bottom) + 30px);max-width:600px;margin:0 auto}
+  padding:30px 24px calc(env(safe-area-inset-bottom) + 30px);max-width:var(--shell);margin:0 auto}
 .lock .who{width:74px;height:74px;border-radius:22px;display:grid;place-items:center;font-size:38px;
   background:var(--card);border:1px solid var(--line);margin-bottom:14px}
 .dots{display:flex;gap:13px;justify-content:center;margin:20px 0 26px;direction:ltr}
@@ -419,7 +425,7 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .intro p{font-size:.9rem;color:var(--ink2);line-height:1.65;margin:0}
 
 /* ---------- מסך פתיחה ---------- */
-.welcome{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 24px calc(env(safe-area-inset-bottom) + 32px);max-width:600px;margin:0 auto}
+.welcome{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 24px calc(env(safe-area-inset-bottom) + 32px);max-width:var(--shell);margin:0 auto}
 .welcome .mark{font-family:var(--en);font-weight:800;font-size:3.4rem;letter-spacing:-.05em;direction:ltr;line-height:1;font-variation-settings:'opsz' 96}
 .welcome .mark i{font-style:normal;color:var(--brand)}
 .welcome .tagline{font-size:1.05rem;color:var(--ink2);margin:14px 0 0;line-height:1.6;max-width:32ch}
@@ -429,6 +435,112 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .step .k{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--brand);padding-top:3px;flex:none;width:22px}
 .step b{display:block;font-size:.97rem;margin-bottom:3px}
 .step span{font-size:.83rem;color:var(--ink3);line-height:1.55}
+
+/* ============================================================
+   התאמה לגודל מסך
+   ------------------------------------------------------------
+   הבסיס הוא נייד. כל נקודת עצירה מרחיבה — לא מעצבת מחדש.
+   העיקרון: עמודת התוכן גדלה במתינות (טקסט ארוך מדי בשורה קשה
+   לקריאה), והמקום העודף במסך רחב הולך לניווט צדי ולפריסה
+   דו-טורית — לא למתיחת הכרטיסים לרוחב כל המסך.
+   ============================================================ */
+
+/* --- מסכים קטנים מאוד (אייפון SE וכדומה) --- */
+@media (max-width:360px){
+  :root{--fs:15px}
+  .screen{padding-inline:14px}
+  .topbar{padding-inline:14px}
+  .prompt{padding:22px 14px}
+  .prompt .letterpair b{font-size:3.6rem}
+  .nav button{font-size:10px}
+}
+
+/* --- נייד לרוחב: גובה מוגבל, מכווצים אנכית --- */
+@media (max-height:520px) and (orientation:landscape){
+  .prompt{min-height:0;padding:16px 18px;gap:5px}
+  .prompt .big{font-size:2.2rem}
+  .prompt .letterpair b{font-size:2.8rem}
+  .prompt .letterpair span{font-size:1.8rem}
+  .readout{padding:8px 12px 9px;margin-bottom:9px}
+  .welcome{justify-content:flex-start;padding-top:22px}
+  .lock{padding-top:16px;justify-content:flex-start}
+}
+
+/* --- טאבלט --- */
+@media (min-width:700px){
+  :root{--shell:660px;--fs:17px}
+  .screen{padding-inline:24px}
+  .topbar{padding-inline:24px}
+  .grid3{gap:10px}
+  .prompt{padding:36px 26px;min-height:186px}
+}
+
+/* --- שולחן עבודה: הניווט עובר לצד --- */
+@media (min-width:1024px){
+  :root{--shell:720px;--side:236px;--bar:82px}
+
+  /* הניווט התחתון הופך לסרגל צד מלא-גובה בצד ההתחלה (ימין ב-RTL) */
+  .nav{
+    inset-block:0;inset-inline-start:0;inset-inline-end:auto;
+    width:var(--side);
+    border-top:0;border-inline-end:1px solid var(--line);
+    padding:26px 14px;display:flex;align-items:center
+  }
+  .nav-in{grid-template-columns:1fr;gap:5px;width:100%;max-width:none}
+  .nav button{
+    flex-direction:row;justify-content:flex-start;gap:13px;
+    padding:13px 15px;font-size:.92rem;border-radius:12px
+  }
+  .nav button svg{width:21px;height:21px}
+  .nav button.on{background:var(--brand-soft)}
+  .nav button:hover:not(.on){background:var(--line2)}
+
+  /* התוכן מפנה מקום לסרגל הצד ונשאר ממורכז בשארית.
+     #app מוותר כאן על ה-max-width שלו — אחרת הריפוד לסרגל הצד היה
+     נחתך בתוך 720px במקום להסיט את התוכן ממנו.                     */
+  #app{max-width:none;padding-inline-start:var(--side)}
+  .topbar,.screen{max-width:calc(var(--shell) + 48px);margin-inline:auto;width:100%}
+
+  /* רב-ברירה בשתי עמודות — מנצל את הרוחב בלי למתוח כפתור בודד */
+  .opts{grid-template-columns:1fr 1fr}
+  .opts .opt{text-align:center}
+
+  /* אזורים שמרוויחים משתי עמודות */
+  .ladder{columns:1}
+  .userpick{grid-template-columns:1fr 1fr}
+
+  /* מצבי תרגול: רשת במקום ערימה */
+  .modegrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
+  .modegrid .card+.card{margin-top:0}
+
+  /* גיליון תחתון הופך לחלון ממורכז */
+  .sheet-bg{align-items:center}
+  .sheet{
+    border-radius:var(--r-xl);max-height:84dvh;
+    padding:22px 24px 26px;max-width:640px;
+    animation:popIn .24s cubic-bezier(.2,.9,.3,1)
+  }
+  .sheet .grab{display:none}
+  @keyframes popIn{from{opacity:0;transform:scale(.97) translateY(10px)}to{opacity:1;transform:none}}
+
+  /* עכבר: משוב ריחוף שלא קיים במגע */
+  .rung:not(.locked):hover{border-color:var(--brand)}
+  .opt:hover{border-color:var(--brand)}
+  .usercard:hover{border-color:var(--brand)}
+  .btn:hover{filter:brightness(1.06)}
+  .tile:hover{border-color:var(--brand)}
+}
+
+/* --- מסך רחב --- */
+@media (min-width:1440px){
+  :root{--shell:800px;--fs:18px}
+  .grid2{gap:12px}
+}
+
+/* --- מסך רחב מאוד: מגבילים כדי שהשורה לא תתארך מדי --- */
+@media (min-width:1800px){
+  :root{--shell:840px}
+}
 
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 :focus-visible{outline:2.5px solid var(--brand);outline-offset:2px;border-radius:4px}
@@ -4065,11 +4177,15 @@ function focusInput(inp){
 function pinFixedBars(){
   if(!window.visualViewport) return;
   const vv=window.visualViewport;
+  /* בשולחן עבודה הניווט הוא סרגל צד מלא-גובה, לא פס תחתון — הזזה
+     אנכית שלו תהיה שגויה. גם ככה אין שם מקלדת וירטואלית, אבל
+     בודקים במפורש כדי שמסך מגע רחב לא ייתקל בזה.                */
+  const sideNav = () => window.matchMedia('(min-width:1024px)').matches;
   const update=()=>{
     const covered=Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
     const shift=covered>1 ? `translateY(-${covered}px)` : '';
     const ab=document.querySelector('#actionbar'); if(ab) ab.style.transform=shift;
-    const nv=document.querySelector('#nav'); if(nv) nv.style.transform=shift;
+    const nv=document.querySelector('#nav'); if(nv) nv.style.transform = sideNav() ? '' : shift;
     const sb=document.querySelector('.sheet-bg'); if(sb) sb.style.transform=shift;
   };
   vv.addEventListener('resize', update);
@@ -4314,7 +4430,7 @@ function vPractice(s){
   if(S) return drawQ(s);
   const allowed=MODES.filter(([m])=>modeAllowed(me(),m));
   s.innerHTML=`<h1>תרגול</h1><p class="sub">${allowed.length<MODES.length?'חלק מהמצבים נעולים על ידי ההורה.':'כל מצב מאמן שריר אחר.'}</p>
-    <div style="margin-top:16px">${allowed.map(([m,n,ti,d],i)=>
+    <div class="modegrid" style="margin-top:16px">${allowed.map(([m,n,ti,d],i)=>
       `<div class="card"><b style="font-size:1rem">${ti}</b><div class="sub" style="margin-top:4px">${d}</div>
        <button class="btn ${i?'ghost ':''}sm" style="margin-top:11px;width:100%" onclick="startSession('${m}',${n})">התחלה · ${n} פריטים</button></div>`).join('')}</div>`;
 }
