@@ -3709,6 +3709,112 @@ const CONJUG = `
 const TENSE_BY_ID = {};
 CORE_TENSES.forEach(t=>TENSE_BY_ID[t.id]=t);
 /* ============================================================
+   אסוציאציות — שכבת עיגון לזיכרון
+   ------------------------------------------------------------
+   שתי טכניקות נפרדות:
+
+   1. אסוציאציית צורה לאותיות (רמה 0). ילד בן 4 לא זוכר "האות B"
+      כסמל מופשט — הוא זוכר "בטן על מקל". קישור הצורה למשהו מוכר
+      הופך סימן שרירותי לתמונה.
+
+   2. שיטת מילת המפתח לאוצר מילים. קושרים את צליל המילה האנגלית
+      למילה עברית שנשמעת דומה, ובונים תמונה שמחברת ביניהן. זו
+      אחת מטכניקות השינון המבוססות ביותר — היא עובדת כי היא
+      מוסיפה נתיב שליפה שני, צלילי-חזותי, לצד התרגום היבש.
+      לא לכל מילה צריך אסוציאציה — רק למה שלא נדבק לבד.
+   ============================================================ */
+
+/* אות | אסוציאציית צורה בעברית | מילת עוגן */
+const LETTER_SHAPE = `
+A|גג של בית עם קורה באמצע|גג
+B|בטן עם שתי כרסים, נשענת על מקל|בטן
+C|ירח בחצי, או פִּיתָה פתוחה|סהר
+D|קשת מתוחה על מיתר ישר|קשת
+E|מסרק עם שלוש שיניים|מסרק
+F|דגל על תורן|דגל
+G|כמו C, אבל עם מדף קטן בפנים|סהר עם מדף
+H|סולם עם שלב אחד באמצע|סולם
+I|מקל ישר עם כובע ונעליים|מקל
+J|מקל עם וו בתחתית, כמו מטרייה הפוכה|וו
+K|אדם עם יד ורגל מושטות הצידה|בעיטה
+L|פינה ישרה, כמו סרגל|פינה
+M|שני הרים עם עמק ביניהם|הרים
+N|הר אחד עם מדרון חד|מדרון
+O|עיגול שלם, כמו כדור|עיגול
+P|מקל עם ראש עגול בצד|סהרון על מקל
+Q|עיגול עם זנב קטן שיוצא החוצה|עיגול עם זנב
+R|כמו P, אבל עם רגל שיוצאת לצד|רגל
+S|נחש מתפתל|נחש
+T|עמוד עם קורה על הראש|פטיש
+U|כוס פתוחה למעלה|כוס
+V|משולש הפוך, כמו מקור של ציפור|מקור
+W|שני V צמודים, כמו גלים|גלים
+X|שני מקלות מצטלבים, כמו סימן טעות|הצטלבות
+Y|גזע עם שני ענפים|עץ מסתעף
+Z|ברק, או דרך שמתפתלת|ברק
+`.trim().split('\n').map(l=>{const p=l.split('|');return {u:p[0], shape:p[1], anchor:p[2]}});
+
+const SHAPE_BY_LETTER = {};
+LETTER_SHAPE.forEach(s=>SHAPE_BY_LETTER[s.u]=s);
+
+/* מילה | מילת המפתח בעברית (איך זה נשמע) | התמונה שמחברת
+   נבחרו מילים שדוברי עברית נוטים לשכוח או לבלבל.        */
+const MNEMONIC = `
+bear|בר|דוב יושב על כיסא בַּר ושותה
+sun|סן|השמש כל כך חמה שהיא נשמעת כמו סן — סנדלים על החול
+door|דוֹר|כל דור פותח את אותה דלת ישנה
+window|וינדוֹוס|החלון של המחשב — Windows זה חלונות
+key|קי|המפתח עושה קליק — קי, ונפתח
+sea|סי|הים אומר סססס כשהגלים נשברים
+tree|טרי|העץ תמיד טרי וירוק
+bread|ברד|הלחם קשה כמו ברד
+cheese|צ'יז|אומרים צ'יז לפני צילום — ובתמונה יש גבינה
+knife|נַייף|הסכין חדה — היא עושה "נַיף" באוויר
+spoon|ספון|הכפית שוקעת בספל — ספון
+chair|צ'ר|נשענים על הכיסא ואומרים אחhhh
+floor|פלור|הרצפה מלאה פרחים — flowers על ה-floor
+wall|וול|הקיר של רחוב וול סטריט
+roof|רוף|הגג מחוספס — rough, ונשמע רוף כמו כלב על הגג
+horse|הוֹרס|הסוס הורס את הגדר
+mouse|מאוס|העכבר מאוס ומגעיל
+fish|פיש|הדג עושה פששש במים
+bird|בֶּרד|הציפור על הברד הקפוא
+snake|סנייק|הנחש מתגנב — sneak, סנייק
+cloud|קלאוד|הענן הוא הקלאוד שבשמיים
+rain|ריין|הגשם מרעיש — ריןןן על הגג
+snow|סנואו|השלג נופל לאט — סנואו, כמו slow
+wind|וינד|הרוח מנדנדת — וינד־וונד
+star|סטאר|הכוכב הוא סטאר, כוכב על
+moon|מוּן|הירח מוּאר בלילה
+light|לייט|האור קל — light זה גם קל וגם אור
+heavy|חֶבִי|הכבד מכביד כמו חבית
+strong|סטרונג|החזק כמו סטרוגונוף — בשר כבד
+weak|וויק|החלש נשבר בסוף השבוע — week
+happy|הפי|שמח כמו ב-happy hour
+angry|אנגרי|הכועס נוהם — אנררר
+tired|טַייֶרד|העייף כמו צמיג שהתרוקן — tire
+hungry|האנגרי|הרעב מחפש המבורגר
+thirsty|ת'רסטי|הצמא רץ — thirst, ומחפש שתייה
+early|אֶרלי|המוקדם קם עם השחר
+late|לֵייט|המאוחר תמיד בלילה
+always|אולווייז|תמיד יש דרך — all ways
+never|נֶבֶר|אף פעם לא — נֶבֶר אֶבֶר
+because|ביקוֹז|כי — בגלל הסיבה, cause
+enough|אינאף|מספיק — די, אין אף אחד שרוצה עוד
+between|ביטווין|בין שני תאומים — twin
+through|ת'רוּ|דרך — עוברים דרך החור
+without|וידאוט|בלי — with-out, בחוץ
+remember|רימֶמבֶּר|לזכור את חבר הקבוצה — member
+forget|פורגֶט|לשכוח — for-get, לא מקבלים
+buy|באי|קונים ואומרים ביי
+sell|סל|מוכרים מהסל בשוק
+expensive|אקספנסיב|יקר — מוציא הרבה, expense
+cheap|צ'יפ|זול כמו צ'יפס
+`.trim().split('\n').map(l=>{const p=l.split('|');return {en:p[0], key:p[1], img:p[2]}});
+
+const MNEM_BY_WORD = {};
+MNEMONIC.forEach(m=>MNEM_BY_WORD[m.en]=m);
+/* ============================================================
    ENGINE — אחסון, משתמשים, חזרות מרווחות, שטף, בניית סשן
    ============================================================ */
 
@@ -4665,10 +4771,17 @@ function drawDone(s){
   $('#ag').onclick=()=>{ S=null; startSession(m,sz); };
 }
 /* אם למילה יש אסוציאציית מילת-מפתח, מציגים אותה במשוב — שם היא
-   הכי מועילה, כי הלומד בדיוק גילה שהוא לא זכר.                */
+   הכי מועילה, כי הלומד בדיוק גילה שהוא לא זכר.
+
+   העזר הזה מוגן בכוונה: הוא רץ בתוך בניית המשוב, ולכן כל שגיאה
+   כאן הייתה מפילה את answer() כולו — כלומר גם את כפתור "הבא".
+   פונקציית תצוגה לעולם לא צריכה להיות מסוגלת לתקוע את התרגול.  */
 function mnemLine(en){
-  const m=MNEM_BY_WORD[en];
-  return m ? `<div class="mnem"><b>💡 ${esc(m.key)}</b> — ${esc(m.img)}</div>` : '';
+  try{
+    if(typeof MNEM_BY_WORD==='undefined') return '';
+    const m=MNEM_BY_WORD[en];
+    return m ? `<div class="mnem"><b>💡 ${esc(m.key)}</b> — ${esc(m.img)}</div>` : '';
+  }catch(e){ return ''; }
 }
 
 /* ---------------- מנועי תרגיל ---------------- */
@@ -5124,6 +5237,106 @@ function tenseSheet(){
         <p class="muted" style="margin-top:9px">⚠ ${esc(t.trap)}</p>
       </div>`;
     }).join('')}`);
+}
+/* ============================================================
+   רמה 0 — הכרת אותיות נטו, לגילאי 4-5
+   ------------------------------------------------------------
+   שום קריאה של מילים. הילד רק שומע ומזהה צורות.
+   שלושה תרגילים, מהקל לקשה:
+     letter-hear  — שומעים שם של אות, בוחרים אותה מבין ארבע
+     letter-case  — מתאימים אות גדולה לקטנה
+     letter-name  — רואים אות, בוחרים איך היא נשמעת (שמע בלבד)
+   ============================================================ */
+
+/* אות ענקית לבחירה — בלי טקסט, רק הצורה */
+function bigLetterOpt(txt){
+  return el(`<button class="opt letteropt"><span class="en">${esc(txt)}</span></button>`);
+}
+
+/* --- שומעים אות, בוחרים אותה --- */
+RENDER['letter-hear']=(q,it,u,tg)=>{
+  const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.u,3)]);
+  const sh=SHAPE_BY_LETTER[d.u];
+  q.innerHTML=`<div class="prompt"><div class="kicker">איזו אות שמעתם?</div>
+    <button class="speakbtn" onclick="say('${jq(d.u)}',.7)">${svg('sound')}</button>
+    <div class="small">הקישו על הרמקול כדי לשמוע שוב</div></div>
+    <div class="opts optletters" id="o"></div>`;
+  say(d.u,.7);
+  const reveal = `<div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
+    ${sh?`<div style="text-align:center;margin-top:6px">${esc(sh.shape)}</div>`:''}`;
+  S.reveal=()=>{ say(d.u,.6); answer(it,false,tg,reveal); };
+  opts.forEach(o=>{
+    const b=bigLetterOpt(o.u);
+    b.onclick=()=>{ const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.u,.7);
+      answer(it,ok,tg,reveal); };
+    $('#o').appendChild(b);
+  });
+};
+
+/* --- אות גדולה → אות קטנה --- */
+RENDER['letter-case']=(q,it,u,tg)=>{
+  const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.l,3)]);
+  const sh=SHAPE_BY_LETTER[d.u];
+  q.innerHTML=`<div class="prompt"><div class="kicker">אותה אות, קטנה</div>
+    <div class="letterpair" style="justify-content:center"><b>${d.u}</b></div>
+    <button class="speakbtn" onclick="say('${jq(d.u)}',.7)">${svg('sound')}</button></div>
+    <div class="opts optletters" id="o"></div>`;
+  if(u.settings.autoSpeak) say(d.u,.7);
+  const reveal = `<div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
+    ${sh?`<div style="text-align:center;margin-top:6px">${esc(sh.shape)}</div>`:''}`;
+  S.reveal=()=>{ say(d.u,.6); answer(it,false,tg,reveal); };
+  opts.forEach(o=>{
+    const b=bigLetterOpt(o.l);
+    b.onclick=()=>{ const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.u,.7);
+      answer(it,ok,tg,reveal); };
+    $('#o').appendChild(b);
+  });
+};
+
+/* --- רואים אות, שומעים ארבע אפשרויות, בוחרים את הנכונה --- */
+RENDER['letter-name']=(q,it,u,tg)=>{
+  const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.u,3)]);
+  const sh=SHAPE_BY_LETTER[d.u];
+  q.innerHTML=`<div class="prompt"><div class="kicker">איך קוראים לאות הזאת?</div>
+    <div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
+    ${sh?`<div class="small">${esc(sh.shape)}</div>`:''}</div>
+    <p class="muted" style="text-align:center;margin:12px 0 0">הקישו על הרמקולים והקישו על הנכון</p>
+    <div class="opts" id="o"></div>`;
+  const reveal = `<div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
+    ${sh?`<div style="text-align:center;margin-top:6px">${esc(sh.shape)}</div>`:''}`;
+  S.reveal=()=>{ say(d.u,.6); answer(it,false,tg,reveal); };
+  opts.forEach(o=>{
+    const b=el(`<button class="opt" style="display:flex;align-items:center;gap:12px;justify-content:center">
+      <span style="width:34px;height:34px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;flex:none">
+        <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">${ICONS.sound}</svg></span>
+      <span class="muted">הקשה לשמיעה</span></button>`);
+    let heard=false;
+    b.onclick=()=>{
+      if(!heard){ heard=true; say(o.u,.7); b.querySelector('.muted').textContent='הקישו שוב אם זו האות'; return; }
+      const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.u,.7);
+      answer(it,ok,tg,reveal);
+    };
+    $('#o').appendChild(b);
+  });
+};
+
+/* ---------------- גיליון האותיות עם אסוציאציות ---------------- */
+function alphabetSheet(){
+  const u=me();
+  sheet(`<h2>האלף-בית</h2>
+    <p class="sub">לכל אות יש אסוציאציית צורה — משהו מוכר שהצורה מזכירה. זה מה שהופך סימן מופשט לתמונה שנדבקת.</p>
+    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('letters',12)">תרגול אותיות</button>
+    <div class="card" style="margin-top:12px">
+      ${LETTERS.map(L=>{
+        const sh=SHAPE_BY_LETTER[L.u];
+        const st=Math.max(strength(u.srs['L:'+L.u+'#h']), strength(u.srs['L:'+L.u+'#c']), strength(u.srs['L:'+L.u+'#n']));
+        const col=st>=.7?'var(--good)':st>0?'var(--gold)':'var(--line)';
+        return `<div class="wordrow">
+          <span class="dot" style="background:${col}"></span>
+          <button class="en" style="font-weight:700;font-size:1.15rem;min-width:52px;text-align:start" onclick="say('${jq(L.u)}',.7)">${L.u} ${L.l}</button>
+          <span class="h" style="flex:2">${sh?esc(sh.shape):''}</span></div>`;
+      }).join('')}
+    </div>`);
 }
 /* ============================================================
    קודי כניסה, בקרת הורים ומשימות
