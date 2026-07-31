@@ -4203,9 +4203,11 @@ if(window.matchMedia){
 function setAction(html){
   const a=$('#actionbar'); a.classList.remove('hide');
   a.innerHTML=`<div class="actionbar-in">${html}</div>`;
+  if(typeof repositionBars==='function') repositionBars();
   return a.querySelector('.actionbar-in');
 }
-const hideAction = ()=> $('#actionbar').classList.add('hide');
+const hideAction = ()=>{ $('#actionbar').classList.add('hide');
+  if(typeof repositionBars==='function') repositionBars(); };
 
 /* שדה קלט: פוקוס + גלילה כך שהמקלדת לא תסתיר אותו */
 function focusInput(inp){
@@ -4224,23 +4226,35 @@ function focusInput(inp){
    באופן לא עקבי (תלוי גלילה, תלוי מסך). VisualViewport מדווח את
    הגובה שבאמת נראה למשתמש; מזיזים את האלמנטים הקבועים בדיוק בכמות
    שהמקלדת מכסה, כדי שיישארו צמודים מעל המקלדת תמיד.                */
+/* ---------- תיקון מקלדת ל-iOS: position:fixed מול המקלדת ----------
+   ספארי ב-iOS ממקם position:fixed:bottom ביחס לגובה המלא של הדף,
+   כאילו אין מקלדת פתוחה — כך שסרגל תחתון קבוע עלול להיעלם מתחתיה,
+   באופן לא עקבי (תלוי גלילה, תלוי מסך). VisualViewport מדווח את
+   הגובה שבאמת נראה למשתמש; מזיזים את האלמנטים הקבועים בדיוק בכמות
+   שהמקלדת מכסה, כדי שיישארו צמודים מעל המקלדת תמיד.
+
+   הבעיה שתוקנה כאן: resize/scroll של VisualViewport לא תמיד נורה
+   באופן אמין ב-iOS ברגע שהמקלדת נסגרת. אם מסתמכים רק על האירוע,
+   ה-transform יכול "להיתקע" על הזזה ישנה — והתוכן החדש שמוצג
+   (למשל "הבא" אחרי מענה) נולד כבר מוזז שלא לצורך, ולפעמים יוצא
+   מחוץ לתצוגה. הפתרון: חישוב מחדש קורה גם ישירות בכל פעם שמשנים
+   את תוכן הסרגל — לא רק כשהאירוע האסינכררוני נורה.                */
+function repositionBars(){
+  if(!window.visualViewport) return;
+  const vv=window.visualViewport;
+  const sideNav = () => window.matchMedia('(min-width:1024px)').matches;
+  const covered=Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  const shift=covered>1 ? `translateY(-${covered}px)` : '';
+  const ab=document.querySelector('#actionbar'); if(ab) ab.style.transform=shift;
+  const nv=document.querySelector('#nav'); if(nv) nv.style.transform = sideNav() ? '' : shift;
+  const sb=document.querySelector('.sheet-bg'); if(sb) sb.style.transform=shift;
+}
 function pinFixedBars(){
   if(!window.visualViewport) return;
   const vv=window.visualViewport;
-  /* בשולחן עבודה הניווט הוא סרגל צד מלא-גובה, לא פס תחתון — הזזה
-     אנכית שלו תהיה שגויה. גם ככה אין שם מקלדת וירטואלית, אבל
-     בודקים במפורש כדי שמסך מגע רחב לא ייתקל בזה.                */
-  const sideNav = () => window.matchMedia('(min-width:1024px)').matches;
-  const update=()=>{
-    const covered=Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
-    const shift=covered>1 ? `translateY(-${covered}px)` : '';
-    const ab=document.querySelector('#actionbar'); if(ab) ab.style.transform=shift;
-    const nv=document.querySelector('#nav'); if(nv) nv.style.transform = sideNav() ? '' : shift;
-    const sb=document.querySelector('.sheet-bg'); if(sb) sb.style.transform=shift;
-  };
-  vv.addEventListener('resize', update);
-  vv.addEventListener('scroll', update);
-  update();
+  vv.addEventListener('resize', repositionBars);
+  vv.addEventListener('scroll', repositionBars);
+  repositionBars();
 }
 
 /* ---------- ניתוב ---------- */
@@ -5915,6 +5929,23 @@ async function clipClear(){
    לא מקודדים שמות קולות בקוד — שואלים את ה-API מה באמת זמין,
    כדי שלא נצביע על קול שלא קיים או שהוחלף.                    */
 let CLOUD_VOICES=null;
+
+/* גיבוי לרשימת הקולות. עדיף לשאול את ה-API (fetchCloudVoices) כי אז
+   הרשימה תמיד מדויקת — אבל אם ListVoices חסום ואי אפשר לשאול, זה
+   מונע מצב שבו התפריט נשאר ריק לנצח ואין דרך אפילו לנסות.
+   אם שם כאן שגוי או הוחלף, קריאת הסינתזה תדווח על כך במפורש.     */
+const FALLBACK_VOICES = [
+  'en-US-Studio-O','en-US-Studio-Q',
+  'en-US-Neural2-F','en-US-Neural2-C','en-US-Neural2-D','en-US-Neural2-A','en-US-Neural2-J',
+  'en-US-Wavenet-F','en-US-Wavenet-D','en-US-Wavenet-A',
+  'en-US-Standard-C','en-US-Standard-B'
+];
+function useFallbackVoices(){
+  const tier = n => /studio/i.test(n)?5 : /chirp/i.test(n)?4 : /neural/i.test(n)?3 : /wavenet/i.test(n)?2 : 1;
+  CLOUD_VOICES = FALLBACK_VOICES.map(n=>({name:n, gender:'', tier:tier(n), guessed:true}));
+  if(!CLOUD_VOICES.some(v=>v.name===TTS.voice)){ TTS.voice=CLOUD_VOICES[0].name; saveTTS(); }
+  return CLOUD_VOICES;
+}
 /* שומרים את האבחון האחרון כדי שאפשר יהיה להציג אותו למשתמש.
    הודעת השגיאה של Google היא המידע השימושי ביותר כאן — היא אומרת
    במפורש מה חסר ולרוב כוללת קישור ישיר להפעלת ה-API.            */
@@ -6033,6 +6064,7 @@ async function ttsSheet(){
             : `<option value="">לחצו "טעינת קולות" למטה</option>`
         }</select></div>
       <button class="btn ghost sm" style="width:100%" id="load">${listed?`רענון (${listed} קולות)`:'טעינת קולות מהשרת'}</button>
+      <button class="btn ghost sm hide" style="width:100%;margin-top:8px" id="fb">שימוש ברשימה מקומית (בלי לשאול את השרת)</button>
       <button class="btn sm" style="width:100%;margin-top:8px" id="try">השמעת דוגמה</button>
       <p class="muted" id="msg" style="margin-top:9px"></p>
     </div>
@@ -6069,8 +6101,12 @@ async function ttsSheet(){
     sh.querySelector('#load').onclick=async()=>{
       msg('טוען…');
       try{ await fetchCloudVoices(); closeSheet(); ttsSheet(); }
-      catch(e){ msg('לא הצלחנו לטעון: '+e.message); }
+      catch(e){
+        msg('לא הצלחנו לטעון: '+e.message);
+        const b=sh.querySelector('#fb'); if(b) b.classList.remove('hide');
+      }
     };
+    sh.querySelector('#fb').onclick=()=>{ useFallbackVoices(); closeSheet(); ttsSheet(); };
     sh.querySelector('#tv').onchange=e=>{
       TTS.voice=e.target.value; saveTTS();
       if(TTS.voice){ TTS.on=true; saveTTS(); msg('מנגן דוגמה…');
@@ -6121,11 +6157,26 @@ async function ttsSheet(){
       }
 
       const d=TTS_DIAG;
+      /* שלוש שגיאות 403 שונות לגמרי עם שלושה תיקונים שונים. ההבחנה
+         ביניהן היא בנוסח ההודעה של Google, ולכן מנתחים אותה ולא רק
+         את קוד המצב:
+           "has not been used ... or it is disabled" → ה-API כבוי
+           "Requests to this API ... are blocked"    → המפתח מוגבל ל-API
+           "requests from referer ... are blocked"   → המפתח מוגבל לדומיין */
+      const gm = d ? String(d.msg||'') : '';
+      const is403 = d && d.status===403;
+      const apiOff   = is403 && /has not been used|is disabled|SERVICE_DISABLED/i.test(gm);
+      const keyApiLtd = is403 && /Requests to this API .* are blocked/i.test(gm);
+      const keyRefLtd = is403 && /referer|referrer/i.test(gm);
+
       const advice = step2 ? (step3===false
             ? 'הכול עובד בצד השרת — הדפדפן חסם את הנגינה. געו במסך פעם אחת ונסו שוב.'
             : 'הכול עובד. אם עדיין נשמע קול מכשיר, ודאו שהמתג "קול ענן" למעלה דלוק.')
-        : d && d.status===403 ? 'זו הרשאה. או שה-API לא מופעל בפרויקט, או שהמפתח מוגבל ל-API אחרים (API restrictions) ואין בו Text-to-Speech.'
-        : d && d.status===400 ? 'הבקשה נדחתה כלא תקינה — לרוב Project ID או מפתח שגויים.'
+        : apiOff    ? 'ה-API עצמו לא מופעל בפרויקט. פתחו את הקישור שבהודעה למטה ולחצו Enable.'
+        : keyApiLtd ? 'ה-API מופעל — אבל המפתח מוגבל לרשימת API סגורה, ו-Text-to-Speech לא בתוכה. זה התיקון: Google Cloud Console → APIs & Services → Credentials → לחצו על המפתח → API restrictions → הוסיפו "Cloud Text-to-Speech API" → Save. השינוי לוקח עד כמה דקות להיכנס לתוקף.'
+        : keyRefLtd ? 'המפתח מוגבל לדומיינים מסוימים, והדומיין של האפליקציה לא ברשימה. Credentials → המפתח → Application restrictions → הוסיפו את הכתובת של האפליקציה.'
+        : is403     ? 'שגיאת הרשאה. ראו את ההודעה המקורית למטה — היא מציינת מה חסר.'
+        : d && d.status===400 ? 'הבקשה נדחתה כלא תקינה — לרוב מפתח שגוי.'
         : d && d.status===429 ? 'עברתם את המכסה. בדקו חיוב ומכסות בקונסולה.'
         : d && d.status===0   ? 'הבקשה לא יצאה כלל — אין רשת, או שהדפדפן חסם אותה.'
         : 'ראו את ההודעה המקורית למטה.';
