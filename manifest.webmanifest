@@ -1,0 +1,16 @@
+{
+  "name": "BeEnglish",
+  "short_name": "BeEnglish",
+  "description": "לימוד אנגלית למשפחה — מהאותיות ועד שיחה חופשית",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0F3FA8",
+  "theme_color": "#eceeed",
+  "icons": [
+    { "src": "./beenglish-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "./beenglish-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./beenglish-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "./beenglish-icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
