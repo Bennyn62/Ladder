@@ -562,6 +562,16 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
   :root{--shell:840px}
 }
 
+/* ---------- ממשק באנגלית ---------- */
+html[lang="en"] body{font-family:var(--en)}
+html[lang="en"] .readout .tag,
+html[lang="en"] .keypad button.act{font-family:var(--en)}
+html[lang="en"] .slot:empty::after{content:'Arrange the words here';direction:ltr;font-family:var(--en)}
+/* תוכן עברי בתוך ממשק אנגלי — תרגומי מילים ומשפטי דוגמה */
+.hetext{direction:rtl;unicode-bidi:isolate;font-family:var(--he)}
+html[lang="en"] .prompt .big.he,
+html[lang="en"] .prompt .med.he{font-family:var(--he);direction:rtl}
+
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 :focus-visible{outline:2.5px solid var(--brand);outline-offset:2px;border-radius:4px}
 </style>
@@ -574,6 +584,637 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 <div class="nav" id="nav"></div>
 <div class="actionbar hide" id="actionbar"></div>
 <script>
+/* ============================================================
+   שפת ממשק — עברית / אנגלית
+   ------------------------------------------------------------
+   המפתח במילון הוא המחרוזת העברית עצמה: תרגום חסר נופל אוטומטית
+   לעברית במקום להציג מפתח שבור, ואפשר לעטוף קוד בהדרגה.
+
+   רק טקסט *ממשק* עובר כאן. התוכן הלימודי — תרגומי מילים, משפטי
+   דוגמה, הסברי דקדוק, טיפי הגייה — לעולם לא מתורגם, כי הוא הנלמד.
+
+   חדש בגרסה הזו:
+     • T() מקבל פרמטרים: T('היעד היומי · {0}/{1}', done, goal)
+     • רישום מפתחות חסרים: בקונסולה T.missing() מחזיר כל מחרוזת
+       עברית שעברה ב-T() באנגלית ולא נמצאה במילון. זו הדרך המהירה
+       למצוא גם טעויות הקלדה במפתח וגם קריאות שטרם נעטפו.
+     • השפה נשמרת גם ברמת המכשיר, כדי שמסך הפתיחה ומסך הנעילה —
+       שרצים לפני שיש משתמש פעיל — יישארו בשפה שנבחרה.
+   ============================================================ */
+
+const K_LANG = 'ladder.lang';
+let UI_LANG = 'he';
+const T_MISS = {};
+
+function T(s, ...a){
+  let v;
+  if(UI_LANG === 'en'){
+    v = EN_UI[s];
+    if(v === undefined){ T_MISS[s] = (T_MISS[s]||0)+1; v = s; }
+  } else v = s;
+  return a.length ? String(v).replace(/\{(\d+)\}/g, (m,i)=> a[i] ?? '') : v;
+}
+T.missing = ()=> Object.keys(T_MISS).sort();
+
+/* החלת השפה: כיוון, שפה, ומחלקה ל-CSS ייעודי.
+   כל ה-CSS כתוב בתכונות לוגיות, ולכן ההיפוך עובד בלי כללים כפולים. */
+function applyLang(){
+  const u = (typeof me === 'function') ? me() : null;
+  UI_LANG = (u && u.settings && u.settings.lang)
+    ? u.settings.lang
+    : (localStorage.getItem(K_LANG) || 'he');
+  try{ localStorage.setItem(K_LANG, UI_LANG); }catch(e){}
+  const html = document.documentElement;
+  html.setAttribute('lang', UI_LANG === 'en' ? 'en' : 'he');
+  html.setAttribute('dir',  UI_LANG === 'en' ? 'ltr' : 'rtl');
+  html.dataset.uilang = UI_LANG;
+}
+
+/* תוכן עברי בתוך ממשק אנגלי — מבודד כיוון כדי שפיסוק לא יקפוץ */
+const heSpan = s => `<span class="hetext">${esc(s)}</span>`;
+
+/* ============================================================
+   EN_UI — המילון
+   ============================================================ */
+const EN_UI = {
+
+/* ---------- מעטפת וניווט ---------- */
+'בית':'Home',
+'תרגול':'Practice',
+'התקדמות':'Progress',
+'משפחה':'Family',
+'רמה':'Level',
+'רמה ':'Level ',
+'יציאה':'Exit',
+'סגירה':'Close',
+'שמירה':'Save',
+'ביטול':'Cancel',
+'מחיקה':'Delete',
+'הבנתי':'Got it',
+'לא עכשיו':'Not now',
+'פתיחה':'Open',
+'פריטים':'items',
+'מתוך':'of',
+'נשמר':'Saved',
+'נמחק':'Deleted',
+'אופס':'Reset',
+'סונכרן':'Synced',
+'—':'—',
+
+/* ---------- מסך פתיחה ---------- */
+'אנגלית מאפס עד שטף, בקצב של כל אחד במשפחה בנפרד.':'English from zero to fluency, at each family member\u2019s own pace.',
+'כל אחד והסולם שלו':'Everyone climbs their own ladder',
+'תשע רמות, מהאותיות ועד שיחה חופשית. כל לומד מתקדם לפי הקצב שלו, עם התקדמות נפרדת.':'Ten levels, from letters to free conversation. Each learner moves at their own pace, with separate progress.',
+'לא רק לדעת — לשלוף':'Not just knowing \u2014 retrieving',
+'כל תשובה נמדדת בשניות. תשובה נכונה אבל איטית תחזור מוקדם יותר, עד שהיא יוצאת בלי מחשבה.':'Every answer is timed. A correct but slow answer comes back sooner, until it comes out without thinking.',
+'לדבר, לא רק לסמן':'Speak, don\u2019t just tap',
+'הקלטה, הכתבה, בניית משפטים והגייה. אנגלית נבנית בפה, לא רק בעין.':'Recording, dictation, sentence building and pronunciation. English is built in the mouth, not only in the eye.',
+'עשר דקות ביום מנצחות שעה בשבוע':'Ten minutes a day beats an hour a week',
+'המערכת מציפה כל פריט בדיוק לפני שהוא נשכח. רצף יומי שווה יותר מכל מרתון.':'The system resurfaces each item right before it would be forgotten. A daily streak is worth more than any marathon.',
+'יצירת הלומד הראשון':'Create the first learner',
+'כבר יש קוד משפחה? התחברות':'Already have a family code? Sign in',
+
+/* ---------- בחירת לומד ופרופיל ---------- */
+'מי לומד עכשיו?':'Who is learning now?',
+'לכל אחד התקדמות, רמה ורצף משלו.':'Everyone has their own progress, level and streak.',
+'הוספת לומד':'Add a learner',
+'+ הוספת לומד':'+ Add a learner',
+'הורה או מורה':'Parent or teacher',
+'לומד':'Learner',
+'לומד חדש':'New learner',
+'פרופיל הורה או מורה':'Parent or teacher profile',
+'שם':'Name',
+'למשל: אבא':'e.g. Dad',
+'למשל: יעל':'e.g. Maya',
+'תפקיד':'Role',
+'אווטאר':'Avatar',
+'גודל טקסט':'Text size',
+'רגיל':'Normal',
+'גדול':'Large',
+'ענק':'Huge',
+'רמת פתיחה':'Starting level',
+'לא בטוחים? התחילו מ‑0. אפשר לשנות בכל רגע.':'Not sure? Start at 0. You can change it any time.',
+'קוד כניסה':'Access code',
+'ארבע ספרות. נדרש בכניסה לפרופיל ולפתיחת בקרת ההורים.':'Four digits. Required to open the profile and to unlock parental controls.',
+'יצירה':'Create',
+'צריך שם':'A name is required',
+'מעבר ללומד הזה':'Switch to this learner',
+'בקרה והרשאות':'Controls and permissions',
+'מחיקת הלומד':'Delete learner',
+'החלפת לומד':'Switch learner',
+'פעיל':'active',
+'קוד':'code',
+'חולשות':'Weak spots',
+'רצף ימים':'Day streak',
+
+/* ---------- בית ---------- */
+'הכול מעודכן — היום לומדים חדש':'All caught up \u2014 today is for new material',
+'פריטים ממתינים לחזרה':'items due for review',
+'פריטים לחזרה, ואחר כך חומר חדש':'items to review, then new material',
+'היעד היומי':'Daily goal',
+'היעד היומי הושלם':'Daily goal complete',
+'מגבלה: ':'Limit: ',
+'משימה':'Task',
+'משימה פעילה':'Active task',
+'המשך המשימה':'Continue the task',
+'תרגול היום · 14 פריטים':'Today\u2019s practice \u00b7 14 items',
+'חיזוק חולשות':'Strengthen weak spots',
+'אוזן והגייה':'Ear and pronunciation',
+'טבלת חמשת הזמנים':'The five core tenses',
+'מילים בשליטה':'Words mastered',
+'דיוק':'Accuracy',
+'זמן שליפה':'Retrieval time',
+'הסולם':'The ladder',
+
+/* ---------- רמות ---------- */
+'האותיות':'The letters',
+'שמות האותיות, צורה גדולה וקטנה':'Letter names, upper and lower case',
+'הצלילים':'The sounds',
+'פונטיקה — לחבר אותיות למילה':'Phonics \u2014 blending letters into a word',
+'מילים ראשונות':'First words',
+'מילות הליבה + הצלילים שאין בעברית':'Core words + the sounds Hebrew doesn\u2019t have',
+'משפט ראשון':'First sentence',
+'to be, הווה פשוט, סדר המילים':'to be, present simple, word order',
+'שאלות ושלילה':'Questions and negation',
+'שאלות, שלילה, הווה ממושך':'Questions, negation, present continuous',
+'עבר ועתיד':'Past and future',
+'זמנים בסיסיים, עבר מתמשך ופעלים חריגים':'Basic tenses, past continuous and irregular verbs',
+'קישור והרחבה':'Linking and expanding',
+'מילות יחס, קישור, השוואה':'Prepositions, connectors, comparison',
+'השלמת ההווה':'Completing the present',
+'Present Perfect, מודאלים, תנאי ראשון':'Present Perfect, modals, first conditional',
+'מבנים מתקדמים':'Advanced structures',
+'תנאי שני, סביל, דיבור עקיף':'Second conditional, passive, reported speech',
+'שטף ילידי':'Native fluency',
+'Phrasal verbs, ניבים, דיבור מהיר ושיחה':'Phrasal verbs, idioms, fast speech and conversation',
+'טרום-קריאה':'Pre-reading',
+'תרגול הרמה':'Practice this level',
+'דקדוק בלבד':'Grammar only',
+'האלף-בית והאסוציאציות':'The alphabet and its associations',
+'טבלת הפעלים החריגים':'Irregular verb table',
+'חוקים':'Rules',
+'מילים · ':'Words \u00b7 ',
+'הערכה מקורבת לפי תוכן הרמה — שימושית לכיוון כללי בבחירת ספרי קריאה, לא תחליף למבחן מיון רשמי.':'An approximate estimate based on the level\u2019s content \u2014 useful for picking graded readers, not a substitute for a real placement test.',
+'שלב טרום-קריאה — אין לו מקבילה בסולם CEFR, שמניח קריאה בסיסית.':'A pre-reading stage \u2014 it has no CEFR equivalent, since CEFR assumes basic reading.',
+'האלף-בית':'The alphabet',
+'לכל אות יש אסוציאציית צורה — משהו מוכר שהצורה מזכירה. זה מה שהופך סימן מופשט לתמונה שנדבקת.':'Every letter has a shape association \u2014 something familiar the shape resembles. That is what turns an abstract sign into a picture that sticks.',
+'תרגול אותיות':'Practice letters',
+
+/* ---------- מצבי תרגול ---------- */
+'תרגול מעורב':'Mixed practice',
+'חזרות שהגיע זמנן יחד עם חומר חדש, בשזירה בין סוגי תרגיל. המצב היעיל ביותר לזיכרון ארוך טווח.':'Due reviews together with new material, interleaved across exercise types. The most effective mode for long-term memory.',
+'רק הפריטים שנכשלת בהם או ששולף אותם לאט מדי.':'Only the items you got wrong or retrieve too slowly.',
+'זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. השריר שחסר לרוב דוברי העברית.':'Minimal pairs like ship/sheep and think/sink, contractions and fast speech. The muscle most Hebrew speakers are missing.',
+'אותיות':'Letters',
+'זיהוי האותיות בלבד — בשמיעה, בהתאמת גדולה־קטנה ובשם. בלי קריאת מילים, מתאים מגיל 4.':'Letter recognition only \u2014 by ear, by case matching and by name. No word reading, suitable from age 4.',
+'חמשת הזמנים':'The five tenses',
+'הטיית פעלים בחמשת הזמנים שמכסים כמעט את כל האנגלית המדוברת. זה מה שנשבר בדיבור — לא הידיעה, אלא המהירות.':'Conjugating verbs in the five tenses that cover almost all spoken English. This is what breaks down in speech \u2014 not the knowledge, but the speed.',
+'פעלים חריגים':'Irregular verbs',
+'מאה פעלים בשלוש צורות, מקובצים ל‑12 תבניות הטיה. התבנית היא הקיצור.':'A hundred verbs in three forms, grouped into 12 conjugation patterns. The pattern is the shortcut.',
+'דקדוק ותחביר':'Grammar and syntax',
+'חוקים, השלמת חסר, בניית משפט, הגהה וקיצורים.':'Rules, fill in the blank, sentence building, proofreading and contractions.',
+'אימון שיחה':'Conversation drill',
+'שאלות פתוחות. עונים בקול או בכתב ומשווים לתשובת מודל.':'Open questions. Answer aloud or in writing and compare with a model answer.',
+'מרתון':'Marathon',
+'שלושים פריטים ברצף, לתרגול עומק.':'Thirty items in a row, for deep practice.',
+'כל מצב מאמן שריר אחר.':'Each mode trains a different muscle.',
+'חלק מהמצבים נעולים על ידי ההורה.':'Some modes are locked by a parent.',
+'התחלה · ':'Start \u00b7 ',
+'המצב הזה נעול על ידי ההורה':'This mode is locked by a parent',
+'אין פריטים זמינים':'No items available',
+'תרגול פעלים חריגים':'Practice irregular verbs',
+'תרגול הטיות':'Practice conjugation',
+'תרגול ממוקד חולשות':'Targeted weak-spot practice',
+
+/* ---------- סוגי תרגיל (TYPE_HE) ---------- */
+'זיהוי אות בשמיעה':'Letter by ear',
+'גדולה וקטנה':'Upper and lower case',
+'שם האות':'Letter name',
+'אות ומילה':'Letter and word',
+'פונטיקה':'Phonics',
+'זיהוי מילים':'Word recognition',
+'שליפת מילים':'Word recall',
+'הבנת הנשמע':'Listening',
+'הגייה':'Pronunciation',
+'בניית משפט':'Sentence building',
+'הכתבה':'Dictation',
+'השלמה':'Fill in the blank',
+'הגהה':'Proofreading',
+'חוקי דקדוק':'Grammar rules',
+'שיחה':'Conversation',
+'אבחנת צלילים':'Sound discrimination',
+'הגייה מדויקת':'Precise pronunciation',
+'קיצורים':'Contractions',
+'דיבור מהיר':'Fast speech',
+'פועל חריג · עבר':'Irregular verb \u00b7 past',
+'פועל חריג · שלישית':'Irregular verb \u00b7 participle',
+'הטיית זמן':'Tense conjugation',
+
+/* ---------- הסברי סוגי תרגיל (TYPE_INFO) ---------- */
+'שומעים שם של אות ובוחרים אותה מבין ארבע. אפשר להקיש על הרמקול ולשמוע שוב, כמה פעמים שצריך.':'You hear a letter name and pick it from four. Tap the speaker to hear it again, as many times as you need.',
+'כל אות באנגלית נראית אחרת בגדולה ובקטנה. כאן מתאימים ביניהן.':'Every English letter looks different in upper and lower case. Here you match them.',
+'רואים אות, ומקישים על הרמקולים עד שמוצאים את זה שנשמע נכון. הקשה ראשונה משמיעה, שנייה בוחרת.':'You see a letter and tap the speakers until you find the right sound. The first tap plays, the second selects.',
+'מוצגת אות באנגלית, גדולה וקטנה. בחרו את המילה שמתחילה בצליל שלה. אפשר להאזין בכל שלב.':'An English letter is shown in upper and lower case. Pick the word that starts with its sound. You can listen at any point.',
+'חיבור צלילים':'Blending sounds',
+'המילה מפורקת לצלילים. חברו אותם בראש ובחרו איזו מילה יוצאת.':'The word is broken into sounds. Blend them in your head and pick the word they make.',
+'זיהוי מילה':'Word recognition',
+'מילה באנגלית — בחרו את הפירוש בעברית. זה הכיוון הקל, והוא רק ההתחלה.':'An English word \u2014 pick its Hebrew meaning. This is the easy direction, and only the start.',
+'שליפת מילה':'Word recall',
+'מילה בעברית — כתבו אותה באנגלית מהראש. זה הכיוון שבאמת בונה דיבור.':'A Hebrew word \u2014 write it in English from memory. This is the direction that actually builds speech.',
+'שומעים מילה וכותבים אותה. אפשר להאט את ההשמעה כמה פעמים שצריך.':'You hear a word and write it. You can slow the playback as often as you need.',
+'אומרים את המילה בקול והמכשיר מקשיב. אין ציונים על מבטא — רק על בהירות.':'Say the word aloud and the device listens. No scoring on accent \u2014 only on clarity.',
+'משפט בעברית ואריחי מילים באנגלית. סדרו אותם לפי הסדר הנכון: נושא, פועל, מושא.':'A Hebrew sentence and English word tiles. Arrange them in the right order: subject, verb, object.',
+'שומעים משפט שלם וכותבים אותו. התרגיל הכי קרוב להבנת דיבור אמיתי.':'You hear a full sentence and write it. The closest exercise to real listening comprehension.',
+'השלמת חסר':'Fill in the blank',
+'משפט עם חור אחד. בחרו את המילה שמשלימה אותו נכון.':'A sentence with one gap. Pick the word that completes it correctly.',
+'במשפט יש טעות אחת. הקישו על המילה השגויה — ותקבלו את הכלל שמאחוריה.':'The sentence has one mistake. Tap the wrong word \u2014 and you get the rule behind it.',
+'חוק דקדוק':'Grammar rule',
+'קוראים את הכלל, ומיד מתרגמים משפט שמשתמש בו. קריאה לבד לא מספיקה.':'Read the rule, then immediately translate a sentence that uses it. Reading alone is not enough.',
+'שאלה פתוחה. ענו בקול או בכתב, ואז השוו לתשובת מודל וקראו אותה בקול.':'An open question. Answer aloud or in writing, then compare with the model answer and read it aloud.',
+'שתי מילים שנשמעות כמעט זהות. שומעים אחת מהן וצריך לזהות איזו. זה מאמן את האוזן.':'Two words that sound almost identical. You hear one and must identify which. This trains the ear.',
+'אומרים מילה שיש לה תאומה מבלבלת. המערכת תגיד אם יצאה לכם התאומה במקום.':'Say a word that has a confusing twin. The app will tell you if the twin came out instead.',
+'נתון פועל בסיס, גוף וזמן — כתבו את הצורה הנכונה. אפשר לכתוב רק את הפועל או את המשפט המלא.':'Given a base verb, subject and tense \u2014 write the correct form. You can write just the verb or the full phrase.',
+'הפועל בצורת הבסיס — כתבו את צורת העבר. בסוף תראו את שלוש הצורות ואת התבנית שאליה הפועל שייך.':'The verb in base form \u2014 write the past form. At the end you see all three forms and the pattern the verb belongs to.',
+'פועל חריג · צורה שלישית':'Irregular verb \u00b7 past participle',
+'הצורה שבאה אחרי have / has / was. זו הצורה שנחוצה ל‑Present Perfect ולסביל.':'The form that follows have / has / was. This is the form needed for the Present Perfect and the passive.',
+'הצורה המלאה מול הצורה המקוצרת. בדיבור טבעי כמעט תמיד משתמשים בקצרה.':'The full form versus the contracted form. In natural speech the short one is almost always used.',
+'ככה אנגלית באמת נשמעת כשמדברים מהר. תפקידכם לפענח מה נאמר.':'This is how English actually sounds at speed. Your job is to decode what was said.',
+'ההסבר הזה מופיע פעם אחת בלבד':'This explanation appears only once',
+'הבנתי, מתחילים':'Got it, let\u2019s start',
+'תרגיל':'Exercise',
+
+/* ---------- מסך השאלה ---------- */
+'חדש':'new',
+'חזרה':'review',
+'יעד':'target',
+'לצאת מהתרגול?':'Leave the session?',
+'כל מה שענית עד עכשיו כבר נשמר. אפשר להמשיך מאותה נקודה בכל רגע.':'Everything you answered is already saved. You can pick up from the same point any time.',
+'להמשיך לתרגל':'Keep practising',
+'בדיקה':'Check',
+'לא יודע':'I don\u2019t know',
+'לא זכרתי':'I didn\u2019t remember',
+'ידעתי':'I knew it',
+'תרגלתי':'I practised it',
+'שליחה':'Send',
+'הבא':'Next',
+'סיום הסשן':'Finish session',
+'מחיקה אחורה':'Undo last word',
+'האטה':'Slow down',
+'שמיעת דוגמה':'Hear an example',
+'נכון':'Correct',
+'שליפה מיידית':'Instant retrieval',
+'לא מדויק':'Not quite',
+'התשובה: ':'Answer: ',
+'כתבתם: ':'You wrote: ',
+'גם נכון: ':'Also correct: ',
+'הסדר הנכון: ':'Correct order: ',
+'זכרו: נושא ← פועל ← מושא.':'Remember: subject \u2192 verb \u2192 object.',
+'אות וצליל':'Letter and sound',
+'איזו מילה מתחילה באות הזאת?':'Which word starts with this letter?',
+'הצליל':'the sound',
+'כמו במילה':'as in',
+'מה המילה שיוצאת?':'What word does it make?',
+'מה הפירוש':'What does it mean',
+'שליפה — כתבו באנגלית':'Recall \u2014 write it in English',
+'פועל':'verb',
+'שם עצם':'noun',
+'שם תואר':'adjective',
+'הקשיבו וכתבו את המילה':'Listen and write the word',
+'הקשיבו וכתבו את המשפט המלא':'Listen and write the full sentence',
+'בניית משפט — תחביר':'Sentence building \u2014 syntax',
+'סדרו כאן את המילים':'Arrange the words here',
+'השלמת החסר':'Fill in the blank',
+'(ללא מילה)':'(no word)',
+'הגהה — מצאו את הטעות':'Proofreading \u2014 find the mistake',
+'הקישו על המילה השגויה':'Tap the wrong word',
+'בדיקה מיידית':'Immediate check',
+'מבנה מומלץ: ':'Suggested structure: ',
+'ענו בקול — או כתבו למטה':'Answer aloud \u2014 or type below',
+'כתבו את התשובה למטה':'Type your answer below',
+'דלגו — הצג תשובת מודל':'Skip \u2014 show the model answer',
+'התשובה שלכם: ':'Your answer: ',
+'תשובת מודל: ':'Model answer: ',
+'קראו את תשובת המודל בקול פעמיים — זה מקבע את המבנה.':'Read the model answer aloud twice \u2014 that locks in the structure.',
+'תשובה קצרה מדי. נסו משפט שלם עם נושא ופועל.':'Too short. Try a full sentence with a subject and a verb.',
+'קראו אותה בקול פעמיים.':'Read it aloud twice.',
+'אבחנה בין צלילים':'Telling sounds apart',
+'איזו מהשתיים נאמרה?':'Which of the two was said?',
+'נאמר ':'You heard ',
+'לא ':'not ',
+'ולא ':'and not ',
+'מדויק: ':'Spot on: ',
+'נשמע כמו ':'That sounded like ',
+'שמעתי: ':'I heard: ',
+'המטרה: ':'Target: ',
+'הגייה טובה: ':'Good pronunciation: ',
+'קיצור — איך זה נשמע בדיבור':'Contraction \u2014 how it sounds in speech',
+'מה הצורה המקוצרת?':'What is the contracted form?',
+'בדיבור טבעי כמעט תמיד משתמשים בצורה המקוצרת. הצורה המלאה נשמעת רשמית או מודגשת.':'Natural speech almost always uses the contracted form. The full form sounds formal or emphatic.',
+'דיבור מהיר — מה נאמר באמת':'Fast speech \u2014 what was actually said',
+'מה הצורה התקנית של ':'What is the standard form of ',
+'פועל חריג · ':'Irregular verb \u00b7 ',
+'צורת העבר':'the past form',
+'הצורה השלישית':'the past participle',
+'Past Simple — "אתמול הוא ___"':'Past Simple \u2014 \u201cyesterday he ___\u201d',
+'Past Participle — הצורה שאחרי have / has / was':'Past Participle \u2014 the form after have / has / was',
+'תבנית: ':'Pattern: ',
+'הטיית זמן · ':'Tense conjugation \u00b7 ',
+'איזו אות שמעתם?':'Which letter did you hear?',
+'הקישו על הרמקול כדי לשמוע שוב':'Tap the speaker to hear it again',
+'אותה אות, קטנה':'The same letter, lower case',
+'איך קוראים לאות הזאת?':'What is this letter called?',
+'הקישו על הרמקולים והקישו על הנכון':'Tap the speakers, then tap the right one',
+'הקשה לשמיעה':'Tap to listen',
+'הקישו שוב אם זו האות':'Tap again if this is the letter',
+'לחצו והגו את המילה':'Tap and say the word',
+'מקשיב…':'Listening\u2026',
+'לא נקלט. נסו שוב או המשיכו.':'Nothing picked up. Try again or move on.',
+'לא נקלט. נסו שוב או כתבו.':'Nothing picked up. Try again or type it.',
+'זיהוי דיבור לא נתמך בדפדפן הזה — אפשר לדלג':'Speech recognition isn\u2019t supported in this browser \u2014 you can skip',
+'זיהוי דיבור לא נתמך כאן':'Speech recognition isn\u2019t supported here',
+'אין תמיכה בזיהוי דיבור':'Speech recognition isn\u2019t supported',
+'המיקרופון כבוי בהגדרות ההורים':'The microphone is off in parental settings',
+
+/* ---------- סיום סשן ---------- */
+'סשן מצוין':'Great session',
+'סיימת':'Done',
+'שליפה מהירה. זה בדיוק מה שמונע גמגום בדיבור.':'Fast retrieval. That is exactly what prevents stumbling in speech.',
+'קצב סביר. כדאי לחתור לשליפה מתחת לשלוש שניות.':'Reasonable pace. Aim for retrieval under three seconds.',
+'השליפה עדיין איטית. סשנים קצרים ויומיים עובדים טוב יותר מארוכים ונדירים.':'Retrieval is still slow. Short daily sessions work better than long, rare ones.',
+'זמן ממוצע':'Average time',
+'נכונות':'Correct',
+'המשימה הושלמה':'Task complete',
+'עלית לרמה ':'You moved up to level ',
+'לחזרה קרובה':'Coming back soon',
+'עוד סשן':'Another session',
+
+/* ---------- התקדמות וניתוח ---------- */
+'מילים בשליטה מלאה':'Words fully mastered',
+'בתהליך למידה':'Still being learned',
+'דיוק כולל':'Overall accuracy',
+'זמן שליפה ממוצע':'Average retrieval time',
+'פעילות ב־14 הימים האחרונים':'Activity over the last 14 days',
+'איפה כדאי להתמקד':'Where to focus',
+'מילים שעדיין לא יושבות':'Words that haven\u2019t settled yet',
+'שליטה לפי רמה':'Mastery by level',
+'ההתקדמות של ':'Progress for ',
+'שליטה':'mastery',
+'פעילות והתקדמות':'Activity and progress',
+
+/* ---------- משפחה והגדרות ---------- */
+'המשפחה':'Family',
+'מעבר בין לומדים, מעקב ושליטה.':'Switch between learners, track and control.',
+'בקרת הורים ומורים':'Parent and teacher controls',
+'יעדים יומיים, מגבלת מסך, נעילת רמה, מצבי תרגול מותרים והקצאת משימות.':'Daily goals, screen limits, level locking, allowed practice modes and task assignment.',
+'קוד הכניסה שלי':'My access code',
+'לפרופיל שלך יש קוד. הוא נדרש בכל כניסה.':'Your profile has a code. It is required on every sign-in.',
+'אין קוד. כל אחד שפותח את האפליקציה יכול להיכנס לפרופיל הזה.':'No code. Anyone who opens the app can enter this profile.',
+'שינוי או הסרת הקוד':'Change or remove the code',
+'קביעת קוד':'Set a code',
+'מראה':'Appearance',
+'שפת הממשק':'Interface language',
+'ערכת נושא':'Theme',
+'לפי המכשיר':'Match device',
+'בהיר':'Light',
+'כהה':'Dark',
+'קול ודיבור':'Voice and speech',
+'קול המכשיר':'Device voice',
+'בשימוש כרגע':'Currently in use',
+'איכות גבוהה':'High quality',
+'תקין':'OK',
+'בסיסי':'Basic',
+'קול דחוס':'Compact voice',
+'זהו קול דחוס והוא יישמע מתכתי. הורידו קול Premium בהגדרות → נגישות → תוכן מדובר → קולות → English.':'This is a compact voice and will sound metallic. Download a Premium voice in Settings \u2192 Accessibility \u2192 Spoken Content \u2192 Voices \u2192 English.',
+'מעבר ל‑':'Switch to ',
+'קול':'Voice',
+'בחירה אוטומטית — הטוב ביותר במכשיר':'Automatic \u2014 the best available on this device',
+'השמעת דוגמה':'Play a sample',
+'אבחון קולות':'Voice diagnostics',
+'מהירות הדיבור':'Speech rate',
+'איטית מאוד':'Very slow',
+'איטית':'Slow',
+'רגילה':'Normal',
+'מהירה':'Fast',
+'ילידית':'Native',
+'גובה הקול':'Pitch',
+'נמוך':'Low',
+'טבעי':'Natural',
+'גבוה':'High',
+'השמעה אוטומטית':'Auto play',
+'מופעלת':'On',
+'כבויה':'Off',
+'לא נמצא קול אנגלית במכשיר':'No English voice found on this device',
+'קפיצה ידנית לרמה':'Jump manually to level',
+'ענן':'Cloud',
+'גיבוי מקומי':'Local backup',
+'כל הנתונים נשמרים במכשיר בלבד. ייצאו קובץ לפני החלפת מכשיר.':'All data is stored on this device only. Export a file before switching devices.',
+'ייצוא':'Export',
+'ייבוא':'Import',
+'תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.':'Preview mode \u2014 data isn\u2019t kept between refreshes. Saving will work once the app is hosted.',
+'הקובץ לא תקין':'The file isn\u2019t valid',
+'יובא':'Imported',
+
+/* ---------- אבחון קולות ---------- */
+'סה"כ קולות':'Voices total',
+'אנגלית':'English',
+'משודרגים':'Upgraded',
+'Ava נמצאה':'Ava found',
+'אפשר לבחור אותה ברשימת הקולות.':'You can select her from the voice list.',
+'Ava לא נחשפת לדפדפן':'Ava isn\u2019t exposed to the browser',
+'היא כנראה מותקנת במכשיר, אבל ספארי לא מעביר קולות Premium ו‑Enhanced לדפי אינטרנט — רק לאפליקציות מקוריות ול‑VoiceOver. זו מגבלה של הדפדפן ולא של האפליקציה, ואין דרך לעקוף אותה מהקוד.':'She is probably installed on the device, but Safari doesn\u2019t expose Premium and Enhanced voices to web pages \u2014 only to native apps and VoiceOver. This is a browser limitation, not an app one, and it can\u2019t be worked around in code.',
+'כל הקולות שהמכשיר מדווח':'All voices reported by the device',
+'הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.':'The browser reports no voices. Try refreshing, or open the app from the site itself rather than an embedded view.',
+'אם הרשימה נראית שונה כשפותחים ישירות בספארי לעומת אפליקציה אחרת — זה סימן שהתצוגה המוטמעת מגבילה את הקולות.':'If the list looks different when opened directly in Safari versus another app, the embedded view is limiting the voices.',
+'רשת':'network',
+'מקומי':'local',
+'ברירת מחדל':'default',
+
+/* ---------- קודים ונעילה ---------- */
+'הזינו את קוד הכניסה':'Enter the access code',
+'החלפה':'Switch',
+'קוד הורה':'Parent code',
+'האזור הזה נעול. הזינו את קוד ההורה או המורה.':'This area is locked. Enter the parent or teacher code.',
+'אין עדיין קוד הורה':'No parent code yet',
+'כדי להשתמש בבקרת הורים צריך פרופיל אחד לפחות מסוג "הורה או מורה" עם קוד כניסה.':'To use parental controls you need at least one \u201cparent or teacher\u201d profile with an access code.',
+'יצירת פרופיל הורה':'Create a parent profile',
+'בחרו קוד בן ארבע ספרות.':'Choose a four-digit code.',
+'שוב, לאימות.':'Again, to confirm.',
+'הקודים לא תאמו. מתחילים מחדש.':'The codes didn\u2019t match. Starting over.',
+'הסרת הקוד':'Remove the code',
+'הקוד נשמר':'Code saved',
+'הקוד הוסר':'Code removed',
+
+/* ---------- בקרת הורים ---------- */
+'בחרו לומד כדי לקבוע יעדים, הרשאות ומשימות.':'Pick a learner to set goals, permissions and tasks.',
+'אין עדיין לומדים במשפחה.':'No learners in the family yet.',
+'קצב ומסך':'Pace and screen time',
+'יעד יומי':'Daily goal',
+'כמה פריטים ביום. מופיע כטבעת התקדמות במסך הבית.':'How many items per day. Shown as a progress ring on the home screen.',
+'מגבלה יומית':'Daily limit',
+'אחרי כמה פריטים האפליקציה נועלת את התרגול להיום. 0 = ללא הגבלה.':'After how many items the app locks practice for the day. 0 = unlimited.',
+'הרשאות':'Permissions',
+'נעילת הרמה':'Lock the level',
+'הלומד לא יוכל לקפוץ רמה ידנית דרך ההגדרות.':'The learner won\u2019t be able to jump levels manually from settings.',
+'נעילת נתונים':'Lock data',
+'חוסם מחיקת פרופיל, ייצוא וייבוא.':'Blocks profile deletion, export and import.',
+'מיקרופון':'Microphone',
+'כשכבוי, תרגילי ההגייה יעברו למצב האזנה בלבד בלי בקשת הרשאה.':'When off, pronunciation exercises switch to listening only, with no permission prompt.',
+'מצבי תרגול מותרים':'Allowed practice modes',
+'אם הכול פתוח, הלומד רואה את כל המצבים.':'If everything is enabled, the learner sees every mode.',
+'חייב להישאר מצב אחד לפחות':'At least one mode must stay enabled',
+'סוג התרגול':'Practice type',
+'מספר פריטים':'Number of items',
+'הערה ללומד':'Note to the learner',
+'למשל: לקראת המבחן ביום שלישי':'e.g. for the test on Tuesday',
+'הקצאת משימה':'Assign task',
+'ביטול המשימה':'Cancel the task',
+'המשימה הוקצתה':'Task assigned',
+'לפרופיל הזה יש קוד. הוא נדרש בכניסה.':'This profile has a code. It is required to sign in.',
+'אין קוד. כל אחד יכול להיכנס לפרופיל הזה.':'No code. Anyone can enter this profile.',
+'איפוס':'Reset',
+'מוחק את כל ההתקדמות והחזרות של הלומד ומחזיר אותו לרמה 0. שאר הפרופילים לא מושפעים.':'Erases all of the learner\u2019s progress and reviews and returns them to level 0. Other profiles are unaffected.',
+'איפוס ההתקדמות':'Reset progress',
+'סנכרון אוטומטי':'Automatic sync',
+
+/* ---------- ענן ---------- */
+'שמירה בענן':'Cloud backup',
+'כרגע הכול נשמר במכשיר הזה בלבד. אם הוא יאבד או שתנקה את הדפדפן — ההתקדמות תיעלם.':'Right now everything is stored on this device only. If it is lost or the browser is cleared, the progress is gone.',
+'הגדרת ענן':'Set up the cloud',
+'התחברות למשפחה':'Join a family',
+'התחברות למשפחה קיימת':'Join an existing family',
+'הגדרות ענן':'Cloud settings',
+'הענן מחובר':'Cloud connected',
+'קוד משפחה: ':'Family code: ',
+'סנכרון עכשיו':'Sync now',
+'הגדרות':'Settings',
+'עכשיו':'now',
+'המשפחה שלי':'My family',
+'זוהה קוד מהקישור':'Code detected from the link',
+'סרקתם או פתחתם קישור עם קוד משפחה. אשרו כדי להתחבר.':'You scanned or opened a link with a family code. Confirm to connect.',
+'המכשיר הזה מחובר ומסנכרן. ההתקדמות ממשיכה לעבוד גם בלי אינטרנט.':'This device is connected and syncing. Progress keeps working offline too.',
+'הזינו את קוד המשפחה שקיבלתם, או סרקו את קוד ה‑QR שלו במצלמת המכשיר.':'Enter the family code you received, or scan its QR code with the device camera.',
+'התחברות':'Connect',
+'עדכון':'Update',
+'הצגת קוד QR לשיתוף עם תלמיד':'Show a QR code to share with a student',
+'אחרי כל תרגול ובכל פתיחה של האפליקציה.':'After every session and every time the app opens.',
+'ניתוק מהמשפחה':'Leave the family',
+'צריך להזין קוד':'A code is required',
+'מתחבר…':'Connecting\u2026',
+'יוצר משפחה חדשה…':'Creating a new family\u2026',
+'לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.':'Couldn\u2019t connect. Check the code and your internet connection.',
+'לא הצלחנו ליצור את המשפחה. בדקו את החיבור לאינטרנט.':'Couldn\u2019t create the family. Check your internet connection.',
+'מקימים משפחה בפעם הראשונה?':'Setting up a family for the first time?',
+'יצירת קוד חדש':'Create a new code',
+'הכול מעודכן':'Everything is up to date',
+'נמחק במכשיר. הסנכרון לענן ייכשל עד שתהיה רשת.':'Deleted on this device. Cloud sync will fail until there is a connection.',
+'סריקה להצטרפות':'Scan to join',
+'התלמיד פותח את מצלמת המכשיר שלו ומכוון אל הקוד. לא צריך להתקין שום דבר — מצלמת ה‑iPhone וה‑Android מזהות QR ישירות.':'The student opens their device camera and points it at the code. Nothing to install \u2014 iPhone and Android cameras read QR directly.',
+'לא ניתן ליצור קוד QR — הקוד ארוך מדי.':'Can\u2019t generate a QR code \u2014 the code is too long.',
+'הגדרת ענן — פעם אחת':'Cloud setup \u2014 one time only',
+'השלב הזה שייך למי שמקים את המערכת, ונעשה פעם אחת בלבד לפני שמשתפים את הקוד עם אף אחד.':'This step belongs to whoever sets the system up, and is done once before the code is shared with anyone.',
+'פרויקט Firebase':'Firebase project',
+'שני הערכים נמצאים ב‑Firebase Console ← Project settings ← General.':'Both values are in the Firebase Console \u2192 Project settings \u2192 General.',
+'צריך למלא את שני השדות':'Both fields are required',
+'שמירה על המכשיר הזה בלבד, לבדיקה':'Save on this device only, for testing',
+'זמני בלבד — לא יעבור למכשיר אחר. שימושי כדי לוודא שהחיבור עובד לפני שעורכים את הקובץ.':'Temporary only \u2014 it won\u2019t carry to another device. Useful to verify the connection works before editing the file.',
+'חוקי אבטחה':'Security rules',
+'הדביקו ב‑Firestore ← Rules. בלי זה, מצב הבדיקה של Firebase יפוג ותאבדו גישה.':'Paste into Firestore \u2192 Rules. Without this, Firebase test mode expires and you lose access.',
+'החוק הזה חוסם סריקה אקראית ומחייב קוד ארוך, אבל הוא לא מצריך התחברות. אל תשמרו כאן שמות מלאים או פרטים מזהים.':'This rule blocks random scanning and requires a long code, but it does not require authentication. Don\u2019t store full names or identifying details here.',
+
+/* ---------- קול ענן ---------- */
+'קול ענן':'Cloud voice',
+'כבוי':'Off',
+'קול נוירוני אמיתי במקום קול המערכת הדחוס. ספארי לא חושף לדפי אינטרנט את הקולות האיכותיים של המכשיר, ולכן זו הדרך היחידה להגיע לקול טבעי באמת.':'A real neural voice instead of the compact system voice. Safari doesn\u2019t expose the device\u2019s high-quality voices to web pages, so this is the only way to get a genuinely natural voice.',
+'קול נוירוני אמיתי. נשמר במכשיר אחרי השמעה ראשונה, ולכן מיידי וגם עובד ללא רשת.':'A real neural voice. Cached on the device after the first playback, so it is instant and works offline.',
+'קול המכשיר בספארי הוא קול דחוס ונשמע מתכתי — זו מגבלת דפדפן. קול ענן פותר את זה.':'The device voice in Safari is a compact voice and sounds metallic \u2014 a browser limitation. The cloud voice solves it.',
+'הגדרות קול הענן':'Cloud voice settings',
+'הגדרת קול ענן':'Set up the cloud voice',
+'כשכבוי, האפליקציה משתמשת בקול המכשיר.':'When off, the app uses the device voice.',
+'— בחרו קול —':'\u2014 choose a voice \u2014',
+'לחצו "טעינת קולות" למטה':'Tap \u201cLoad voices\u201d below',
+'טעינת קולות מהשרת':'Load voices from the server',
+'שימוש ברשימה מקומית (בלי לשאול את השרת)':'Use the built-in list (without asking the server)',
+'טוען…':'Loading\u2026',
+'מנגן…':'Playing\u2026',
+'מנגן דוגמה…':'Playing a sample\u2026',
+'הקול נשמר.':'Voice saved.',
+'קודם בחרו קול.':'Choose a voice first.',
+'מופעל.':'On.',
+'מופעל — עוד צריך לבחור קול.':'On \u2014 you still need to choose a voice.',
+'כבוי. חוזרים לקול המכשיר.':'Off. Falling back to the device voice.',
+'מטמון':'Cache',
+'כל מילה נשלפת מהשרת פעם אחת ואז נשמרת במכשיר — הנגינה מיידית, ועובדת גם בלי אינטרנט. זה גם מה ששומר את העלות אפסית.':'Each word is fetched once and then stored on the device \u2014 playback is instant and works offline. This is also what keeps the cost at zero.',
+'ניקוי המטמון':'Clear the cache',
+'המטמון נוקה':'Cache cleared',
+'אבחון':'Diagnostics',
+'לוחצים, והבדיקה מדווחת בדיוק מה נכשל — כולל ההודעה המקורית של Google, שלרוב אומרת מה חסר ואיך לתקן.':'Tap once and the check reports exactly what failed \u2014 including Google\u2019s original message, which usually states what is missing and how to fix it.',
+'הרצת אבחון':'Run diagnostics',
+'בודק…':'Checking\u2026',
+'הפעלה חד-פעמית בקונסולה':'One-time activation in the console',
+'ה-API משתמש באותו פרויקט ומפתח שכבר בקובץ. צריך רק להפעיל אותו:':'The API uses the same project and key already in the file. It only needs to be enabled:',
+'Project ID מוגדר':'Project ID set',
+'API key מוגדר':'API key set',
+'חסר':'missing',
+'חיבור לאינטרנט':'Internet connection',
+'לא מחובר':'offline',
+'מחובר':'online',
+'שליפת רשימת קולות':'Fetching the voice list',
+'נכשל':'failed',
+'סינתזת אודיו':'Audio synthesis',
+'לא נבחר קול':'no voice selected',
+'נגינה במכשיר':'Playback on the device',
+'נחסמה':'blocked',
+'ההודעה של Google':'Google\u2019s message',
+'פתיחת הקישור מההודעה':'Open the link from the message',
+'הכול עובד בצד השרת — הדפדפן חסם את הנגינה. געו במסך פעם אחת ונסו שוב.':'Everything works server-side \u2014 the browser blocked playback. Tap the screen once and try again.',
+'הכול עובד. אם עדיין נשמע קול מכשיר, ודאו שהמתג "קול ענן" למעלה דלוק.':'Everything works. If you still hear the device voice, make sure the \u201cCloud voice\u201d switch above is on.',
+'ה-API עצמו לא מופעל בפרויקט. פתחו את הקישור שבהודעה למטה ולחצו Enable.':'The API itself isn\u2019t enabled in the project. Open the link in the message below and press Enable.',
+'שגיאת הרשאה. ראו את ההודעה המקורית למטה — היא מציינת מה חסר.':'A permission error. See the original message below \u2014 it states what is missing.',
+'הבקשה נדחתה כלא תקינה — לרוב מפתח שגוי.':'The request was rejected as invalid \u2014 usually a wrong key.',
+'עברתם את המכסה. בדקו חיוב ומכסות בקונסולה.':'You exceeded the quota. Check billing and quotas in the console.',
+'הבקשה לא יצאה כלל — אין רשת, או שהדפדפן חסם אותה.':'The request never left \u2014 no network, or the browser blocked it.',
+'ראו את ההודעה המקורית למטה.':'See the original message below.',
+'הבקשה לא יצאה בכלל — אין רשת, או שהדפדפן חסם אותה (CORS).':'The request never left \u2014 no network, or the browser blocked it (CORS).',
+'תשובה לא תקינה מהשרת':'Invalid response from the server',
+'השרת החזיר תשובה בלי אודיו':'The server returned a response with no audio',
+'קולות':'voices',
+'רענון':'Refresh',
+
+/* ============================================================
+   תבניות — דורשות שינוי בצד הקורא (ראו i18n-wiring.md).
+   הערכים משתמשים ב-{0},{1} ומקבלים ערכים דרך T(pattern, a, b).
+   ============================================================ */
+'{0} פריטים ממתינים לחזרה':'{0} items due for review',
+'{0} פריטים לחזרה, ואחר כך חומר חדש':'{0} items to review, then new material',
+'{0} מתוך {1} פריטים':'{0} of {1} items',
+'מגבלה: {0}':'Limit: {0}',
+'{0}/{1} פריטים · {2}':'{0}/{1} items \u00b7 {2}',
+'{0} פריטים · {1}':'{0} items \u00b7 {1}',
+'רמה {0} · {1}':'Level {0} \u00b7 {1}',
+'תרגול היום · {0} פריטים':'Today\u2019s practice \u00b7 {0} items',
+'התחלה · {0} פריטים':'Start \u00b7 {0} items',
+'נפתח ב־{0}% ברמה {1}':'Unlocks at {0}% on level {1}',
+'מילים · {0}':'Words \u00b7 {0}',
+'פעלים חריגים · {0}':'Irregular verbs \u00b7 {0}',
+'סה"כ {0} תרגילים בשבועיים · רצף {1} ימים':'{0} exercises in two weeks \u00b7 {1}-day streak',
+'{0} פריטים ממתינים לחזרה. אלגוריתם החזרות מציג כל פריט בדיוק לפני שהוא נשכח — לכן חשוב יותר לתרגל כל יום מעט, מאשר הרבה פעם בשבוע.':'{0} items are due for review. The scheduler shows each item right before it would be forgotten \u2014 so practising a little every day matters more than a lot once a week.',
+'היום {0} פריטים':'{0} items today',
+'רמה {0} · {1} · {2}% שליטה':'Level {0} \u00b7 {1} \u00b7 {2}% mastery',
+'סונכרן · {0} פרופילים':'Synced \u00b7 {0} profiles',
+'{0} קטעי אודיו שמורים.':'{0} audio clips stored.',
+'{0} קולות אנגלית במכשיר · ✦✦ איכות גבוהה, ✦ תקין.':'{0} English voices on this device \u00b7 \u2726\u2726 high quality, \u2726 fine.',
+'עדיין נטענים קולות. אם הרשימה נשארת ריקה — רעננו את הדף.':'Voices are still loading. If the list stays empty, refresh the page.',
+'רענון ({0} קולות)':'Refresh ({0} voices)',
+'למחוק את {0} ואת כל ההתקדמות? אי אפשר לבטל.':'Delete {0} and all their progress? This cannot be undone.',
+'לאפס את כל ההתקדמות של {0}? אי אפשר לבטל.':'Reset all progress for {0}? This cannot be undone.',
+'להתנתק מהמשפחה? הנתונים במכשיר הזה יישארו, והעותק בענן לא יימחק.':'Leave the family? Data on this device stays, and the cloud copy is not deleted.',
+'הייבוא יחליף את כל הנתונים הקיימים. להמשיך?':'Importing will replace all existing data. Continue?',
+'נקבעה מגבלה של {0} פריטים ליום, וסיימת אותם. התרגול ייפתח שוב מחר.':'A limit of {0} items per day is set, and you have finished them. Practice reopens tomorrow.',
+'הגעת למגבלה היומית':'You have reached the daily limit',
+'בדרך כלל לא צריך לגעת בזה — הרמה עולה מעצמה ב‑{0}% שליטה. שימושי אם התחלתם נמוך מדי.':'You usually don\u2019t need this \u2014 the level rises on its own at {0}% mastery. Useful if you started too low.',
+
+};
+
 /* ============================================================
    DATA — מאגר התוכן. הכל כאן, קל להרחבה.
    פורמט מילה:  en|he|ipa|pos|משפט דוגמה|תרגום המשפט
@@ -4275,7 +4916,7 @@ const ICONS={
 };
 const svg = n => `<svg viewBox="0 0 24 24">${ICONS[n]}</svg>`;
 
-function cefrPill(lv){ return `<span class="pill">${esc(LEVELS[lv].cefr)}</span>`; }
+function cefrPill(lv){ return `<span class="pill">${esc(T(LEVELS[lv].cefr))}</span>`; }
 function toast(t){ const x=el(`<div class="toast">${esc(t)}</div>`); document.body.appendChild(x); setTimeout(()=>x.remove(),1900); }
 
 /* ---------- ערכת נושא וגודל טקסט ----------
@@ -4365,6 +5006,7 @@ function pinFixedBars(){
 
 /* ---------- ניתוב ---------- */
 function render(){
+  applyLang();
   applyTheme();
   if(!USERS.length){ return vWelcome(); }
   const cu=me();
@@ -4384,10 +5026,10 @@ function go(t){
   TAB=t; render();
 }
 function askQuit(then){
-  sheet(`<h2>לצאת מהתרגול?</h2>
-    <p class="sub" style="margin-bottom:18px">כל מה שענית עד עכשיו כבר נשמר. אפשר להמשיך מאותה נקודה בכל רגע.</p>
-    <button class="btn" id="stay">להמשיך לתרגל</button>
-    <button class="btn ghost" style="margin-top:8px" id="quit">יציאה</button>`, sh=>{
+  sheet(`<h2>${T('לצאת מהתרגול?')}</h2>
+    <p class="sub" style="margin-bottom:18px">${T('כל מה שענית עד עכשיו כבר נשמר. אפשר להמשיך מאותה נקודה בכל רגע.')}</p>
+    <button class="btn" id="stay">${T('להמשיך לתרגל')}</button>
+    <button class="btn ghost" style="margin-top:8px" id="quit">${T('יציאה')}</button>`, sh=>{
     sh.querySelector('#stay').onclick=closeSheet;
     sh.querySelector('#quit').onclick=()=>{ closeSheet(); clearInterval(TICK); stopListening(); then(); };
   });
@@ -4401,12 +5043,12 @@ function drawTop(){
    ? `<div class="wordmark">Ladd<i>e</i>r</div><div class="spacer"></div>
       ${u.streak?`<span class="chip flame">${u.streak}🔥</span>`:''}
       <span class="chip">L${u.lv}</span>
-      <button class="avatar" onclick="go('family')" aria-label="משפחה">${u.emoji}</button>`
+      <button class="avatar" onclick="go('family')" aria-label="${T('משפחה')}">${u.emoji}</button>`
    : `<div class="wordmark">Ladd<i>e</i>r</div>`;
 }
 function drawNav(){
   const t=(k,n,i)=>`<button class="${TAB===k?'on':''}" onclick="go('${k}')">${svg(i)}<span>${n}</span></button>`;
-  $('#nav').innerHTML=`<div class="nav-in">${t('home','בית','home')}${t('practice','תרגול','play')}${t('stats','התקדמות','chart')}${t('family','משפחה','users')}</div>`;
+  $('#nav').innerHTML=`<div class="nav-in">${t('home',T('בית'),'home')}${t('practice',T('תרגול'),'play')}${t('stats',T('התקדמות'),'chart')}${t('family',T('משפחה'),'users')}</div>`;
 }
 addEventListener('scroll',()=>$('#topbar')?.classList.toggle('scrolled',scrollY>4));
 
@@ -4417,34 +5059,34 @@ function vWelcome(){
   $('#screen').style.padding='0';
   $('#screen').innerHTML=`<div class="welcome">
     <div class="mark">Ladd<i>e</i>r</div>
-    <p class="tagline">אנגלית מאפס עד שטף, בקצב של כל אחד במשפחה בנפרד.</p>
+    <p class="tagline">${T('אנגלית מאפס עד שטף, בקצב של כל אחד במשפחה בנפרד.')}</p>
     <div class="steps">
-      <div class="step"><span class="k">01</span><div><b>כל אחד והסולם שלו</b>
-        <span>תשע רמות, מהאותיות ועד שיחה חופשית. כל לומד מתקדם לפי הקצב שלו, עם התקדמות נפרדת.</span></div></div>
-      <div class="step"><span class="k">02</span><div><b>לא רק לדעת — לשלוף</b>
-        <span>כל תשובה נמדדת בשניות. תשובה נכונה אבל איטית תחזור מוקדם יותר, עד שהיא יוצאת בלי מחשבה.</span></div></div>
-      <div class="step"><span class="k">03</span><div><b>לדבר, לא רק לסמן</b>
-        <span>הקלטה, הכתבה, בניית משפטים והגייה. אנגלית נבנית בפה, לא רק בעין.</span></div></div>
-      <div class="step"><span class="k">04</span><div><b>עשר דקות ביום מנצחות שעה בשבוע</b>
-        <span>המערכת מציפה כל פריט בדיוק לפני שהוא נשכח. רצף יומי שווה יותר מכל מרתון.</span></div></div>
+      <div class="step"><span class="k">01</span><div><b>${T('כל אחד והסולם שלו')}</b>
+        <span>${T('תשע רמות, מהאותיות ועד שיחה חופשית. כל לומד מתקדם לפי הקצב שלו, עם התקדמות נפרדת.')}</span></div></div>
+      <div class="step"><span class="k">02</span><div><b>${T('לא רק לדעת — לשלוף')}</b>
+        <span>${T('כל תשובה נמדדת בשניות. תשובה נכונה אבל איטית תחזור מוקדם יותר, עד שהיא יוצאת בלי מחשבה.')}</span></div></div>
+      <div class="step"><span class="k">03</span><div><b>${T('לדבר, לא רק לסמן')}</b>
+        <span>${T('הקלטה, הכתבה, בניית משפטים והגייה. אנגלית נבנית בפה, לא רק בעין.')}</span></div></div>
+      <div class="step"><span class="k">04</span><div><b>${T('עשר דקות ביום מנצחות שעה בשבוע')}</b>
+        <span>${T('המערכת מציפה כל פריט בדיוק לפני שהוא נשכח. רצף יומי שווה יותר מכל מרתון.')}</span></div></div>
     </div>
-    <button class="btn" style="margin-top:28px" onclick="addUser()">יצירת הלומד הראשון</button>
-    <button class="btn ghost" style="margin-top:9px" onclick="cloudSheet()">כבר יש קוד משפחה? התחברות</button>
+    <button class="btn" style="margin-top:28px" onclick="addUser()">${T('יצירת הלומד הראשון')}</button>
+    <button class="btn ghost" style="margin-top:9px" onclick="cloudSheet()">${T('כבר יש קוד משפחה? התחברות')}</button>
   </div>`;
 }
 
 /* ---------- בחירת לומד ---------- */
 const EMOJIS='🦊 🐼 🐧 🦁 🐨 🐢 🦉 🐝 🚀 ⚽ 🎸 🌻 🍀 ⭐ 🐙 🦄'.split(' ');
 function vUsers(s){
-  s.innerHTML=`<h1>מי לומד עכשיו?</h1><p class="sub">לכל אחד התקדמות, רמה ורצף משלו.</p>
+  s.innerHTML=`<h1>${T('מי לומד עכשיו?')}</h1><p class="sub">${T('לכל אחד התקדמות, רמה ורצף משלו.')}</p>
     <div class="userpick" style="margin-top:18px" id="ul"></div>
-    <button class="btn ghost" style="margin-top:12px" onclick="addUser()">הוספת לומד</button>
-    <button class="btn ghost" style="margin-top:8px" onclick="cloudSheet()">${cloudReady()?'הגדרות ענן':'התחברות למשפחה קיימת'}</button>`;
+    <button class="btn ghost" style="margin-top:12px" onclick="addUser()">${T('הוספת לומד')}</button>
+    <button class="btn ghost" style="margin-top:8px" onclick="cloudSheet()">${cloudReady()?T('הגדרות ענן'):T('התחברות למשפחה קיימת')}</button>`;
   const ul=$('#ul');
   USERS.forEach(u=>{
     const b=el(`<button class="usercard"><div class="av">${u.emoji}</div>
       <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(u.name)}</div>
-      <div class="muted">${u.role==='parent'?'הורה או מורה':'רמה '+u.lv+' · '+LEVELS[u.lv].nm}</div></div>
+      <div class="muted">${u.role==='parent'?T('הורה או מורה'):T('רמה ')+u.lv+' · '+T(LEVELS[u.lv].nm)}</div></div>
       ${u.code?'<span class="badge">🔒</span>':''}
       ${u.streak?`<span class="badge">${u.streak}🔥</span>`:''}</button>`);
     b.onclick=()=>{ CUR=u.id; Store.set(K_CUR,CUR); TAB='home'; render(); };
@@ -4453,20 +5095,20 @@ function vUsers(s){
 }
 function addUser(asParent){
   let em=EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
-  sheet(`<h2>${asParent?'פרופיל הורה או מורה':'לומד חדש'}</h2>
-    <div class="field"><label>שם</label><input id="nm" placeholder="${asParent?'למשל: אבא':'למשל: יעל'}"></div>
-    <div class="field"><label>תפקיד</label><div class="seg" id="rl">
-      <button data-v="learner" class="${asParent?'':'on'}">לומד</button>
-      <button data-v="parent" class="${asParent?'on':''}">הורה או מורה</button></div></div>
-    <div class="field"><label>אווטאר</label><div class="emojipick" id="ep"></div></div>
-    <div class="field"><label>גודל טקסט</label><div class="seg" id="sz">
-      <button data-v="m" class="on">רגיל</button><button data-v="l">גדול</button><button data-v="xl">ענק</button></div></div>
-    <div class="field"><label>רמת פתיחה</label><select id="lv">${LEVELS.map(l=>`<option value="${l.id}">${l.id} · ${l.nm} (${l.cefr})</option>`).join('')}</select>
-      <p class="muted" style="margin-top:6px">לא בטוחים? התחילו מ‑0. אפשר לשנות בכל רגע.</p></div>
-    <div class="ctrl" style="border:0"><div class="tx"><b>קוד כניסה</b>
-      <span>ארבע ספרות. נדרש בכניסה לפרופיל ולפתיחת בקרת ההורים.</span></div>
+  sheet(`<h2>${asParent?T('פרופיל הורה או מורה'):T('לומד חדש')}</h2>
+    <div class="field"><label>${T('שם')}</label><input id="nm" placeholder="${asParent?T('למשל: אבא'):T('למשל: יעל')}"></div>
+    <div class="field"><label>${T('תפקיד')}</label><div class="seg" id="rl">
+      <button data-v="learner" class="${asParent?'':'on'}">${T('לומד')}</button>
+      <button data-v="parent" class="${asParent?'on':''}">${T('הורה או מורה')}</button></div></div>
+    <div class="field"><label>${T('אווטאר')}</label><div class="emojipick" id="ep"></div></div>
+    <div class="field"><label>${T('גודל טקסט')}</label><div class="seg" id="sz">
+      <button data-v="m" class="on">${T('רגיל')}</button><button data-v="l">${T('גדול')}</button><button data-v="xl">${T('ענק')}</button></div></div>
+    <div class="field"><label>${T('רמת פתיחה')}</label><select id="lv">${LEVELS.map(l=>`<option value="${l.id}">${l.id} · ${T(l.nm)} (${T(l.cefr)})</option>`).join('')}</select>
+      <p class="muted" style="margin-top:6px">${T('לא בטוחים? התחילו מ‑0. אפשר לשנות בכל רגע.')}</p></div>
+    <div class="ctrl" style="border:0"><div class="tx"><b>${T('קוד כניסה')}</b>
+      <span>${T('ארבע ספרות. נדרש בכניסה לפרופיל ולפתיחת בקרת ההורים.')}</span></div>
       <button class="sw ${asParent?'on':''}" id="wantcode"></button></div>
-    <button class="btn" id="ok">יצירה</button>`, sh=>{
+    <button class="btn" id="ok">${T('יצירה')}</button>`, sh=>{
     const ep=sh.querySelector('#ep');
     EMOJIS.forEach(e=>{const b=el(`<button class="${e===em?'on':''}">${e}</button>`);
       b.onclick=()=>{ep.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');em=e;};ep.appendChild(b);});
@@ -4480,9 +5122,9 @@ function addUser(asParent){
       sh.querySelectorAll('#sz button').forEach(x=>x.classList.remove('on'));b.classList.add('on');size=b.dataset.v;
       document.documentElement.dataset.size=size; });
     sh.querySelector('#ok').onclick=()=>{
-      const n=sh.querySelector('#nm').value.trim(); if(!n){toast('צריך שם');return;}
+      const n=sh.querySelector('#nm').value.trim(); if(!n){toast(T('צריך שם'));return;}
       const u=newUser(n,em,role,+sh.querySelector('#lv').value);
-      u.settings.size=size; saveUsers();
+      u.settings.size=size; u.settings.lang=UI_LANG; saveUsers();
       CUR=u.id; UNLOCKED[u.id]=1; Store.set(K_CUR,CUR); closeSheet(); TAB='home';
       $('#screen').style.padding=''; $('#topbar').classList.remove('hide');
       if(wantCode) setCode(u); else render();
@@ -4494,9 +5136,9 @@ function addUser(asParent){
 function vHome(s){
   const u=me(), a=analyse(u), pct=levelPct(u,u.lv);
   const climb = Math.round(((u.lv + pct/100) / LEVELS.length)*100);
-  const headline = a.dueNow>=8 ? `${a.dueNow} פריטים ממתינים לחזרה`
-                 : a.dueNow>0  ? `${a.dueNow} פריטים לחזרה, ואחר כך חומר חדש`
-                 : 'הכול מעודכן — היום לומדים חדש';
+  const headline = a.dueNow>=8 ? T('{0} פריטים ממתינים לחזרה', a.dueNow)
+                 : a.dueNow>0  ? T('{0} פריטים לחזרה, ואחר כך חומר חדש', a.dueNow)
+                 : T('הכול מעודכן — היום לומדים חדש');
   s.innerHTML=`
    <h1>${esc(u.name)}</h1>
    <p class="sub">${headline}</p>
@@ -4505,26 +5147,26 @@ function vHome(s){
    ${taskCard(u)}
    <div class="card" style="margin-top:16px;border-color:var(--brand)">
      <div style="display:flex;align-items:baseline;gap:8px">
-       <b style="font-size:1.05rem">רמה ${u.lv} · ${LEVELS[u.lv].nm}</b> ${cefrPill(u.lv)}
+       <b style="font-size:1.05rem">${T('רמה ')}${u.lv} · ${T(LEVELS[u.lv].nm)}</b> ${cefrPill(u.lv)}
        <span class="spacer"></span><span class="badge">${pct}%</span>
      </div>
      <div class="progline" style="margin-top:9px"><i style="width:${pct}%"></i></div>
-     <p class="muted" style="margin-top:8px">${LEVELS[u.lv].dsc}</p>
-     <button class="btn" style="margin-top:13px" onclick="startSession('mix',14)">תרגול היום · 14 פריטים</button>
+     <p class="muted" style="margin-top:8px">${T(LEVELS[u.lv].dsc)}</p>
+     <button class="btn" style="margin-top:13px" onclick="startSession('mix',14)">${T('תרגול היום · {0} פריטים', 14)}</button>
      <div class="row" style="margin-top:8px">
-       <button class="btn ghost sm" style="width:100%" onclick="startSession('weak',10)">חיזוק חולשות</button>
-       <button class="btn ghost sm" style="width:100%" onclick="startSession('sound',10)">אוזן והגייה</button>
+       <button class="btn ghost sm" style="width:100%" onclick="startSession('weak',10)">${T('חיזוק חולשות')}</button>
+       <button class="btn ghost sm" style="width:100%" onclick="startSession('sound',10)">${T('אוזן והגייה')}</button>
      </div>
-     <button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="tenseSheet()">טבלת חמשת הזמנים</button>
+     <button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="tenseSheet()">${T('טבלת חמשת הזמנים')}</button>
    </div>
 
    <div class="grid3" style="margin-top:14px">
-     <div class="stat"><div class="n">${a.vocab}</div><div class="l">מילים בשליטה</div></div>
-     <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}<span style="font-size:.6em">%</span></div><div class="l">דיוק</div></div>
-     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1):'—'}<span style="font-size:.6em">s</span></div><div class="l">זמן שליפה</div></div>
+     <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה')}</div></div>
+     <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}<span style="font-size:.6em">%</span></div><div class="l">${T('דיוק')}</div></div>
+     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1):T('—')}<span style="font-size:.6em">s</span></div><div class="l">${T('זמן שליפה')}</div></div>
    </div>
 
-   <div class="sec-title">הסולם</div>
+   <div class="sec-title">${T('הסולם')}</div>
    <div class="ladder" id="ld" style="--climb:${climb}%"></div>`;
   const ld=$('#ld');
   LEVELS.forEach(l=>{
@@ -4533,9 +5175,9 @@ function vHome(s){
     const b=el(`<button class="rung ${cls}">
       <div class="fillbar" style="width:${l.id<=u.lv?p:0}%"></div>
       <div class="lv">${l.id}</div>
-      <div style="flex:1;min-width:0"><div class="nm">${l.nm} <span class="badge" style="font-weight:600">${l.cefr}</span></div><div class="dsc">${l.dsc}</div></div>
-      <div class="pct">${l.id<=u.lv?p+'%':'—'}</div></button>`);
-    b.onclick=()=> l.id<=u.lv ? levelSheet(l) : toast(`נפתח ב־${LEVELS[u.lv].need}% ברמה ${u.lv}`);
+      <div style="flex:1;min-width:0"><div class="nm">${T(l.nm)} <span class="badge" style="font-weight:600">${T(l.cefr)}</span></div><div class="dsc">${T(l.dsc)}</div></div>
+      <div class="pct">${l.id<=u.lv?p+'%':T('—')}</div></button>`);
+    b.onclick=()=> l.id<=u.lv ? levelSheet(l) : toast(T('נפתח ב־{0}% ברמה {1}', LEVELS[u.lv].need, u.lv));
     ld.appendChild(b);
   });
 }
@@ -4547,39 +5189,39 @@ function goalCard(u){
       <circle cx="23" cy="23" r="20" stroke="var(--line)"/>
       <circle cx="23" cy="23" r="20" stroke="var(--${p>=1?'good':'brand'})" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}"/>
     </svg>
-    <div style="flex:1;min-width:0"><b>${p>=1?'היעד היומי הושלם':'היעד היומי'}</b>
-      <div class="muted">${dn} מתוך ${u.ctrl.daily} פריטים${u.ctrl.cap?` · מגבלה: ${u.ctrl.cap}`:''}</div></div>
+    <div style="flex:1;min-width:0"><b>${p>=1?T('היעד היומי הושלם'):T('היעד היומי')}</b>
+      <div class="muted">${T('{0} מתוך {1} פריטים', dn, u.ctrl.daily)}${u.ctrl.cap?` · ${T('מגבלה: {0}', u.ctrl.cap)}`:''}</div></div>
   </div></div>`;
 }
 function taskCard(u){
   if(!u.task || u.task.done) return '';
   const t=u.task, p=Math.min(100,(t.prog/t.size)*100);
   return `<div class="card" style="margin-top:14px;padding:0;border:0;box-shadow:none"><div class="task">
-    <div class="lbl">משימה</div>
-    <b style="display:block;margin-top:2px">${esc(t.note||t.label)}</b>
-    <div class="sub" style="margin-top:2px">${t.prog}/${t.size} פריטים · ${esc(t.label)}</div>
+    <div class="lbl">${T('משימה')}</div>
+    <b style="display:block;margin-top:2px">${esc(t.note||T(t.label))}</b>
+    <div class="sub" style="margin-top:2px">${t.prog}/${t.size} ${T('פריטים')} · ${esc(T(t.label))}</div>
     <div class="progline" style="margin-top:9px"><i style="width:${p}%"></i></div>
-    <button class="btn sm" style="width:100%;margin-top:11px" onclick="startSession('${t.mode}',${Math.max(4,t.size-t.prog)},null,1)">המשך המשימה</button>
+    <button class="btn sm" style="width:100%;margin-top:11px" onclick="startSession('${t.mode}',${Math.max(4,t.size-t.prog)},null,1)">${T('המשך המשימה')}</button>
   </div></div>`;
 }
 function levelSheet(l){
   const u=me();
   const ws=WORDS.filter(w=>w.lv===l.id), gs=GRAMMAR.filter(g=>g.lv===l.id);
   const cefrNote = l.cefr==='טרום-קריאה'
-    ? 'שלב טרום-קריאה — אין לו מקבילה בסולם CEFR, שמניח קריאה בסיסית.'
-    : `הערכה מקורבת לפי תוכן הרמה — שימושית לכיוון כללי בבחירת ספרי קריאה, לא תחליף למבחן מיון רשמי.`;
-  sheet(`<h2>רמה ${l.id} · ${l.nm}</h2><p class="sub">${l.cefr} · ${l.dsc}</p>
+    ? T('שלב טרום-קריאה — אין לו מקבילה בסולם CEFR, שמניח קריאה בסיסית.')
+    : T('הערכה מקורבת לפי תוכן הרמה — שימושית לכיוון כללי בבחירת ספרי קריאה, לא תחליף למבחן מיון רשמי.');
+  sheet(`<h2>${T('רמה ')}${l.id} · ${T(l.nm)}</h2><p class="sub">${T(l.cefr)} · ${T(l.dsc)}</p>
     <p class="muted" style="margin-top:2px">${cefrNote}</p>
     <div class="row" style="margin-top:16px">
-      <button class="btn sm" style="width:100%" onclick="closeSheet();startSession('mix',12,${l.id})">תרגול הרמה</button>
-      <button class="btn ghost sm" style="width:100%" onclick="closeSheet();startSession('rules',10,${l.id})">דקדוק בלבד</button>
+      <button class="btn sm" style="width:100%" onclick="closeSheet();startSession('mix',12,${l.id})">${T('תרגול הרמה')}</button>
+      <button class="btn ghost sm" style="width:100%" onclick="closeSheet();startSession('rules',10,${l.id})">${T('דקדוק בלבד')}</button>
     </div>
-    ${l.id<=1?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();alphabetSheet()">האלף-בית והאסוציאציות</button>`:''}
-    ${CORE_TENSES.some(t=>t.lv===l.id)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();tenseSheet()">טבלת חמשת הזמנים</button>`:''}
-    ${IRREG.some(v=>v.lv===l.id)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();irregSheet(${l.id})">טבלת הפעלים החריגים</button>`:''}
-    ${gs.length?`<div class="sec-title">חוקים</div>${gs.map(g=>`<div class="card"><b>${esc(g.ti)}</b><div class="sub" style="margin-top:5px">${esc(g.he)}</div>
+    ${l.id<=1?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();alphabetSheet()">${T('האלף-בית והאסוציאציות')}</button>`:''}
+    ${CORE_TENSES.some(t=>t.lv===l.id)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();tenseSheet()">${T('טבלת חמשת הזמנים')}</button>`:''}
+    ${IRREG.some(v=>v.lv===l.id)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();irregSheet(${l.id})">${T('טבלת הפעלים החריגים')}</button>`:''}
+    ${gs.length?`<div class="sec-title">${T('חוקים')}</div>${gs.map(g=>`<div class="card"><b>${esc(g.ti)}</b><div class="sub" style="margin-top:5px">${esc(g.he)}</div>
       <div class="ruleblk">${g.ex.map(e=>`<span class="ex en">${esc(e.en)}</span><span class="muted">${esc(e.he)}</span>`).join('')}</div></div>`).join('')}`:''}
-    ${ws.length?`<div class="sec-title">מילים · ${ws.length}</div><div class="card">${ws.map(w=>{
+    ${ws.length?`<div class="sec-title">${T('מילים · {0}', ws.length)}</div><div class="card">${ws.map(w=>{
       const st=strength(u.srs[w.id+'#r']);
       const col=st>=.7?'var(--good)':st>0?'var(--gold)':'var(--line)';
       return `<div class="wordrow"><span class="dot" style="background:${col}"></span>
@@ -4601,10 +5243,10 @@ const MODES=[
 function vPractice(s){
   if(S) return drawQ(s);
   const allowed=MODES.filter(([m])=>modeAllowed(me(),m));
-  s.innerHTML=`<h1>תרגול</h1><p class="sub">${allowed.length<MODES.length?'חלק מהמצבים נעולים על ידי ההורה.':'כל מצב מאמן שריר אחר.'}</p>
+  s.innerHTML=`<h1>${T('תרגול')}</h1><p class="sub">${allowed.length<MODES.length?T('חלק מהמצבים נעולים על ידי ההורה.'):T('כל מצב מאמן שריר אחר.')}</p>
     <div class="modegrid" style="margin-top:16px">${allowed.map(([m,n,ti,d],i)=>
-      `<div class="card"><b style="font-size:1rem">${ti}</b><div class="sub" style="margin-top:4px">${d}</div>
-       <button class="btn ${i?'ghost ':''}sm" style="margin-top:11px;width:100%" onclick="startSession('${m}',${n})">התחלה · ${n} פריטים</button></div>`).join('')}</div>`;
+      `<div class="card"><b style="font-size:1rem">${T(ti)}</b><div class="sub" style="margin-top:4px">${T(d)}</div>
+       <button class="btn ${i?'ghost ':''}sm" style="margin-top:11px;width:100%" onclick="startSession('${m}',${n})">${T('התחלה · {0} פריטים', n)}</button></div>`).join('')}</div>`;
 }
 
 /* ---------- הסבר ראשון לכל סוג תרגיל ---------- */
@@ -4633,27 +5275,27 @@ const TYPE_INFO={
  spoken:['🔊','דיבור מהיר','ככה אנגלית באמת נשמעת כשמדברים מהר. תפקידכם לפענח מה נאמר.']
 };
 function showIntro(s, it){
-  const [ic,ti,tx]=TYPE_INFO[it.t]||['✳️',TYPE_HE[it.t]||'תרגיל',''];
+  const [ic,ti,tx]=TYPE_INFO[it.t]||['✳️',T(TYPE_HE[it.t]||'תרגיל'),''];
   s.innerHTML=`<div style="padding-top:34px"><div class="intro">
-    <div class="ic">${ic}</div><h2>${ti}</h2><p>${tx}</p></div>
-    <p class="muted" style="text-align:center;margin-top:14px">ההסבר הזה מופיע פעם אחת בלבד</p></div>`;
-  setAction(`<button class="btn" id="gogo">הבנתי, מתחילים</button>`);
+    <div class="ic">${ic}</div><h2>${T(ti)}</h2><p>${T(tx)}</p></div>
+    <p class="muted" style="text-align:center;margin-top:14px">${T('ההסבר הזה מופיע פעם אחת בלבד')}</p></div>`;
+  setAction(`<button class="btn" id="gogo">${T('הבנתי, מתחילים')}</button>`);
   $('#gogo').onclick=()=>{ const u=me(); u.seenTypes[it.t]=1; saveUsers(); drawQ(s); };
 }
 
 /* ---------- הסשן ---------- */
 function startSession(mode, size, lv, fromTask){
   const u=me(), oldLv=u.lv;
-  if(!fromTask && !modeAllowed(u,mode)) return toast('המצב הזה נעול על ידי ההורה');
+  if(!fromTask && !modeAllowed(u,mode)) return toast(T('המצב הזה נעול על ידי ההורה'));
   const left=capLeft(u);
-  if(left<=0) return sheet(`<h2>הגעת למגבלה היומית</h2>
-    <p class="sub">נקבעה מגבלה של ${u.ctrl.cap} פריטים ליום, וסיימת אותם. התרגול ייפתח שוב מחר.</p>
-    <button class="btn" style="margin-top:16px" onclick="closeSheet()">הבנתי</button>`);
+  if(left<=0) return sheet(`<h2>${T('הגעת למגבלה היומית')}</h2>
+    <p class="sub">${T('נקבעה מגבלה של {0} פריטים ליום, וסיימת אותם. התרגול ייפתח שוב מחר.', u.ctrl.cap)}</p>
+    <button class="btn" style="margin-top:16px" onclick="closeSheet()">${T('הבנתי')}</button>`);
   size=Math.min(size,left);
   if(lv!=null) u.lv=lv;
   const items=buildSession(u,size,mode);
   u.lv=oldLv;
-  if(!items.length){ toast('אין פריטים זמינים'); return; }
+  if(!items.length){ toast(T('אין פריטים זמינים')); return; }
   S={items,i:0,ok:0,msSum:0,mode,size,answered:false,t0:0,hardIds:[],finished:false};
   TAB='practice'; render();
 }
@@ -4671,15 +5313,15 @@ function drawQ(s){
   s.innerHTML=`<div style="padding-top:calc(env(safe-area-inset-top) + 10px)">
     <div class="readout">
       <div class="hdr">
-        <button id="quit" aria-label="יציאה" style="color:var(--ink3);display:grid;place-items:center">
+        <button id="quit" aria-label="${T('יציאה')}" style="color:var(--ink3);display:grid;place-items:center">
           <svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round">${ICONS.x}</svg></button>
         <b>${String(S.i+1).padStart(2,'0')}</b>/${String(S.items.length).padStart(2,'0')}
-        <span class="tag ${isNew?'new':''}">${isNew?'חדש':'חזרה'}</span>
-        <span class="tag">${TYPE_HE[it.t]||it.t}</span>
+        <span class="tag ${isNew?'new':''}">${isNew?T('חדש'):T('חזרה')}</span>
+        <span class="tag">${T(TYPE_HE[it.t]||it.t)}</span>
         <span class="spacer"></span><span class="live" id="fv">0.0s</span>
       </div>
       <div class="band"><div class="needle" id="ndl"></div></div>
-      <div class="ticks"><span>0s</span><span>${(target/1000).toFixed(0)}s · יעד</span><span>${(target*2.2/1000).toFixed(0)}s</span></div>
+      <div class="ticks"><span>0s</span><span>${(target/1000).toFixed(0)}s · ${T('יעד')}</span><span>${(target*2.2/1000).toFixed(0)}s</span></div>
     </div>
     <div id="q"></div></div>`;
   $('#quit').onclick=()=>askQuit(()=>{ S=null; TAB='home'; render(); });
@@ -4705,7 +5347,7 @@ function buildBar(){
      בסרגל קבוע בכלל, וזה גם מה שמסלק לגמרי את כל בעיית המקלדת. */
   if(S.revealInline){ hideAction(); return; }
   const p=S.primary;
-  const dk = S.reveal ? `<button class="btn ghost" id="dk" ${p?'':'style="flex:1"'}>לא יודע</button>` : '';
+  const dk = S.reveal ? `<button class="btn ghost" id="dk" ${p?'':'style="flex:1"'}>${T('לא יודע')}</button>` : '';
   setAction(dk + (p?`<button class="btn" id="pri">${esc(p.label)}</button>`:''));
   if($('#dk')) $('#dk').onclick=()=>S.reveal&&S.reveal();
   if($('#pri')) $('#pri').onclick=()=>p.fn();
@@ -4724,10 +5366,10 @@ function answer(it, correct, target, extraHtml){
   const n=$('#ndl'); if(n) n.style.left=Math.min(100, ms/(target*2.2)*100)+'%';
   const fast = correct && ms<=target*.6;
   $('#q').appendChild(el(`<div class="fb ${correct?'ok':'no'}">
-    <div class="hd">${correct?(fast?'שליפה מיידית':'נכון'):'לא מדויק'}<span class="spacer"></span><span class="badge">${(ms/1000).toFixed(1)}s</span></div>
+    <div class="hd">${correct?(fast?T('שליפה מיידית'):T('נכון')):T('לא מדויק')}<span class="spacer"></span><span class="badge">${(ms/1000).toFixed(1)}s</span></div>
     <div class="bd">${extraHtml||''}</div></div>`));
   const last = S.i+1>=S.items.length;
-  setAction(`<button class="btn" id="nx">${last?'סיום הסשן':'הבא'}</button>`);
+  setAction(`<button class="btn" id="nx">${last?T('סיום הסשן'):T('הבא')}</button>`);
   $('#nx').onclick=next;
   $('#q').lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
@@ -4741,32 +5383,32 @@ addEventListener('keydown',e=>{
 function drawDone(s){
   const u=me(), n=S.items.length, acc=Math.round(S.ok/n*100), avg=(S.msSum/n/1000).toFixed(1);
   const promoted=checkPromote(u); saveUsers();
-  const note = avg<3.5?'שליפה מהירה. זה בדיוק מה שמונע גמגום בדיבור.'
-    : avg<6?'קצב סביר. כדאי לחתור לשליפה מתחת לשלוש שניות.'
-    : 'השליפה עדיין איטית. סשנים קצרים ויומיים עובדים טוב יותר מארוכים ונדירים.';
+  const note = avg<3.5?T('שליפה מהירה. זה בדיוק מה שמונע גמגום בדיבור.')
+    : avg<6?T('קצב סביר. כדאי לחתור לשליפה מתחת לשלוש שניות.')
+    : T('השליפה עדיין איטית. סשנים קצרים ויומיים עובדים טוב יותר מארוכים ונדירים.');
   s.innerHTML=`<div style="padding-top:calc(env(safe-area-inset-top) + 18px)">
-    <h1>${acc>=80?'סשן מצוין':'סיימת'}</h1><p class="sub">${note}</p>
+    <h1>${acc>=80?T('סשן מצוין'):T('סיימת')}</h1><p class="sub">${note}</p>
     <div class="grid3" style="margin-top:16px">
-      <div class="stat"><div class="n">${acc}<span style="font-size:.6em">%</span></div><div class="l">דיוק</div></div>
-      <div class="stat"><div class="n">${avg}<span style="font-size:.6em">s</span></div><div class="l">זמן ממוצע</div></div>
-      <div class="stat"><div class="n">${S.ok}/${n}</div><div class="l">נכונות</div></div>
+      <div class="stat"><div class="n">${acc}<span style="font-size:.6em">%</span></div><div class="l">${T('דיוק')}</div></div>
+      <div class="stat"><div class="n">${avg}<span style="font-size:.6em">s</span></div><div class="l">${T('זמן ממוצע')}</div></div>
+      <div class="stat"><div class="n">${S.ok}/${n}</div><div class="l">${T('נכונות')}</div></div>
     </div>
     ${u.task&&u.task.done===1?`<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">
-      <b>המשימה הושלמה</b><div class="sub" style="margin-top:3px">${esc(u.task.note||u.task.label)}</div></div>`:''}
+      <b>${T('המשימה הושלמה')}</b><div class="sub" style="margin-top:3px">${esc(u.task.note||T(u.task.label))}</div></div>`:''}
     ${promoted?`<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">
-      <b>עלית לרמה ${u.lv} · ${LEVELS[u.lv].nm}</b> ${cefrPill(u.lv)}<div class="sub" style="margin-top:3px">${LEVELS[u.lv].dsc}</div></div>`:''}
-    ${S.hardIds.length?`<div class="sec-title">לחזרה קרובה</div><div class="card">${
+      <b>${T('עלית לרמה ')}${u.lv} · ${T(LEVELS[u.lv].nm)}</b> ${cefrPill(u.lv)}<div class="sub" style="margin-top:3px">${T(LEVELS[u.lv].dsc)}</div></div>`:''}
+    ${S.hardIds.length?`<div class="sec-title">${T('לחזרה קרובה')}</div><div class="card">${
       S.items.filter(x=>S.hardIds.includes(x.id)).map(x=>{
-        const lbl = x.t.startsWith('w-')?`${x.d.en} — ${x.d.he}` : x.t==='rule'?x.d.ti
+        const lbl = x.t.startsWith('w-')?`${x.d.en} ${T('—')} ${x.d.he}` : x.t==='rule'?x.d.ti
           : (x.d.en||x.d.s||x.d.q||x.d.w||x.d.u||x.d.full||x.d.sp||(x.d.a?x.d.a+' / '+x.d.b:'')||'');
         return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span>
-          <span class="w">${esc(lbl)}</span><span class="badge">${TYPE_HE[x.t]}</span></div>`;
+          <span class="w">${esc(lbl)}</span><span class="badge">${T(TYPE_HE[x.t])}</span></div>`;
       }).join('')}</div>`:''}</div>`;
   if(u.task && u.task.done===1){ u.task.done=2; saveUsers(); }
   cloudSoon();
   S.finished=true;
   const m=S.mode, sz=S.size;
-  setAction(`<button class="btn ghost" id="hm">בית</button><button class="btn" id="ag">עוד סשן</button>`);
+  setAction(`<button class="btn ghost" id="hm">${T('בית')}</button><button class="btn" id="ag">${T('עוד סשן')}</button>`);
   $('#hm').onclick=()=>{ S=null; go('home'); };
   $('#ag').onclick=()=>{ S=null; startSession(m,sz); };
 }
@@ -4780,7 +5422,7 @@ function mnemLine(en){
   try{
     if(typeof MNEM_BY_WORD==='undefined') return '';
     const m=MNEM_BY_WORD[en];
-    return m ? `<div class="mnem"><b>💡 ${esc(m.key)}</b> — ${esc(m.img)}</div>` : '';
+    return m ? `<div class="mnem"><b>💡 ${esc(m.key)}</b> ${T('—')} ${esc(m.img)}</div>` : '';
   }catch(e){ return ''; }
 }
 
@@ -4789,26 +5431,26 @@ const RENDER={};
 
 RENDER.letter=(q,it,u,tg)=>{
   const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.ex,3)]);
-  q.innerHTML=`<div class="prompt"><div class="kicker">אות וצליל</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('אות וצליל')}</div>
     <div class="letterpair"><b>${d.u}</b><span>${d.l}</span></div>
     <div class="ipa">/${d.ipa}/</div></div>
-    <p class="muted" style="text-align:center;margin:12px 0 0">איזו מילה מתחילה באות הזאת?</p><div class="opts" id="o"></div>`;
+    <p class="muted" style="text-align:center;margin:12px 0 0">${T('איזו מילה מתחילה באות הזאת?')}</p><div class="opts" id="o"></div>`;
   if(u.settings.autoSpeak) say(d.u+'. '+d.ex, .85);
   S.reveal=()=>{ say(d.ex); answer(it,false,tg,
-    `<b class="en">${d.u} ${d.l}</b> — הצליל <span class="ipa">/${d.snd}/</span>, כמו במילה <b class="en">${d.ex}</b> (${d.he}).`); };
+    `<b class="en">${d.u} ${d.l}</b> — ${T('הצליל')} <span class="ipa">/${d.snd}/</span>, ${T('כמו במילה')} <b class="en">${d.ex}</b> (${d.he}).`); };
   opts.forEach(o=>{
     const b=el(`<button class="opt"><span class="en">${o.ex}</span><span class="hint">${o.he}</span></button>`);
     b.onclick=()=>{ const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.ex);
-      answer(it,ok,tg,`<b class="en">${d.u} ${d.l}</b> — הצליל <span class="ipa">/${d.snd}/</span>, כמו במילה <b class="en">${d.ex}</b> (${d.he}).`); };
+      answer(it,ok,tg,`<b class="en">${d.u} ${d.l}</b> — ${T('הצליל')} <span class="ipa">/${d.snd}/</span>, ${T('כמו במילה')} <b class="en">${d.ex}</b> (${d.he}).`); };
     $('#o').appendChild(b);
   });
 };
 
 RENDER.phonics=(q,it,u,tg)=>{
   const d=it.d, opts=shuffle([d,...distractors(PHONICS,d,x=>x.w,3)]);
-  q.innerHTML=`<div class="prompt"><div class="kicker">חיבור צלילים</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('חיבור צלילים')}</div>
     <div class="big">${d.sp}</div><button class="speakbtn" onclick="say('${jq(d.w)}',.75)">${svg('sound')}</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 0">מה המילה שיוצאת?</p><div class="opts" id="o"></div>`;
+    <p class="muted" style="text-align:center;margin:12px 0 0">${T('מה המילה שיוצאת?')}</p><div class="opts" id="o"></div>`;
   if(u.settings.autoSpeak) say(d.w,.7);
   S.reveal=()=>{ say(d.w,.8); answer(it,false,tg,`<b class="en">${d.sp}</b> → <b class="en">${d.w}</b> = ${d.he}`); };
   opts.forEach(o=>{
@@ -4822,7 +5464,7 @@ RENDER.phonics=(q,it,u,tg)=>{
 RENDER['w-recog']=(q,it,u,tg)=>{
   const d=it.d, pool=WORDS.filter(w=>w.lv<=u.lv);
   const opts=shuffle([d,...distractors(pool,d,x=>x.he,3)]);
-  q.innerHTML=`<div class="prompt"><div class="kicker">מה הפירוש</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('מה הפירוש')}</div>
     <div class="big">${d.en}</div><div class="ipa">/${d.ipa}/</div>
     <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button></div><div class="opts" id="o"></div>`;
   if(u.settings.autoSpeak) say(d.en);
@@ -4838,36 +5480,36 @@ RENDER['w-recog']=(q,it,u,tg)=>{
 
 RENDER['w-recall']=(q,it,u,tg)=>{
   const d=it.d;
-  q.innerHTML=`<div class="prompt"><div class="kicker">שליפה — כתבו באנגלית</div>
-    <div class="big he">${d.he}</div><div class="small">${d.pos==='v'?'פועל':d.pos==='n'?'שם עצם':d.pos==='adj'?'שם תואר':''}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type here"><button class="btn" id="chk">בדיקה</button></div>
-    <button class="btn ghost" id="dk">לא יודע</button>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('שליפה — כתבו באנגלית')}</div>
+    <div class="big he">${d.he}</div><div class="small">${d.pos==='v'?T('פועל'):d.pos==='n'?T('שם עצם'):d.pos==='adj'?T('שם תואר'):''}</div></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type here"><button class="btn" id="chk">${T('בדיקה')}</button></div>
+    <button class="btn ghost" id="dk">${T('לא יודע')}</button>
     <p class="muted" style="margin-top:8px;text-align:center">${'_ '.repeat(Math.min(d.en.length,14))}</p>`;
   const inp=$('#in'); focusInput(inp);
   /* אם שתי מילים חולקות תרגום ("ילד" = boy / child), שתיהן תשובה נכונה */
   const accept=WORDS.filter(w=>w.he===d.he).map(w=>w.en);
   const chk=()=>{ const v=inp.value; const ok=accept.some(a=>near(v,a));
     inp.classList.add(ok?'ok':'no'); say(d.en);
-    const exLine = d.ex?`<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`:'';
+    const exLine = d.ex?`<br><span class="en">${esc(d.ex)}</span> ${T('—')} ${esc(d.exhe)}`:'';
     const alt = accept.filter(a=>a!==d.en);
-    answer(it,ok,tg, ok?`<b class="en">${esc(near(v,d.en)?d.en:accept.find(a=>near(v,a))||d.en)}</b> <span class="ipa">/${d.ipa}/</span>${alt.length?`<br><span class="muted">גם נכון: </span><span class="en">${esc(alt.join(', '))}</span>`:''}${exLine}`
-      :`התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${v?`<br>כתבתם: <b class="en">${esc(v)}</b>`:''}${exLine}${mnemLine(d.en)}`); };
+    answer(it,ok,tg, ok?`<b class="en">${esc(near(v,d.en)?d.en:accept.find(a=>near(v,a))||d.en)}</b> <span class="ipa">/${d.ipa}/</span>${alt.length?`<br><span class="muted">${T('גם נכון: ')}</span><span class="en">${esc(alt.join(', '))}</span>`:''}${exLine}`
+      :`${T('התשובה: ')}<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${v?`<br>${T('כתבתם: ')}<b class="en">${esc(v)}</b>`:''}${exLine}${mnemLine(d.en)}`); };
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
   $('#chk').onclick=chk;
   S.primary=null; S.revealInline=true;
   S.reveal=()=>{ inp.classList.add('no'); say(d.en); answer(it,false,tg,
-    `התשובה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${d.ex?`<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`:''}${mnemLine(d.en)}`); };
+    `${T('התשובה: ')}<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${d.ex?`<br><span class="en">${esc(d.ex)}</span> ${T('—')} ${esc(d.exhe)}`:''}${mnemLine(d.en)}`); };
   $('#dk').onclick=()=>S.reveal();
 };
 
 RENDER['w-listen']=(q,it,u,tg)=>{
   const d=it.d;
-  q.innerHTML=`<div class="prompt"><div class="kicker">הבנת הנשמע</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('הבנת הנשמע')}</div>
     <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button>
-    <div class="small">הקשיבו וכתבו את המילה</div>
-    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.6)">האטה</button></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type what you hear"><button class="btn" id="chk">בדיקה</button></div>
-    <button class="btn ghost" id="dk">לא יודע</button>`;
+    <div class="small">${T('הקשיבו וכתבו את המילה')}</div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.6)">${T('האטה')}</button></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="type what you hear"><button class="btn" id="chk">${T('בדיקה')}</button></div>
+    <button class="btn ghost" id="dk">${T('לא יודע')}</button>`;
   say(d.en); const inp=$('#in'); focusInput(inp);
   const chk=()=>{ const ok=near(inp.value,d.en); inp.classList.add(ok?'ok':'no'); say(d.en);
     answer(it,ok,tg,`<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span> = ${d.he}${mnemLine(d.en)}`); };
@@ -4881,34 +5523,34 @@ RENDER['w-listen']=(q,it,u,tg)=>{
 
 RENDER['w-speak']=(q,it,u,tg)=>{
   const d=it.d;
-  q.innerHTML=`<div class="prompt"><div class="kicker">הגייה</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('הגייה')}</div>
     <div class="med">${d.en}</div><div class="ipa">/${d.ipa}/</div><div class="small">${d.he}</div>
-    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.75)">שמיעת דוגמה</button></div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.75)">${T('שמיעת דוגמה')}</button></div>
     <div style="text-align:center;margin-top:16px"><button class="speakbtn" id="mic">${svg('mic')}</button>
-    <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?'לחצו והגו את המילה':'זיהוי דיבור לא נתמך בדפדפן הזה — אפשר לדלג'}</p></div>
+    <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?T('לחצו והגו את המילה'):T('זיהוי דיבור לא נתמך בדפדפן הזה — אפשר לדלג')}</p></div>
 `;
   say(d.en,.8);
-  S.primary={label:'ידעתי',fn:()=>answer(it,true,tg,`<b class="en">${d.en}</b> = ${d.he}`)};
+  S.primary={label:T('ידעתי'),fn:()=>answer(it,true,tg,`<b class="en">${d.en}</b> = ${d.he}`)};
   S.reveal=()=>{ say(d.en,.7); answer(it,false,tg,
     `<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span> = ${d.he}${mnemLine(d.en)}`); };
   $('#mic').onclick=()=>{
-    if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?'אין תמיכה בזיהוי דיבור':'המיקרופון כבוי בהגדרות ההורים');
-    const m=$('#mic'); m.classList.add('rec'); $('#st').textContent='מקשיב…';
+    if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?T('אין תמיכה בזיהוי דיבור'):T('המיקרופון כבוי בהגדרות ההורים'));
+    const m=$('#mic'); m.classList.add('rec'); $('#st').textContent=T('מקשיב…');
     listen(alts=>{
       m.classList.remove('rec');
       const ok=alts.some(a=>near(a,d.en));
-      answer(it,ok,tg, ok?`הגייה טובה: <b class="en">${d.en}</b>`
-        :`שמעתי: <b class="en">${esc(alts[0]||'—')}</b><br>המטרה: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>`);
-    },()=>{m.classList.remove('rec'); if(!S.answered)$('#st').textContent='לא נקלט. נסו שוב או המשיכו.';});
+      answer(it,ok,tg, ok?`${T('הגייה טובה: ')}<b class="en">${d.en}</b>`
+        :`${T('שמעתי: ')}<b class="en">${esc(alts[0]||T('—'))}</b><br>${T('המטרה: ')}<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>`);
+    },()=>{m.classList.remove('rec'); if(!S.answered)$('#st').textContent=T('לא נקלט. נסו שוב או המשיכו.');});
   };
 };
 
 RENDER.build=(q,it,u,tg)=>{
   const d=it.d, words=d.en.replace(/\.$/,'').split(' ');
-  q.innerHTML=`<div class="prompt"><div class="kicker">בניית משפט — תחביר</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('בניית משפט — תחביר')}</div>
     <div class="big he" style="font-size:24px">${d.he}</div></div>
     <div class="slot" id="slot"></div><div class="tiles" id="tiles"></div>
-    <button class="btn ghost sm" id="undo" style="width:100%;margin-top:12px">מחיקה אחורה</button>`;
+    <button class="btn ghost sm" id="undo" style="width:100%;margin-top:12px">${T('מחיקה אחורה')}</button>`;
   const chosen=[];
   shuffle([...words]).forEach((w,i)=>{
     const b=el(`<button class="tile">${esc(w)}</button>`);
@@ -4921,24 +5563,24 @@ RENDER.build=(q,it,u,tg)=>{
     const ans=chosen.map(c=>c.w).join(' '); const ok=near(ans,d.en.replace(/\.$/,''));
     $('#slot').classList.add(ok?'ok':'no'); say(d.en);
     answer(it,ok,tg, ok?`<span class="en">${esc(d.en)}</span><br>${esc(d.he)}`
-      :`הסדר הנכון: <b class="en">${esc(d.en)}</b><br>${esc(d.he)}<br><span class="muted">זכרו: נושא ← פועל ← מושא.</span>`);
+      :`${T('הסדר הנכון: ')}<b class="en">${esc(d.en)}</b><br>${esc(d.he)}<br><span class="muted">${T('זכרו: נושא ← פועל ← מושא.')}</span>`);
   };
-  S.primary={label:'בדיקה',fn:chk};
+  S.primary={label:T('בדיקה'),fn:chk};
   S.reveal=()=>{ $('#slot').classList.add('no'); say(d.en); answer(it,false,tg,
-    `הסדר הנכון: <b class="en">${esc(d.en)}</b><br>${esc(d.he)}`); };
+    `${T('הסדר הנכון: ')}<b class="en">${esc(d.en)}</b><br>${esc(d.he)}`); };
 };
 
 RENDER.dictate=(q,it,u,tg)=>{
   const d=it.d;
-  q.innerHTML=`<div class="prompt"><div class="kicker">הכתבה</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('הכתבה')}</div>
     <button class="speakbtn" onclick="say('${jq(d.en)}')">${svg('sound')}</button>
-    <div class="small">הקשיבו וכתבו את המשפט המלא</div>
-    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.55)">האטה</button></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write the sentence"><button class="btn" id="chk">בדיקה</button></div>
-    <button class="btn ghost" id="dk">לא יודע</button>`;
+    <div class="small">${T('הקשיבו וכתבו את המשפט המלא')}</div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.en)}',.55)">${T('האטה')}</button></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write the sentence"><button class="btn" id="chk">${T('בדיקה')}</button></div>
+    <button class="btn ghost" id="dk">${T('לא יודע')}</button>`;
   say(d.en,.8); const inp=$('#in'); focusInput(inp);
   const chk=()=>{ const ok=near(inp.value,d.en); inp.classList.add(ok?'ok':'no'); say(d.en);
-    answer(it,ok,tg,`<b class="en">${esc(d.en)}</b><br>${esc(d.he)}${ok?'':`<br><span class="muted">כתבתם: </span><span class="en">${esc(inp.value)}</span>`}`); };
+    answer(it,ok,tg,`<b class="en">${esc(d.en)}</b><br>${esc(d.he)}${ok?'':`<br><span class="muted">${T('כתבתם: ')}</span><span class="en">${esc(inp.value)}</span>`}`); };
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
   $('#chk').onclick=chk;
   S.primary=null; S.revealInline=true;
@@ -4949,12 +5591,12 @@ RENDER.dictate=(q,it,u,tg)=>{
 
 RENDER.cloze=(q,it,u,tg)=>{
   const d=it.d, opts=shuffle([d.a,...d.d]);
-  q.innerHTML=`<div class="prompt"><div class="kicker">השלמת החסר</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('השלמת החסר')}</div>
     <div class="cloze">${esc(d.s).replace('___','<u>&nbsp;</u>')}</div></div><div class="opts" id="o"></div>`;
   S.reveal=()=>{ say(d.s.replace('___',d.a)); answer(it,false,tg,
     `<b class="en">${esc(d.s.replace('___',d.a))}</b><br>${esc(d.he)}`); };
   opts.forEach(o=>{
-    const b=el(`<button class="opt en" style="text-align:center">${esc(o==='--'?'(ללא מילה)':o)}</button>`);
+    const b=el(`<button class="opt en" style="text-align:center">${esc(o==='--'?T('(ללא מילה)'):o)}</button>`);
     b.onclick=()=>{ const ok=o===d.a; b.classList.add(ok?'ok':'no'); say(d.s.replace('___',d.a));
       answer(it,ok,tg,`<b class="en">${esc(d.s.replace('___',d.a))}</b><br>${esc(d.he)}`); };
     $('#o').appendChild(b);
@@ -4963,8 +5605,8 @@ RENDER.cloze=(q,it,u,tg)=>{
 
 RENDER.proof=(q,it,u,tg)=>{
   const d=it.d, parts=d.s.split(' ');
-  q.innerHTML=`<div class="prompt"><div class="kicker">הגהה — מצאו את הטעות</div>
-    <div class="proof" id="pw"></div><div class="small">הקישו על המילה השגויה</div></div>`;
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('הגהה — מצאו את הטעות')}</div>
+    <div class="proof" id="pw"></div><div class="small">${T('הקישו על המילה השגויה')}</div></div>`;
   S.reveal=()=>{ const fixed=d.s.replace(d.bad, d.fix==='--'?'':d.fix).replace(/\s+/g,' ').trim();
     say(fixed); answer(it,false,tg,
     `<span style="text-decoration:line-through;opacity:.6" class="en">${esc(d.s)}</span><br><b class="en">${esc(fixed)}</b><br>${esc(d.he)}`); };
@@ -4989,10 +5631,10 @@ RENDER.rule=(q,it,u,tg)=>{
   q.innerHTML=`<div class="card"><b style="font-size:17px">${esc(d.ti)}</b>
     <div class="sub" style="margin-top:6px">${esc(d.he)}</div>
     <div class="ruleblk">${d.ex.map(e=>`<span class="ex en">${esc(e.en)}</span><span class="muted">${esc(e.he)}</span>`).join('')}</div></div>
-    <div class="prompt" style="margin-top:12px"><div class="kicker">בדיקה מיידית</div>
+    <div class="prompt" style="margin-top:12px"><div class="kicker">${T('בדיקה מיידית')}</div>
       <div class="big he" style="font-size:22px">${esc(ex.he)}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write it in English"><button class="btn" id="chk">בדיקה</button></div>
-    <button class="btn ghost" id="dk">לא זכרתי</button>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="write it in English"><button class="btn" id="chk">${T('בדיקה')}</button></div>
+    <button class="btn ghost" id="dk">${T('לא זכרתי')}</button>
 `;
   const inp=$('#in'); focusInput(inp);
   const done=(ok)=>{ inp.classList.add(ok?'ok':'no'); say(ex.en);
@@ -5006,33 +5648,33 @@ RENDER.rule=(q,it,u,tg)=>{
 
 RENDER.talk=(q,it,u,tg)=>{
   const d=it.d;
-  q.innerHTML=`<div class="prompt"><div class="kicker">שיחה</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('שיחה')}</div>
     <div class="med">${esc(d.q)}</div><div class="small">${esc(d.he)}</div>
     <button class="speakbtn" onclick="say('${jq(d.q)}')">${svg('sound')}</button></div>
-    <div class="ruleblk" style="margin-top:12px">מבנה מומלץ: <span class="ex en">${esc(d.hint)}</span></div>
+    <div class="ruleblk" style="margin-top:12px">${T('מבנה מומלץ: ')}<span class="ex en">${esc(d.hint)}</span></div>
     <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
-      <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?'ענו בקול — או כתבו למטה':'כתבו את התשובה למטה'}</p></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="your answer"><button class="btn" id="chk">שליחה</button></div>
-    <button class="btn ghost" id="dk">דלגו — הצג תשובת מודל</button>`;
+      <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?T('ענו בקול — או כתבו למטה'):T('כתבו את התשובה למטה')}</p></div>
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="your answer"><button class="btn" id="chk">${T('שליחה')}</button></div>
+    <button class="btn ghost" id="dk">${T('דלגו — הצג תשובת מודל')}</button>`;
   say(d.q,.9);
   const finish=(txt)=>{
     const words=norm(txt).split(' ').filter(Boolean).length;
     const good=words>=3;
-    answer(it,good,tg,`${txt?`<span class="muted">התשובה שלכם: </span><span class="en">${esc(txt)}</span><br>`:''}
-      <span class="muted">תשובת מודל: </span><b class="en">${esc(d.ans)}</b>
-      <br><span class="muted">${good?'קראו את תשובת המודל בקול פעמיים — זה מקבע את המבנה.':'תשובה קצרה מדי. נסו משפט שלם עם נושא ופועל.'}</span>`);
+    answer(it,good,tg,`${txt?`<span class="muted">${T('התשובה שלכם: ')}</span><span class="en">${esc(txt)}</span><br>`:''}
+      <span class="muted">${T('תשובת מודל: ')}</span><b class="en">${esc(d.ans)}</b>
+      <br><span class="muted">${good?T('קראו את תשובת המודל בקול פעמיים — זה מקבע את המבנה.'):T('תשובה קצרה מדי. נסו משפט שלם עם נושא ופועל.')}</span>`);
   };
   $('#in').onkeydown=e=>{if(e.key==='Enter')finish(e.target.value.trim())};
   $('#chk').onclick=()=>finish($('#in').value.trim());
   S.primary=null; S.revealInline=true;
   S.reveal=()=>answer(it,false,tg,
-    `<span class="muted">תשובת מודל: </span><b class="en">${esc(d.ans)}</b><br><span class="muted">קראו אותה בקול פעמיים.</span>`);
+    `<span class="muted">${T('תשובת מודל: ')}</span><b class="en">${esc(d.ans)}</b><br><span class="muted">${T('קראו אותה בקול פעמיים.')}</span>`);
   $('#dk').onclick=()=>S.reveal();
   $('#mic').onclick=()=>{
-    if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?'אין תמיכה בזיהוי דיבור':'המיקרופון כבוי בהגדרות ההורים');
-    const m=$('#mic'); m.classList.add('rec'); $('#st').textContent='מקשיב…';
+    if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?T('אין תמיכה בזיהוי דיבור'):T('המיקרופון כבוי בהגדרות ההורים'));
+    const m=$('#mic'); m.classList.add('rec'); $('#st').textContent=T('מקשיב…');
     listen(a=>{ m.classList.remove('rec'); finish(a[0]||''); },
-           ()=>{ m.classList.remove('rec'); if(!S.answered)$('#st').textContent='לא נקלט. נסו שוב או כתבו.'; });
+           ()=>{ m.classList.remove('rec'); if(!S.answered)$('#st').textContent=T('לא נקלט. נסו שוב או כתבו.'); });
   };
 };
 
@@ -5040,14 +5682,14 @@ RENDER.talk=(q,it,u,tg)=>{
 RENDER['mp-hear']=(q,it,u,tg)=>{
   const d=it.d, target = Math.random()<.5 ? d.a : d.b;
   const other = target===d.a ? d.b : d.a;
-  q.innerHTML=`<div class="prompt"><div class="kicker">אבחנה בין צלילים</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('אבחנה בין צלילים')}</div>
     <button class="speakbtn" onclick="say('${jq(target)}',.85)">${svg('sound')}</button>
-    <div class="small">איזו מהשתיים נאמרה?</div>
-    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(target)}',.6)">האטה</button></div>
+    <div class="small">${T('איזו מהשתיים נאמרה?')}</div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(target)}',.6)">${T('האטה')}</button></div>
     <div class="opts" id="o"></div>`;
   say(target,.85);
   S.reveal=()=>{ say(target,.7); answer(it,false,tg,
-    `נאמר <b class="en">${target}</b> — ${target===d.a?d.heA:d.heB}.<br><b>${esc(d.contrast)}</b> — ${esc(d.tip)}`); };
+    `${T('נאמר ')}<b class="en">${target}</b> ${T('—')} ${target===d.a?d.heA:d.heB}.<br><b>${esc(d.contrast)}</b> ${T('—')} ${esc(d.tip)}`); };
   shuffle([d.a,d.b]).forEach(w=>{
     const isA = w===d.a;
     const b=el(`<button class="opt" style="text-align:center">
@@ -5055,9 +5697,9 @@ RENDER['mp-hear']=(q,it,u,tg)=>{
       <span class="hint"><span class="ipa">/${isA?d.ipaA:d.ipaB}/</span> · ${isA?d.heA:d.heB}</span></button>`);
     b.onclick=()=>{ const ok=w===target; b.classList.add(ok?'ok':'no');
       say(d.a+' … '+d.b,.7);
-      answer(it,ok,tg,`נאמר <b class="en">${target}</b> <span class="ipa">/${target===d.a?d.ipaA:d.ipaB}/</span> — ${target===d.a?d.heA:d.heB}.<br>
-        לא <b class="en">${other}</b> <span class="ipa">/${other===d.a?d.ipaA:d.ipaB}/</span>.<br>
-        <b>${esc(d.contrast)}</b> — ${esc(d.tip)}`); };
+      answer(it,ok,tg,`${T('נאמר ')}<b class="en">${target}</b> <span class="ipa">/${target===d.a?d.ipaA:d.ipaB}/</span> ${T('—')} ${target===d.a?d.heA:d.heB}.<br>
+        ${T('לא ')}<b class="en">${other}</b> <span class="ipa">/${other===d.a?d.ipaA:d.ipaB}/</span>.<br>
+        <b>${esc(d.contrast)}</b> ${T('—')} ${esc(d.tip)}`); };
     $('#o').appendChild(b);
   });
 };
@@ -5067,31 +5709,31 @@ RENDER['mp-say']=(q,it,u,tg)=>{
   const d=it.d, tgt = Math.random()<.5 ? d.a : d.b;
   const twin = tgt===d.a ? d.b : d.a;
   const ipaT = tgt===d.a ? d.ipaA : d.ipaB, heT = tgt===d.a ? d.heA : d.heB;
-  q.innerHTML=`<div class="prompt"><div class="kicker">הגייה מדויקת</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('הגייה מדויקת')}</div>
     <div class="med">${tgt}</div><div class="ipa">/${ipaT}/</div><div class="small">${heT}</div>
-    <div class="muted" style="font-size:12.5px">ולא <span class="en">${twin}</span></div>
-    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(tgt)}',.7)">שמיעת דוגמה</button></div>
+    <div class="muted" style="font-size:12.5px">${T('ולא ')}<span class="en">${twin}</span></div>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(tgt)}',.7)">${T('שמיעת דוגמה')}</button></div>
     <div class="ruleblk" style="margin-top:12px"><b>${esc(d.contrast)}</b><br>${esc(d.tip)}</div>
     <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
-      <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?'לחצו והגו את המילה':'זיהוי דיבור לא נתמך כאן'}</p></div>
+      <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?T('לחצו והגו את המילה'):T('זיהוי דיבור לא נתמך כאן')}</p></div>
 `;
   say(tgt,.75);
-  S.primary={label:'תרגלתי',fn:()=>answer(it,true,tg,`<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`)};
+  S.primary={label:T('תרגלתי'),fn:()=>answer(it,true,tg,`<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`)};
   S.reveal=()=>{ say(tgt,.65); answer(it,false,tg,
-    `<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span> — ${heT}<br><b>${esc(d.contrast)}</b> — ${esc(d.tip)}`); };
+    `<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span> ${T('—')} ${heT}<br><b>${esc(d.contrast)}</b> ${T('—')} ${esc(d.tip)}`); };
   $('#mic').onclick=()=>{
-    if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?'אין תמיכה בזיהוי דיבור':'המיקרופון כבוי בהגדרות ההורים');
-    const m=$('#mic'); m.classList.add('rec'); $('#st').textContent='מקשיב…';
+    if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?T('אין תמיכה בזיהוי דיבור'):T('המיקרופון כבוי בהגדרות ההורים'));
+    const m=$('#mic'); m.classList.add('rec'); $('#st').textContent=T('מקשיב…');
     listen(alts=>{
       m.classList.remove('rec');
       const hitT = alts.some(a=>near(a,tgt));
       const hitW = !hitT && alts.some(a=>near(a,twin));
       answer(it,hitT,tg, hitT
-        ? `מדויק: <b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span>`
+        ? `${T('מדויק: ')}<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span>`
         : hitW
-          ? `נשמע כמו <b class="en">${twin}</b>, לא <b class="en">${tgt}</b>.<br><b>${esc(d.contrast)}</b> — ${esc(d.tip)}`
-          : `שמעתי: <b class="en">${esc(alts[0]||'—')}</b><br>המטרה: <b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`);
-    },()=>{ m.classList.remove('rec'); if(!S.answered)$('#st').textContent='לא נקלט. נסו שוב או המשיכו.'; });
+          ? `${T('נשמע כמו ')}<b class="en">${twin}</b>, לא <b class="en">${tgt}</b>.<br><b>${esc(d.contrast)}</b> ${T('—')} ${esc(d.tip)}`
+          : `${T('שמעתי: ')}<b class="en">${esc(alts[0]||T('—'))}</b><br>${T('המטרה: ')}<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`);
+    },()=>{ m.classList.remove('rec'); if(!S.answered)$('#st').textContent=T('לא נקלט. נסו שוב או המשיכו.'); });
   };
 };
 
@@ -5100,9 +5742,9 @@ RENDER.contract=(q,it,u,tg)=>{
   const d=it.d;
   const wrong = distractors(CONTRACT,d,x=>x.short,3).map(x=>x.short);
   const opts = shuffle([d.short,...wrong]);
-  q.innerHTML=`<div class="prompt"><div class="kicker">קיצור — איך זה נשמע בדיבור</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('קיצור — איך זה נשמע בדיבור')}</div>
     <div class="med" style="font-size:21px">${esc(d.full)}</div><div class="small">${esc(d.he)}</div></div>
-    <p class="muted" style="text-align:center;margin:12px 0 0">מה הצורה המקוצרת?</p><div class="opts" id="o"></div>`;
+    <p class="muted" style="text-align:center;margin:12px 0 0">${T('מה הצורה המקוצרת?')}</p><div class="opts" id="o"></div>`;
   if(u.settings.autoSpeak) say(d.full,.85);
   S.reveal=()=>{ say(d.short,.95); answer(it,false,tg,
     `<span style="opacity:.6" class="en">${esc(d.full)}</span> → <b class="en">${esc(d.short)}</b><br>${esc(d.he)}`); };
@@ -5110,7 +5752,7 @@ RENDER.contract=(q,it,u,tg)=>{
     const b=el(`<button class="opt en" style="text-align:center">${esc(o)}</button>`);
     b.onclick=()=>{ const ok=o===d.short; b.classList.add(ok?'ok':'no'); say(d.short,.95);
       answer(it,ok,tg,`<span style="opacity:.6" class="en">${esc(d.full)}</span> → <b class="en">${esc(d.short)}</b><br>${esc(d.he)}
-        <br><span class="muted">בדיבור טבעי כמעט תמיד משתמשים בצורה המקוצרת. הצורה המלאה נשמעת רשמית או מודגשת.</span>`); };
+        <br><span class="muted">${T('בדיבור טבעי כמעט תמיד משתמשים בצורה המקוצרת. הצורה המלאה נשמעת רשמית או מודגשת.')}</span>`); };
     $('#o').appendChild(b);
   });
 };
@@ -5120,19 +5762,19 @@ RENDER.spoken=(q,it,u,tg)=>{
   const d=it.d;
   const wrong = distractors(SPOKEN,d,x=>x.full,3).map(x=>x.full);
   const opts = shuffle([d.full,...wrong]);
-  q.innerHTML=`<div class="prompt"><div class="kicker">דיבור מהיר — מה נאמר באמת</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('דיבור מהיר — מה נאמר באמת')}</div>
     <button class="speakbtn" onclick="say('${jq(d.ex)}',1.05)">${svg('sound')}</button>
     <div class="med" style="font-size:20px">${esc(d.ex)}</div>
-    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.ex)}',.6)">האטה</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 0">מה הצורה התקנית של <span class="en">${esc(d.sp)}</span>?</p>
+    <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.ex)}',.6)">${T('האטה')}</button></div>
+    <p class="muted" style="text-align:center;margin:12px 0 0">${T('מה הצורה התקנית של ')}<span class="en">${esc(d.sp)}</span>?</p>
     <div class="opts" id="o"></div>`;
   say(d.ex,1.05);
   S.reveal=()=>answer(it,false,tg,
-    `<b class="en">${esc(d.sp)}</b> = <b class="en">${esc(d.full)}</b> — ${esc(d.he)}<br><span class="muted">${esc(d.note)}</span>`);
+    `<b class="en">${esc(d.sp)}</b> = <b class="en">${esc(d.full)}</b> ${T('—')} ${esc(d.he)}<br><span class="muted">${esc(d.note)}</span>`);
   opts.forEach(o=>{
     const b=el(`<button class="opt en" style="text-align:center">${esc(o)}</button>`);
     b.onclick=()=>{ const ok=o===d.full; b.classList.add(ok?'ok':'no');
-      answer(it,ok,tg,`<b class="en">${esc(d.sp)}</b> = <b class="en">${esc(d.full)}</b> — ${esc(d.he)}<br>
+      answer(it,ok,tg,`<b class="en">${esc(d.sp)}</b> = <b class="en">${esc(d.full)}</b> ${T('—')} ${esc(d.he)}<br>
         <span class="en">${esc(d.ex)}</span><br><span class="muted">${esc(d.note)}</span>`); };
     $('#o').appendChild(b);
   });
@@ -5141,17 +5783,17 @@ RENDER.spoken=(q,it,u,tg)=>{
 function irrRender(q,it,u,tg,which){
   const d=it.d;
   const want = which==='past' ? d.past : d.pp;
-  const label= which==='past' ? 'צורת העבר' : 'הצורה השלישית';
-  const help = which==='past' ? 'Past Simple — "אתמול הוא ___"' : 'Past Participle — הצורה שאחרי have / has / was';
-  q.innerHTML=`<div class="prompt"><div class="kicker">פועל חריג · ${label}</div>
+  const label= which==='past' ? T('צורת העבר') : T('הצורה השלישית');
+  const help = which==='past' ? T('Past Simple — "אתמול הוא ___"') : T('Past Participle — הצורה שאחרי have / has / was');
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('פועל חריג · ')}${label}</div>
     <div class="big">${d.base}</div><div class="ipa">/${d.ipa}/</div>
     <div class="small">${d.he}</div>
     <div class="muted" style="font-size:.78rem">${help}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${which==='past'?'past':'participle'}"><button class="btn" id="chk">בדיקה</button></div>
-    <button class="btn ghost" id="dk">לא יודע</button>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${which==='past'?'past':'participle'}"><button class="btn" id="chk">${T('בדיקה')}</button></div>
+    <button class="btn ghost" id="dk">${T('לא יודע')}</button>`;
   const inp=$('#in'); focusInput(inp);
   const table = `<b class="en">${d.base} · ${d.past} · ${d.pp}</b><br>${esc(d.he)}
-    <br><span class="muted">תבנית: ${esc(IRR_GROUPS[d.grp]||'')}</span>`;
+    <br><span class="muted">${T('תבנית: ')}${esc(IRR_GROUPS[d.grp]||'')}</span>`;
   const done=ok=>{ inp.classList.add(ok?'ok':'no'); say(`${d.base}, ${d.past}, ${d.pp}`,.8);
     answer(it,ok,tg,table); };
   /* התאמה מדויקת בלבד — לא near(). זו בדיוק התכלית של התרגיל: להבחין
@@ -5176,7 +5818,7 @@ function irregSheet(lv){
   const order=['same','aught','ent','ept','iau','ioi','eoo','ownew','aken','aten','ame','wild'];
   sheet(`<h2>פעלים חריגים · ${vs.length}</h2>
     <p class="sub">אל תשננו אחד אחד. הם מתחלקים ל‑12 תבניות — מי שקולט את התבנית מקבל עשרות פעלים במכה.</p>
-    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('irregular',12)">תרגול פעלים חריגים</button>
+    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('irregular',12)">${T('תרגול פעלים חריגים')}</button>
     ${order.filter(g=>byGrp[g]).map(g=>`
       <div class="sec-title">${g==='wild'?'ללא תבנית':'תבנית'}</div>
       <div class="card"><div class="sub" style="margin-bottom:8px">${esc(IRR_GROUPS[g])}</div>
@@ -5193,18 +5835,18 @@ function irregSheet(lv){
    אלא לייצר את הצורה הנכונה מהר, בלי לעצור לחשוב.        */
 RENDER.conjug=(q,it,u,tg)=>{
   const d=it.d, t=TENSE_BY_ID[d.tense];
-  q.innerHTML=`<div class="prompt"><div class="kicker">הטיית זמן · ${esc(t.nm)}</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('הטיית זמן · ')}${esc(t.nm)}</div>
     <div class="big">${esc(d.base)}</div>
     <div class="small">${esc(d.he)}</div>
     <div class="med" style="font-size:1.15rem;margin-top:6px">${esc(d.subj)} + ?</div>
     <div class="muted" style="font-size:.78rem">${esc(t.form)}</div></div>
-    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${esc(d.subj)} ..."><button class="btn" id="chk">בדיקה</button></div>
-    <button class="btn ghost" id="dk">לא יודע</button>`;
+    <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="${esc(d.subj)} ..."><button class="btn" id="chk">${T('בדיקה')}</button></div>
+    <button class="btn ghost" id="dk">${T('לא יודע')}</button>`;
   const inp=$('#in'); focusInput(inp);
   const full = d.subj+' '+d.ans;
   const done=ok=>{ inp.classList.add(ok?'ok':'no'); say(full);
     answer(it,ok,tg,`<b class="en">${esc(full)}</b><br>${esc(d.hint)}
-      <br><span class="muted">${esc(t.nm)} — ${esc(t.use)}</span>`); };
+      <br><span class="muted">${esc(t.nm)} ${T('—')} ${esc(t.use)}</span>`); };
   /* מקבלים גם "he works" וגם "works" — הגוף כבר מוצג על המסך */
   const chk=()=>{ const v=norm(inp.value);
     done(v===norm(d.ans) || v===norm(full)); };
@@ -5220,9 +5862,9 @@ RENDER.conjug=(q,it,u,tg)=>{
    דווקא בהצגה המשותפת — ההבדלים נראים רק בהשוואה.      */
 function tenseSheet(){
   const u=me();
-  sheet(`<h2>חמשת הזמנים</h2>
+  sheet(`<h2>${T('חמשת הזמנים')}</h2>
     <p class="sub">חמישה זמנים מכסים כמעט את כל האנגלית המדוברת ביום-יום. שאר הזמנים קיימים, אבל נדירים בדיבור — ולכן הם לא הליבה.</p>
-    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('tenses',12)">תרגול הטיות</button>
+    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('tenses',12)">${T('תרגול הטיות')}</button>
     ${CORE_TENSES.map(t=>{
       const open = t.lv<=u.lv;
       return `<div class="sec-title">${esc(t.nm)} · <span class="en">${esc(t.en)}</span>${open?'':' 🔒'}</div>
@@ -5257,9 +5899,9 @@ function bigLetterOpt(txt){
 RENDER['letter-hear']=(q,it,u,tg)=>{
   const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.u,3)]);
   const sh=SHAPE_BY_LETTER[d.u];
-  q.innerHTML=`<div class="prompt"><div class="kicker">איזו אות שמעתם?</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('איזו אות שמעתם?')}</div>
     <button class="speakbtn" onclick="say('${jq(d.u)}',.7)">${svg('sound')}</button>
-    <div class="small">הקישו על הרמקול כדי לשמוע שוב</div></div>
+    <div class="small">${T('הקישו על הרמקול כדי לשמוע שוב')}</div></div>
     <div class="opts optletters" id="o"></div>`;
   say(d.u,.7);
   const reveal = `<div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
@@ -5277,7 +5919,7 @@ RENDER['letter-hear']=(q,it,u,tg)=>{
 RENDER['letter-case']=(q,it,u,tg)=>{
   const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.l,3)]);
   const sh=SHAPE_BY_LETTER[d.u];
-  q.innerHTML=`<div class="prompt"><div class="kicker">אותה אות, קטנה</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('אותה אות, קטנה')}</div>
     <div class="letterpair" style="justify-content:center"><b>${d.u}</b></div>
     <button class="speakbtn" onclick="say('${jq(d.u)}',.7)">${svg('sound')}</button></div>
     <div class="opts optletters" id="o"></div>`;
@@ -5297,10 +5939,10 @@ RENDER['letter-case']=(q,it,u,tg)=>{
 RENDER['letter-name']=(q,it,u,tg)=>{
   const d=it.d, opts=shuffle([d,...distractors(LETTERS,d,x=>x.u,3)]);
   const sh=SHAPE_BY_LETTER[d.u];
-  q.innerHTML=`<div class="prompt"><div class="kicker">איך קוראים לאות הזאת?</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('איך קוראים לאות הזאת?')}</div>
     <div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
     ${sh?`<div class="small">${esc(sh.shape)}</div>`:''}</div>
-    <p class="muted" style="text-align:center;margin:12px 0 0">הקישו על הרמקולים והקישו על הנכון</p>
+    <p class="muted" style="text-align:center;margin:12px 0 0">${T('הקישו על הרמקולים והקישו על הנכון')}</p>
     <div class="opts" id="o"></div>`;
   const reveal = `<div class="letterpair" style="justify-content:center"><b>${d.u}</b><span>${d.l}</span></div>
     ${sh?`<div style="text-align:center;margin-top:6px">${esc(sh.shape)}</div>`:''}`;
@@ -5309,10 +5951,10 @@ RENDER['letter-name']=(q,it,u,tg)=>{
     const b=el(`<button class="opt" style="display:flex;align-items:center;gap:12px;justify-content:center">
       <span style="width:34px;height:34px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:grid;place-items:center;flex:none">
         <svg viewBox="0 0 24 24" style="width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round">${ICONS.sound}</svg></span>
-      <span class="muted">הקשה לשמיעה</span></button>`);
+      <span class="muted">${T('הקשה לשמיעה')}</span></button>`);
     let heard=false;
     b.onclick=()=>{
-      if(!heard){ heard=true; say(o.u,.7); b.querySelector('.muted').textContent='הקישו שוב אם זו האות'; return; }
+      if(!heard){ heard=true; say(o.u,.7); b.querySelector('.muted').textContent=T('הקישו שוב אם זו האות'); return; }
       const ok=o===d; b.classList.add(ok?'ok':'no'); say(d.u,.7);
       answer(it,ok,tg,reveal);
     };
@@ -5323,9 +5965,9 @@ RENDER['letter-name']=(q,it,u,tg)=>{
 /* ---------------- גיליון האותיות עם אסוציאציות ---------------- */
 function alphabetSheet(){
   const u=me();
-  sheet(`<h2>האלף-בית</h2>
-    <p class="sub">לכל אות יש אסוציאציית צורה — משהו מוכר שהצורה מזכירה. זה מה שהופך סימן מופשט לתמונה שנדבקת.</p>
-    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('letters',12)">תרגול אותיות</button>
+  sheet(`<h2>${T('האלף-בית')}</h2>
+    <p class="sub">${T('לכל אות יש אסוציאציית צורה — משהו מוכר שהצורה מזכירה. זה מה שהופך סימן מופשט לתמונה שנדבקת.')}</p>
+    <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('letters',12)">${T('תרגול אותיות')}</button>
     <div class="card" style="margin-top:12px">
       ${LETTERS.map(L=>{
         const sh=SHAPE_BY_LETTER[L.u];
@@ -5351,9 +5993,9 @@ function keypad(host, len, onDone, opts={}){
     <div class="dots" id="dots">${'<i></i>'.repeat(len)}</div>
     <div class="keypad" id="kp" dir="ltr">
       ${[1,2,3,4,5,6,7,8,9].map(n=>`<button data-n="${n}">${n}</button>`).join('')}
-      <button class="act" data-a="cancel">${opts.cancel||'ביטול'}</button>
+      <button class="act" data-a="cancel">${opts.cancel||T('ביטול')}</button>
       <button data-n="0">0</button>
-      <button class="act" data-a="del">מחיקה</button>
+      <button class="act" data-a="del">${T('מחיקה')}</button>
     </div>`;
   const dots=host.querySelector('#dots');
   const paint=()=>dots.querySelectorAll('i').forEach((d,i)=>d.classList.toggle('on',i<buf.length));
@@ -5376,7 +6018,7 @@ function vLockScreen(u){
   $('#screen').innerHTML=`<div class="lock">
     <div class="who">${u.emoji}</div>
     <h2 style="margin:0">${esc(u.name)}</h2>
-    <p class="muted">הזינו את קוד הכניסה</p>
+    <p class="muted">${T('הזינו את קוד הכניסה')}</p>
     <div id="kpwrap" style="width:100%;display:flex;flex-direction:column;align-items:center"></div>
   </div>`;
   keypad($('#kpwrap'), 4, c=>{
@@ -5384,18 +6026,18 @@ function vLockScreen(u){
     UNLOCKED[u.id]=1; CUR=u.id; Store.set(K_CUR,CUR);
     $('#screen').style.padding=''; $('#topbar').classList.remove('hide');
     TAB='home'; render();
-  }, {cancel:'החלפה', onCancel:()=>{ CUR=null; Store.set(K_CUR,null);
+  }, {cancel:T('החלפה'), onCancel:()=>{ CUR=null; Store.set(K_CUR,null);
       $('#screen').style.padding=''; $('#topbar').classList.remove('hide'); TAB='users'; render(); }});
 }
 
 /* ---------- שער הורה או מורה ---------- */
 function askParent(then){
   const ps=parents();
-  if(!ps.length) return sheet(`<h2>אין עדיין קוד הורה</h2>
-    <p class="sub">כדי להשתמש בבקרת הורים צריך פרופיל אחד לפחות מסוג "הורה או מורה" עם קוד כניסה.</p>
-    <button class="btn" style="margin-top:16px" onclick="closeSheet();addUser(true)">יצירת פרופיל הורה</button>
-    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">לא עכשיו</button>`);
-  sheet(`<h2>קוד הורה</h2><p class="sub" style="margin-bottom:6px">האזור הזה נעול. הזינו את קוד ההורה או המורה.</p>
+  if(!ps.length) return sheet(`<h2>${T('אין עדיין קוד הורה')}</h2>
+    <p class="sub">${T('כדי להשתמש בבקרת הורים צריך פרופיל אחד לפחות מסוג "הורה או מורה" עם קוד כניסה.')}</p>
+    <button class="btn" style="margin-top:16px" onclick="closeSheet();addUser(true)">${T('יצירת פרופיל הורה')}</button>
+    <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">${T('לא עכשיו')}</button>`);
+  sheet(`<h2>${T('קוד הורה')}</h2><p class="sub" style="margin-bottom:6px">${T('האזור הזה נעול. הזינו את קוד ההורה או המורה.')}</p>
     <div id="kpwrap" style="display:flex;flex-direction:column;align-items:center;padding-top:8px"></div>`, sh=>{
     keypad(sh.querySelector('#kpwrap'), 4, c=>{
       if(!ps.some(p=>codeOk(p,c))) return false;
@@ -5408,16 +6050,16 @@ function askParent(then){
 function setCode(u){
   let first=null;
   sheet(`<h2>קוד כניסה · ${esc(u.name)}</h2>
-    <p class="sub" id="msg">בחרו קוד בן ארבע ספרות.</p>
+    <p class="sub" id="msg">${T('בחרו קוד בן ארבע ספרות.')}</p>
     <div id="kpwrap" style="display:flex;flex-direction:column;align-items:center;padding-top:10px"></div>
-    ${u.code?'<button class="btn ghost" style="margin-top:14px" id="clr">הסרת הקוד</button>':''}`, sh=>{
+    ${u.code?('<button class="btn ghost" style="margin-top:14px" id="clr">'+T('הסרת הקוד')+'</button>'):''}`, sh=>{
     const kp=keypad(sh.querySelector('#kpwrap'), 4, c=>{
-      if(!first){ first=c; sh.querySelector('#msg').textContent='שוב, לאימות.'; kp.reset(); return; }
-      if(first!==c){ first=null; sh.querySelector('#msg').textContent='הקודים לא תאמו. מתחילים מחדש.'; return false; }
-      u.code=hashCode(c); UNLOCKED[u.id]=1; saveUsers(); closeSheet(); toast('הקוד נשמר'); render();
+      if(!first){ first=c; sh.querySelector('#msg').textContent=T('שוב, לאימות.'); kp.reset(); return; }
+      if(first!==c){ first=null; sh.querySelector('#msg').textContent=T('הקודים לא תאמו. מתחילים מחדש.'); return false; }
+      u.code=hashCode(c); UNLOCKED[u.id]=1; saveUsers(); closeSheet(); toast(T('הקוד נשמר')); render();
     });
     if(sh.querySelector('#clr')) sh.querySelector('#clr').onclick=()=>{
-      u.code=null; saveUsers(); closeSheet(); toast('הקוד הוסר'); render(); };
+      u.code=null; saveUsers(); closeSheet(); toast(T('הקוד הוסר')); render(); };
   });
 }
 
@@ -5428,105 +6070,105 @@ function ctrlSheet(u){
     <button class="sw ${c[k]?'on':''}" data-sw="${k}"></button></div>`;
   const st=(k,ti,tx,step,max)=>`<div class="ctrl"><div class="tx"><b>${ti}</b><span>${tx}</span></div>
     <div class="stepper"><button data-st="${k}" data-d="-${step}">−</button>
-    <span id="v-${k}">${c[k]||'—'}</span><button data-st="${k}" data-d="${step}" data-max="${max}">+</button></div></div>`;
+    <span id="v-${k}">${c[k]||T('—')}</span><button data-st="${k}" data-d="${step}" data-max="${max}">+</button></div></div>`;
   sheet(`<h2>בקרה · ${esc(u.name)}</h2>
-    <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm} · ${LEVELS[u.lv].cefr}${u.streak?` · רצף ${u.streak} ימים`:''}</p>
+    <p class="sub">${T('רמה ')}${u.lv} · ${T(LEVELS[u.lv].nm)} · ${T(LEVELS[u.lv].cefr)}${u.streak?` · ${T('רצף')} ${u.streak} ${T('ימים')}`:''}</p>
 
-    <div class="sec-title">פעילות והתקדמות</div>
+    <div class="sec-title">${T('פעילות והתקדמות')}</div>
     ${progressBlock(u,{self:false})}
 
-    <div class="sec-title">קצב ומסך</div>
+    <div class="sec-title">${T('קצב ומסך')}</div>
     <div class="card">
-      ${st('daily','יעד יומי','כמה פריטים ביום. מופיע כטבעת התקדמות במסך הבית.',5,60)}
-      ${st('cap','מגבלה יומית','אחרי כמה פריטים האפליקציה נועלת את התרגול להיום. 0 = ללא הגבלה.',10,120)}
+      ${st('daily',T('יעד יומי'),T('כמה פריטים ביום. מופיע כטבעת התקדמות במסך הבית.'),5,60)}
+      ${st('cap',T('מגבלה יומית'),T('אחרי כמה פריטים האפליקציה נועלת את התרגול להיום. 0 = ללא הגבלה.'),10,120)}
     </div>
 
-    <div class="sec-title">הרשאות</div>
+    <div class="sec-title">${T('הרשאות')}</div>
     <div class="card">
-      ${sw('lockLevel','נעילת הרמה','הלומד לא יוכל לקפוץ רמה ידנית דרך ההגדרות.')}
-      ${sw('lockData','נעילת נתונים','חוסם מחיקת פרופיל, ייצוא וייבוא.')}
-      ${sw('mic','מיקרופון','כשכבוי, תרגילי ההגייה יעברו למצב האזנה בלבד בלי בקשת הרשאה.')}
+      ${sw('lockLevel',T('נעילת הרמה'),T('הלומד לא יוכל לקפוץ רמה ידנית דרך ההגדרות.'))}
+      ${sw('lockData',T('נעילת נתונים'),T('חוסם מחיקת פרופיל, ייצוא וייבוא.'))}
+      ${sw('mic',T('מיקרופון'),T('כשכבוי, תרגילי ההגייה יעברו למצב האזנה בלבד בלי בקשת הרשאה.'))}
     </div>
 
-    <div class="sec-title">מצבי תרגול מותרים</div>
+    <div class="sec-title">${T('מצבי תרגול מותרים')}</div>
     <div class="card" id="modes">
       ${MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>{
         const on = !c.modes || c.modes.includes(m);
-        return `<div class="ctrl"><div class="tx"><b>${ti}</b></div>
+        return `<div class="ctrl"><div class="tx"><b>${T(ti)}</b></div>
           <button class="sw ${on?'on':''}" data-mode="${m}"></button></div>`}).join('')}
-      <p class="muted" style="margin-top:8px">אם הכול פתוח, הלומד רואה את כל המצבים.</p>
+      <p class="muted" style="margin-top:8px">${T('אם הכול פתוח, הלומד רואה את כל המצבים.')}</p>
     </div>
 
-    <div class="sec-title">משימה</div>
+    <div class="sec-title">${T('משימה')}</div>
     <div class="card">
-      ${u.task && !u.task.done ? `<div class="task"><div class="lbl">משימה פעילה</div>
-        <b>${esc(u.task.note||'')}</b><div class="sub" style="margin-top:3px">${u.task.size} פריטים · ${esc(u.task.label)}</div>
+      ${u.task && !u.task.done ? `<div class="task"><div class="lbl">${T('משימה פעילה')}</div>
+        <b>${esc(u.task.note||'')}</b><div class="sub" style="margin-top:3px">${u.task.size} ${T('פריטים')} · ${esc(T(u.task.label))}</div>
         <div class="progline" style="margin-top:9px"><i style="width:${Math.min(100,(u.task.prog/u.task.size)*100)}%"></i></div></div>
-        <button class="btn ghost sm" style="width:100%;margin-top:10px" id="cleartask">ביטול המשימה</button>`
-      : `<div class="field"><label>סוג התרגול</label><select id="tmode">${
-          MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>`<option value="${m}">${ti}</option>`).join('')}</select></div>
-         <div class="field"><label>מספר פריטים</label><select id="tsize">${[10,15,20,25,30,40].map(n=>`<option${n===20?' selected':''}>${n}</option>`).join('')}</select></div>
-         <div class="field"><label>הערה ללומד</label><input id="tnote" placeholder="למשל: לקראת המבחן ביום שלישי"></div>
-         <button class="btn sm" style="width:100%" id="settask">הקצאת משימה</button>`}
+        <button class="btn ghost sm" style="width:100%;margin-top:10px" id="cleartask">${T('ביטול המשימה')}</button>`
+      : `<div class="field"><label>${T('סוג התרגול')}</label><select id="tmode">${
+          MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>`<option value="${m}">${T(ti)}</option>`).join('')}</select></div>
+         <div class="field"><label>${T('מספר פריטים')}</label><select id="tsize">${[10,15,20,25,30,40].map(n=>`<option${n===20?' selected':''}>${n}</option>`).join('')}</select></div>
+         <div class="field"><label>${T('הערה ללומד')}</label><input id="tnote" placeholder="${T('למשל: לקראת המבחן ביום שלישי')}"></div>
+         <button class="btn sm" style="width:100%" id="settask">${T('הקצאת משימה')}</button>`}
     </div>
 
-    <div class="sec-title">קוד כניסה</div>
+    <div class="sec-title">${T('קוד כניסה')}</div>
     <div class="card">
-      <p class="sub">${u.code?'לפרופיל הזה יש קוד. הוא נדרש בכניסה.':'אין קוד. כל אחד יכול להיכנס לפרופיל הזה.'}</p>
-      <button class="btn ghost sm" style="width:100%;margin-top:10px" id="code">${u.code?'שינוי או הסרת הקוד':'קביעת קוד'}</button>
+      <p class="sub">${u.code?T('לפרופיל הזה יש קוד. הוא נדרש בכניסה.'):T('אין קוד. כל אחד יכול להיכנס לפרופיל הזה.')}</p>
+      <button class="btn ghost sm" style="width:100%;margin-top:10px" id="code">${u.code?T('שינוי או הסרת הקוד'):T('קביעת קוד')}</button>
     </div>
 
-    <div class="sec-title">איפוס</div>
+    <div class="sec-title">${T('איפוס')}</div>
     <div class="card">
-      <p class="sub">מוחק את כל ההתקדמות והחזרות של הלומד ומחזיר אותו לרמה 0. שאר הפרופילים לא מושפעים.</p>
-      <button class="btn ghost sm" style="width:100%;margin-top:10px;color:var(--bad);border-color:var(--bad)" id="reset">איפוס ההתקדמות</button>
+      <p class="sub">${T('מוחק את כל ההתקדמות והחזרות של הלומד ומחזיר אותו לרמה 0. שאר הפרופילים לא מושפעים.')}</p>
+      <button class="btn ghost sm" style="width:100%;margin-top:10px;color:var(--bad);border-color:var(--bad)" id="reset">${T('איפוס ההתקדמות')}</button>
     </div>`, sh=>{
     sh.querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{
       const k=b.dataset.sw; c[k]=!c[k]; b.classList.toggle('on',c[k]); u.ctrlAt=Date.now(); saveUsers(); });
     sh.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{
       const k=b.dataset.st, d=+b.dataset.d, max=+(b.dataset.max||999);
       c[k]=Math.max(0, Math.min(max, (c[k]||0)+d));
-      sh.querySelector('#v-'+k).textContent=c[k]||'—'; u.ctrlAt=Date.now(); saveUsers(); });
+      sh.querySelector('#v-'+k).textContent=c[k]||T('—'); u.ctrlAt=Date.now(); saveUsers(); });
     sh.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{
       const all=[...new Set(MODES.map(m=>m[0]))];
       let list = c.modes ? [...c.modes] : [...all];
       const m=b.dataset.mode;
       list = list.includes(m) ? list.filter(x=>x!==m) : [...list,m];
-      if(!list.length){ toast('חייב להישאר מצב אחד לפחות'); return; }
+      if(!list.length){ toast(T('חייב להישאר מצב אחד לפחות')); return; }
       c.modes = list.length===all.length ? null : list;
       b.classList.toggle('on', list.includes(m)); u.ctrlAt=Date.now(); saveUsers(); });
     if(sh.querySelector('#settask')) sh.querySelector('#settask').onclick=()=>{
       const m=sh.querySelector('#tmode').value, sz=+sh.querySelector('#tsize').value;
       const label=(MODES.find(x=>x[0]===m)||[])[2]||m;
       u.task={mode:m,size:sz,label,note:sh.querySelector('#tnote').value.trim(),prog:0,done:0,day:today()};
-      u.ctrlAt=Date.now(); saveUsers(); closeSheet(); toast('המשימה הוקצתה'); render(); };
+      u.ctrlAt=Date.now(); saveUsers(); closeSheet(); toast(T('המשימה הוקצתה')); render(); };
     if(sh.querySelector('#cleartask')) sh.querySelector('#cleartask').onclick=()=>{
       u.task=null; saveUsers(); closeSheet(); render(); };
     sh.querySelector('#code').onclick=()=>setCode(u);
     sh.querySelector('#reset').onclick=()=>{
-      if(!confirm(`לאפס את כל ההתקדמות של ${u.name}? אי אפשר לבטל.`)) return;
+      if(!confirm(T('לאפס את כל ההתקדמות של {0}? אי אפשר לבטל.', u.name))) return;
       u.srs={}; u.log=[]; u.mastered={}; u.lv=0; u.xp=0; u.streak=0; u.lastDay=null; u.task=null;
-      saveUsers(); closeSheet(); toast('אופס'); render(); };
+      saveUsers(); closeSheet(); toast(T('אופס')); render(); };
   });
 }
 
 /* ---------- מסך ההורה: כל הלומדים ---------- */
 function vParent(){
-  sheet(`<h2>בקרת הורים ומורים</h2>
-    <p class="sub">בחרו לומד כדי לקבוע יעדים, הרשאות ומשימות.</p>
+  sheet(`<h2>${T('בקרת הורים ומורים')}</h2>
+    <p class="sub">${T('בחרו לומד כדי לקבוע יעדים, הרשאות ומשימות.')}</p>
     <div class="userpick" style="margin-top:16px" id="pl"></div>`, sh=>{
     const pl=sh.querySelector('#pl');
     USERS.filter(x=>x.role!=='parent').forEach(x=>{
       const a=analyse(x), dn=doneToday(x);
       const b=el(`<button class="usercard"><div class="av">${x.emoji}</div>
-        <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.code?'<span class="pill">קוד</span>':''}</div>
-        <div class="muted">רמה ${x.lv} · ${Math.round(a.accAll*100)||0}% דיוק · ${a.vocab} מילים${x.streak?' · 🔥'+x.streak:''}</div>
-        <div class="muted" style="margin-top:2px">היום ${dn}${x.ctrl.daily?'/'+x.ctrl.daily:''} פריטים
+        <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.code?('<span class="pill">'+T('קוד')+'</span>'):''}</div>
+        <div class="muted">${T('רמה ')}${x.lv} · ${Math.round(a.accAll*100)||0}% דיוק · ${a.vocab} מילים${x.streak?' · 🔥'+x.streak:''}</div>
+        <div class="muted" style="margin-top:2px">היום ${dn}${x.ctrl.daily?'/'+x.ctrl.daily:''} ${T('פריטים')}
         ${x.task&&!x.task.done?' · משימה פעילה':''}</div></div></button>`);
       b.onclick=()=>{ closeSheet(); ctrlSheet(x); };
       pl.appendChild(b);
     });
-    if(!pl.children.length) pl.innerHTML='<div class="card"><p class="sub">אין עדיין לומדים במשפחה.</p></div>';
+    if(!pl.children.length) pl.innerHTML=('<div class="card">'+'<p class="sub">'+T('אין עדיין לומדים במשפחה.')+'</p>'+'</div>');
   });
 }
 /* ============================================================
@@ -5757,11 +6399,11 @@ const joinURL = code => location.href.split('?')[0].split('#')[0] + '?join=' + e
 function showJoinQR(){
   const url=joinURL(CFG.family);
   const svg=qrSVG(url, 280);
-  sheet(`<h2>סריקה להצטרפות</h2>
-    <p class="sub">התלמיד פותח את מצלמת המכשיר שלו ומכוון אל הקוד. לא צריך להתקין שום דבר — מצלמת ה‑iPhone וה‑Android מזהות QR ישירות.</p>
-    <div class="card" style="padding:16px;margin-top:12px">${svg||'<p class="sub">לא ניתן ליצור קוד QR — הקוד ארוך מדי.</p>'}</div>
+  sheet(`<h2>${T('סריקה להצטרפות')}</h2>
+    <p class="sub">${T('התלמיד פותח את מצלמת המכשיר שלו ומכוון אל הקוד. לא צריך להתקין שום דבר — מצלמת ה‑iPhone וה‑Android מזהות QR ישירות.')}</p>
+    <div class="card" style="padding:16px;margin-top:12px">${svg||('<p class="sub">'+T('לא ניתן ליצור קוד QR — הקוד ארוך מדי.')+'</p>')}</div>
     <p class="muted" style="text-align:center;margin-top:10px" class="en">${esc(CFG.family)}</p>
-    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">סגירה</button>`);
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">${T('סגירה')}</button>`);
 }
 /* ============================================================
    שמירה בענן — Firestore דרך REST, בלי SDK.
@@ -5864,7 +6506,7 @@ async function deleteProfile(id){
   saveCfg(); saveUsers();
   if(cloudReady()){
     try{ await cloudTombstone(id); }
-    catch(e){ toast('נמחק במכשיר. הסנכרון לענן ייכשל עד שתהיה רשת.'); }
+    catch(e){ toast(T('נמחק במכשיר. הסנכרון לענן ייכשל עד שתהיה רשת.')); }
   }
   return true;
 }
@@ -5938,7 +6580,7 @@ async function cloudSync(silent){
       await cloudPush(u); CFG.hashes[u.id]=h; pushed++;
     }
     CFG.last=new Date().toISOString(); saveCfg();
-    if(!silent) toast(pushed?`סונכרן · ${pushed} פרופילים`:'הכול מעודכן');
+    if(!silent) toast(pushed?T('סונכרן · {0} פרופילים', pushed):T('הכול מעודכן'));
     return true;
   }catch(e){
     if(!silent) toast('הסנכרון נכשל: '+e.message);
@@ -5952,18 +6594,18 @@ function cloudSoon(){ if(!CFG.auto||!cloudReady()) return;
 
 /* ---------- ממשק ---------- */
 function cloudCard(){
-  if(!cloudReady()) return `<div class="card"><b>שמירה בענן</b>
-    <div class="sub" style="margin-top:4px">כרגע הכול נשמר במכשיר הזה בלבד. אם הוא יאבד או שתנקה את הדפדפן — ההתקדמות תיעלם.</div>
-    <button class="btn sm" style="width:100%;margin-top:11px" onclick="cloudSheet()">${cloudConfigured()?'התחברות למשפחה':'הגדרת ענן'}</button></div>`;
+  if(!cloudReady()) return `<div class="card"><b>${T('שמירה בענן')}</b>
+    <div class="sub" style="margin-top:4px">${T('כרגע הכול נשמר במכשיר הזה בלבד. אם הוא יאבד או שתנקה את הדפדפן — ההתקדמות תיעלם.')}</div>
+    <button class="btn sm" style="width:100%;margin-top:11px" onclick="cloudSheet()">${cloudConfigured()?T('התחברות למשפחה'):T('הגדרת ענן')}</button></div>`;
   const t=CFG.last?new Date(CFG.last):null;
   const ago=t?Math.round((Date.now()-t)/60000):null;
   return `<div class="card"><div style="display:flex;align-items:center;gap:9px">
-      <span class="dot" style="background:var(--good)"></span><b>הענן מחובר</b>
-      <span class="spacer"></span><span class="badge">${ago==null?'—':ago<1?'עכשיו':ago<60?ago+' דק׳':Math.round(ago/60)+' שע׳'}</span></div>
-    <div class="muted" style="margin-top:6px">קוד משפחה: <span class="en">${esc(CFG.family)}</span></div>
+      <span class="dot" style="background:var(--good)"></span><b>${T('הענן מחובר')}</b>
+      <span class="spacer"></span><span class="badge">${ago==null?T('—'):ago<1?T('עכשיו'):ago<60?ago+' דק׳':Math.round(ago/60)+' שע׳'}</span></div>
+    <div class="muted" style="margin-top:6px">${T('קוד משפחה: ')}<span class="en">${esc(CFG.family)}</span></div>
     <div class="row" style="margin-top:11px">
-      <button class="btn sm" style="width:100%" onclick="cloudSync()">סנכרון עכשיו</button>
-      <button class="btn ghost sm" style="width:100%" onclick="cloudSheet()">הגדרות</button>
+      <button class="btn sm" style="width:100%" onclick="cloudSync()">${T('סנכרון עכשיו')}</button>
+      <button class="btn ghost sm" style="width:100%" onclick="cloudSheet()">${T('הגדרות')}</button>
     </div></div>`;
 }
 
@@ -5979,28 +6621,28 @@ function cloudSheet(){
 
 function joinSheet(prefill){
   const scanned = !!prefill;
-  sheet(`<h2>${scanned?'זוהה קוד מהקישור':cloudReady()?'המשפחה שלי':'התחברות למשפחה'}</h2>
-    <p class="sub">${scanned?'סרקתם או פתחתם קישור עם קוד משפחה. אשרו כדי להתחבר.'
-      :cloudReady()?'המכשיר הזה מחובר ומסנכרן. ההתקדמות ממשיכה לעבוד גם בלי אינטרנט.'
-      :'הזינו את קוד המשפחה שקיבלתם, או סרקו את קוד ה‑QR שלו במצלמת המכשיר.'}</p>
+  sheet(`<h2>${scanned?T('זוהה קוד מהקישור'):cloudReady()?T('המשפחה שלי'):T('התחברות למשפחה')}</h2>
+    <p class="sub">${scanned?T('סרקתם או פתחתם קישור עם קוד משפחה. אשרו כדי להתחבר.')
+      :cloudReady()?T('המכשיר הזה מחובר ומסנכרן. ההתקדמות ממשיכה לעבוד גם בלי אינטרנט.')
+      :T('הזינו את קוד המשפחה שקיבלתם, או סרקו את קוד ה‑QR שלו במצלמת המכשיר.')}</p>
     <div class="card">
       <div class="field" style="margin-bottom:10px">
         <input id="fm" class="en" style="text-align:center;font-size:1.1rem;letter-spacing:.03em" value="${esc(prefill||CFG.family)}" placeholder="xxxx-xxxx-xxxx-xxxx"></div>
-      <button class="btn" id="join">${scanned?'התחברות':cloudReady()?'עדכון':'התחברות'}</button>
+      <button class="btn" id="join">${scanned?T('התחברות'):cloudReady()?T('עדכון'):T('התחברות')}</button>
     </div>
-    ${cloudReady() && !scanned?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="showJoinQR()">הצגת קוד QR לשיתוף עם תלמיד</button>
-      <div class="ctrl" style="margin-top:6px"><div class="tx"><b>סנכרון אוטומטי</b><span>אחרי כל תרגול ובכל פתיחה של האפליקציה.</span></div>
+    ${cloudReady() && !scanned?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="showJoinQR()">${T('הצגת קוד QR לשיתוף עם תלמיד')}</button>
+      <div class="ctrl" style="margin-top:6px"><div class="tx"><b>${T('סנכרון אוטומטי')}</b><span>${T('אחרי כל תרגול ובכל פתיחה של האפליקציה.')}</span></div>
       <button class="sw ${CFG.auto?'on':''}" id="au"></button></div>
-      <button class="btn ghost sm" style="width:100%;margin-top:12px" onclick="cloudSync()">סנכרון עכשיו</button>
-      <button class="btn ghost" style="margin-top:8px" id="off">ניתוק מהמשפחה</button>`:''}
-    ${!scanned?`<p class="muted" style="margin-top:16px">מקימים משפחה בפעם הראשונה?
-      <button class="en" style="text-decoration:underline;color:var(--brand);font-weight:700" id="newfam">יצירת קוד חדש</button></p>`:''}`, sh=>{
+      <button class="btn ghost sm" style="width:100%;margin-top:12px" onclick="cloudSync()">${T('סנכרון עכשיו')}</button>
+      <button class="btn ghost" style="margin-top:8px" id="off">${T('ניתוק מהמשפחה')}</button>`:''}
+    ${!scanned?`<p class="muted" style="margin-top:16px">${T('מקימים משפחה בפעם הראשונה?')}
+      <button class="en" style="text-decoration:underline;color:var(--brand);font-weight:700" id="newfam">${T('יצירת קוד חדש')}</button></p>`:''}`, sh=>{
     const doJoin=async()=>{
       const v=sh.querySelector('#fm').value.trim();
-      if(!v) return toast('צריך להזין קוד');
+      if(!v) return toast(T('צריך להזין קוד'));
       CFG.project=FIREBASE_PROJECT; CFG.key=FIREBASE_KEY; CFG.family=v; saveCfg();
-      toast('מתחבר…');
-      if(await cloudSync()){ closeSheet(); render(); } else toast('לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.');
+      toast(T('מתחבר…'));
+      if(await cloudSync()){ closeSheet(); render(); } else toast(T('לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.'));
     };
     sh.querySelector('#join').onclick=doJoin;
     /* יצירת קוד חדש = תביעת בעלות על משפחה חדשה בענן. בלי שער כאן, כל
@@ -6011,27 +6653,27 @@ function joinSheet(prefill){
       askParent(async()=>{
         const code=newFamilyCode();
         CFG.project=FIREBASE_PROJECT; CFG.key=FIREBASE_KEY; CFG.family=code; saveCfg();
-        toast('יוצר משפחה חדשה…');
+        toast(T('יוצר משפחה חדשה…'));
         if(await cloudSync()) render();
-        else toast('לא הצלחנו ליצור את המשפחה. בדקו את החיבור לאינטרנט.');
+        else toast(T('לא הצלחנו ליצור את המשפחה. בדקו את החיבור לאינטרנט.'));
       });
     };
     if(sh.querySelector('#au')) sh.querySelector('#au').onclick=function(){ CFG.auto=!CFG.auto; this.classList.toggle('on',CFG.auto); saveCfg(); };
     if(sh.querySelector('#off')) sh.querySelector('#off').onclick=()=>{
-      if(!confirm('להתנתק מהמשפחה? הנתונים במכשיר הזה יישארו, והעותק בענן לא יימחק.')) return;
+      if(!confirm(T('להתנתק מהמשפחה? הנתונים במכשיר הזה יישארו, והעותק בענן לא יימחק.'))) return;
       CFG.family=''; CFG.last=null; CFG.hashes={}; saveCfg(); closeSheet(); render();
     };
   });
 }
 
 function setupSheet(){
-  sheet(`<h2>הגדרת ענן — פעם אחת</h2>
-    <p class="sub">השלב הזה שייך למי שמקים את המערכת, ונעשה פעם אחת בלבד לפני שמשתפים את הקוד עם אף אחד.</p>
-    <div class="sec-title">פרויקט Firebase</div>
+  sheet(`<h2>${T('הגדרת ענן — פעם אחת')}</h2>
+    <p class="sub">${T('השלב הזה שייך למי שמקים את המערכת, ונעשה פעם אחת בלבד לפני שמשתפים את הקוד עם אף אחד.')}</p>
+    <div class="sec-title">${T('פרויקט Firebase')}</div>
     <div class="card">
       <div class="field"><label>Project ID</label><input id="pr" class="en" value="${esc(CFG.project)}" placeholder="ladder-family"></div>
       <div class="field" style="margin-bottom:0"><label>Web API Key</label><input id="ky" class="en" value="${esc(CFG.key)}" placeholder="AIza..."></div>
-      <p class="muted" style="margin-top:8px">שני הערכים נמצאים ב‑Firebase Console ← Project settings ← General.</p>
+      <p class="muted" style="margin-top:8px">${T('שני הערכים נמצאים ב‑Firebase Console ← Project settings ← General.')}</p>
     </div>
     <div class="card" style="border-color:var(--brand)">
       <b>הדרך הנכונה — לעשות את זה פעם אחת לתמיד</b>
@@ -6040,12 +6682,12 @@ function setupSheet(){
 const FIREBASE_KEY     = '';</span></div>
       <p class="sub" style="margin-top:8px">והדביקו ביניהן את שני הערכים, בין הגרשיים. אחר כך שמרו והעלו מחדש ל‑GitHub. מהרגע הזה, כל מי שפותח את הקישור — כולל כל תלמיד במכשיר משלו — מקבל את החיבור אוטומטית, ומזין רק קוד משפחה. אף אחד לא צריך לגעת במסך הזה שוב.</p>
     </div>
-    <button class="btn" style="margin-top:6px" id="tmp">שמירה על המכשיר הזה בלבד, לבדיקה</button>
-    <p class="muted" style="margin-top:8px">זמני בלבד — לא יעבור למכשיר אחר. שימושי כדי לוודא שהחיבור עובד לפני שעורכים את הקובץ.</p>
+    <button class="btn" style="margin-top:6px" id="tmp">${T('שמירה על המכשיר הזה בלבד, לבדיקה')}</button>
+    <p class="muted" style="margin-top:8px">${T('זמני בלבד — לא יעבור למכשיר אחר. שימושי כדי לוודא שהחיבור עובד לפני שעורכים את הקובץ.')}</p>
 
-    <div class="sec-title">חוקי אבטחה</div>
+    <div class="sec-title">${T('חוקי אבטחה')}</div>
     <div class="card">
-      <p class="sub">הדביקו ב‑Firestore ← Rules. בלי זה, מצב הבדיקה של Firebase יפוג ותאבדו גישה.</p>
+      <p class="sub">${T('הדביקו ב‑Firestore ← Rules. בלי זה, מצב הבדיקה של Firebase יפוג ותאבדו גישה.')}</p>
       <div class="ruleblk"><span class="ex" style="white-space:pre;font-size:.78rem;line-height:1.6">rules_version = '2';
 service cloud.firestore {
   match /databases/{db}/documents {
@@ -6054,13 +6696,13 @@ service cloud.firestore {
     }
   }
 }</span></div>
-      <p class="muted" style="margin-top:9px">החוק הזה חוסם סריקה אקראית ומחייב קוד ארוך, אבל הוא לא מצריך התחברות. אל תשמרו כאן שמות מלאים או פרטים מזהים.</p>
+      <p class="muted" style="margin-top:9px">${T('החוק הזה חוסם סריקה אקראית ומחייב קוד ארוך, אבל הוא לא מצריך התחברות. אל תשמרו כאן שמות מלאים או פרטים מזהים.')}</p>
     </div>`, sh=>{
     sh.querySelector('#tmp').onclick=()=>{
       CFG.project=sh.querySelector('#pr').value.trim();
       CFG.key    =sh.querySelector('#ky').value.trim();
       saveCfg();
-      if(!CFG.project||!CFG.key) return toast('צריך למלא את שני השדות');
+      if(!CFG.project||!CFG.key) return toast(T('צריך למלא את שני השדות'));
       closeSheet(); joinSheet();
     };
   });
@@ -6169,7 +6811,7 @@ async function ttsRequest(url, opt){
   try{ r = await fetch(url, opt); }
   catch(netErr){
     TTS_DIAG={step:url.includes('/voices')?'voices':'synthesize', status:0,
-      msg:'הבקשה לא יצאה בכלל — אין רשת, או שהדפדפן חסם אותה (CORS).', raw:String(netErr)};
+      msg:T('הבקשה לא יצאה בכלל — אין רשת, או שהדפדפן חסם אותה (CORS).'), raw:String(netErr)};
     throw new Error(TTS_DIAG.msg);
   }
   try{ bodyText = await r.text(); }catch(e){}
@@ -6181,7 +6823,7 @@ async function ttsRequest(url, opt){
     throw new Error(TTS_DIAG.msg);
   }
   TTS_DIAG={step:url.includes('/voices')?'voices':'synthesize', status:r.status, msg:'תקין', raw:''};
-  try{ return JSON.parse(bodyText); }catch(e){ throw new Error('תשובה לא תקינה מהשרת'); }
+  try{ return JSON.parse(bodyText); }catch(e){ throw new Error(T('תשובה לא תקינה מהשרת')); }
 }
 
 async function fetchCloudVoices(){
@@ -6220,7 +6862,7 @@ async function ttsSynth(text, voice){
     audioConfig:{audioEncoding:'MP3', speakingRate: TTS.rate || 1.0}
   };
   const j=await ttsRequest(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!j.audioContent) throw new Error('השרת החזיר תשובה בלי אודיו');
+  if(!j.audioContent) throw new Error(T('השרת החזיר תשובה בלי אודיו'));
   const dataURL='data:audio/mp3;base64,'+j.audioContent;
   MEM_CLIPS[key]=dataURL;
   clipSet(key,dataURL);   /* לא ממתינים — הכתיבה למטמון לא צריכה לעכב נגינה */
@@ -6261,44 +6903,44 @@ addEventListener('mousedown',  unlockAudio, {once:true});
 async function ttsSheet(){
   const n=await clipCount();
   const listed = CLOUD_VOICES ? CLOUD_VOICES.length : 0;
-  sheet(`<h2>קול ענן</h2>
-    <p class="sub">קול נוירוני אמיתי במקום קול המערכת הדחוס. ספארי לא חושף לדפי אינטרנט את הקולות האיכותיים של המכשיר, ולכן זו הדרך היחידה להגיע לקול טבעי באמת.</p>
+  sheet(`<h2>${T('קול ענן')}</h2>
+    <p class="sub">${T('קול נוירוני אמיתי במקום קול המערכת הדחוס. ספארי לא חושף לדפי אינטרנט את הקולות האיכותיים של המכשיר, ולכן זו הדרך היחידה להגיע לקול טבעי באמת.')}</p>
 
-    <div class="ctrl" style="margin-top:14px"><div class="tx"><b>קול ענן</b>
-      <span>כשכבוי, האפליקציה משתמשת בקול המכשיר.</span></div>
+    <div class="ctrl" style="margin-top:14px"><div class="tx"><b>${T('קול ענן')}</b>
+      <span>${T('כשכבוי, האפליקציה משתמשת בקול המכשיר.')}</span></div>
       <button class="sw ${TTS.on?'on':''}" id="ttson"></button></div>
 
     <div class="card">
-      <div class="field" style="margin-bottom:8px"><label>קול</label>
+      <div class="field" style="margin-bottom:8px"><label>${T('קול')}</label>
         <select id="tv">${
           CLOUD_VOICES && CLOUD_VOICES.length
-            ? `<option value="">— בחרו קול —</option>`+CLOUD_VOICES.map(v=>
+            ? `<option value="">${T('— בחרו קול —')}</option>`+CLOUD_VOICES.map(v=>
                 `<option value="${esc(v.name)}" ${v.name===TTS.voice?'selected':''}>${esc(v.name)} · ${esc(TIER_HE[v.tier]||'')}</option>`).join('')
-            : `<option value="">לחצו "טעינת קולות" למטה</option>`
+            : `<option value="">${T('לחצו "טעינת קולות" למטה')}</option>`
         }</select></div>
-      <button class="btn ghost sm" style="width:100%" id="load">${listed?`רענון (${listed} קולות)`:'טעינת קולות מהשרת'}</button>
-      <button class="btn ghost sm hide" style="width:100%;margin-top:8px" id="fb">שימוש ברשימה מקומית (בלי לשאול את השרת)</button>
-      <button class="btn sm" style="width:100%;margin-top:8px" id="try">השמעת דוגמה</button>
+      <button class="btn ghost sm" style="width:100%" id="load">${listed?T('רענון ({0} קולות)', listed):T('טעינת קולות מהשרת')}</button>
+      <button class="btn ghost sm hide" style="width:100%;margin-top:8px" id="fb">${T('שימוש ברשימה מקומית (בלי לשאול את השרת)')}</button>
+      <button class="btn sm" style="width:100%;margin-top:8px" id="try">${T('השמעת דוגמה')}</button>
       <p class="muted" id="msg" style="margin-top:9px"></p>
     </div>
 
-    <div class="sec-title">מטמון</div>
+    <div class="sec-title">${T('מטמון')}</div>
     <div class="card">
-      <p class="sub">כל מילה נשלפת מהשרת פעם אחת ואז נשמרת במכשיר — הנגינה מיידית, ועובדת גם בלי אינטרנט. זה גם מה ששומר את העלות אפסית.</p>
-      <p class="muted" style="margin-top:6px">${n} קטעי אודיו שמורים.</p>
-      <button class="btn ghost sm" style="width:100%;margin-top:10px" id="clr">ניקוי המטמון</button>
+      <p class="sub">${T('כל מילה נשלפת מהשרת פעם אחת ואז נשמרת במכשיר — הנגינה מיידית, ועובדת גם בלי אינטרנט. זה גם מה ששומר את העלות אפסית.')}</p>
+      <p class="muted" style="margin-top:6px">${T('{0} קטעי אודיו שמורים.', n)}</p>
+      <button class="btn ghost sm" style="width:100%;margin-top:10px" id="clr">${T('ניקוי המטמון')}</button>
     </div>
 
-    <div class="sec-title">אבחון</div>
+    <div class="sec-title">${T('אבחון')}</div>
     <div class="card">
-      <p class="sub">לוחצים, והבדיקה מדווחת בדיוק מה נכשל — כולל ההודעה המקורית של Google, שלרוב אומרת מה חסר ואיך לתקן.</p>
-      <button class="btn sm" style="width:100%;margin-top:10px" id="diag">הרצת אבחון</button>
+      <p class="sub">${T('לוחצים, והבדיקה מדווחת בדיוק מה נכשל — כולל ההודעה המקורית של Google, שלרוב אומרת מה חסר ואיך לתקן.')}</p>
+      <button class="btn sm" style="width:100%;margin-top:10px" id="diag">${T('הרצת אבחון')}</button>
       <div id="diagout" style="margin-top:11px"></div>
     </div>
 
-    <div class="sec-title">הפעלה חד-פעמית בקונסולה</div>
+    <div class="sec-title">${T('הפעלה חד-פעמית בקונסולה')}</div>
     <div class="card">
-      <p class="sub">ה-API משתמש באותו פרויקט ומפתח שכבר בקובץ. צריך רק להפעיל אותו:</p>
+      <p class="sub">${T('ה-API משתמש באותו פרויקט ומפתח שכבר בקובץ. צריך רק להפעיל אותו:')}</p>
       <div class="ruleblk"><span class="ex" style="white-space:pre-wrap;font-size:.8rem;line-height:1.7">1. console.cloud.google.com
 2. בחרו את הפרויקט ${esc(FIREBASE_PROJECT||'(לא מוגדר)')}
 3. APIs &amp; Services → Library
@@ -6309,10 +6951,10 @@ async function ttsSheet(){
     const msg=t=>{ const m=sh.querySelector('#msg'); if(m) m.textContent=t; };
     sh.querySelector('#ttson').onclick=function(){
       TTS.on=!TTS.on; this.classList.toggle('on',TTS.on); saveTTS();
-      msg(TTS.on ? (TTS.voice?'מופעל.':'מופעל — עוד צריך לבחור קול.') : 'כבוי. חוזרים לקול המכשיר.');
+      msg(TTS.on ? (TTS.voice?T('מופעל.'):T('מופעל — עוד צריך לבחור קול.')) : T('כבוי. חוזרים לקול המכשיר.'));
     };
     sh.querySelector('#load').onclick=async()=>{
-      msg('טוען…');
+      msg(T('טוען…'));
       try{ await fetchCloudVoices(); closeSheet(); ttsSheet(); }
       catch(e){
         msg('לא הצלחנו לטעון: '+e.message);
@@ -6322,51 +6964,51 @@ async function ttsSheet(){
     sh.querySelector('#fb').onclick=()=>{ useFallbackVoices(); closeSheet(); ttsSheet(); };
     sh.querySelector('#tv').onchange=e=>{
       TTS.voice=e.target.value; saveTTS();
-      if(TTS.voice){ TTS.on=true; saveTTS(); msg('מנגן דוגמה…');
+      if(TTS.voice){ TTS.on=true; saveTTS(); msg(T('מנגן דוגמה…'));
         sayCloud('This is how I will sound. Listen and repeat.',1)
-          .then(()=>msg('הקול נשמר.')).catch(err=>msg('שגיאה: '+err.message)); }
+          .then(()=>msg(T('הקול נשמר.'))).catch(err=>msg('שגיאה: '+err.message)); }
     };
     sh.querySelector('#try').onclick=()=>{
-      if(!TTS.voice) return msg('קודם בחרו קול.');
-      msg('מנגן…');
+      if(!TTS.voice) return msg(T('קודם בחרו קול.'));
+      msg(T('מנגן…'));
       sayCloud('The quick brown fox jumps over the lazy dog.',1)
         .then(()=>msg('')).catch(err=>msg('שגיאה: '+err.message));
     };
     sh.querySelector('#diag').onclick=async()=>{
       const out=sh.querySelector('#diagout');
-      out.innerHTML='<p class="muted">בודק…</p>';
+      out.innerHTML=('<p class="muted">'+T('בודק…')+'</p>');
       const lines=[];
       const row=(label,val,good)=>`<div class="wordrow">
         <span class="dot" style="background:${good===null?'var(--line)':good?'var(--good)':'var(--bad)'}"></span>
         <span style="flex:1;font-size:.85rem">${esc(label)}</span>
         <span class="badge">${esc(val)}</span></div>`;
 
-      lines.push(row('Project ID מוגדר', FIREBASE_PROJECT||'חסר', !!FIREBASE_PROJECT));
-      lines.push(row('API key מוגדר', FIREBASE_KEY?('...'+FIREBASE_KEY.slice(-6)):'חסר', !!FIREBASE_KEY));
-      lines.push(row('חיבור לאינטרנט', navigator.onLine===false?'לא מחובר':'מחובר', navigator.onLine!==false));
+      lines.push(row(T('Project ID מוגדר'), FIREBASE_PROJECT||T('חסר'), !!FIREBASE_PROJECT));
+      lines.push(row(T('API key מוגדר'), FIREBASE_KEY?('...'+FIREBASE_KEY.slice(-6)):T('חסר'), !!FIREBASE_KEY));
+      lines.push(row(T('חיבור לאינטרנט'), navigator.onLine===false?T('לא מחובר'):T('מחובר'), navigator.onLine!==false));
 
       /* שלב 1 — רשימת קולות */
       let step1=false;
       try{ await fetchCloudVoices(); step1=true;
-        lines.push(row('שליפת רשימת קולות', (CLOUD_VOICES||[]).length+' קולות', true));
-      }catch(e){ lines.push(row('שליפת רשימת קולות', 'נכשל', false)); }
+        lines.push(row(T('שליפת רשימת קולות'), (CLOUD_VOICES||[]).length+' קולות', true));
+      }catch(e){ lines.push(row(T('שליפת רשימת קולות'), T('נכשל'), false)); }
 
       /* שלב 2 — סינתזה בפועל (הרשאה נפרדת מהרשימה) */
       let step2=false;
       if(step1 && TTS.voice){
         try{ await ttsSynth('test', TTS.voice); step2=true;
-          lines.push(row('סינתזת אודיו', 'תקין', true));
-        }catch(e){ lines.push(row('סינתזת אודיו', 'נכשל', false)); }
+          lines.push(row(T('סינתזת אודיו'), T('תקין'), true));
+        }catch(e){ lines.push(row(T('סינתזת אודיו'), T('נכשל'), false)); }
       } else if(step1){
-        lines.push(row('סינתזת אודיו', 'לא נבחר קול', null));
+        lines.push(row(T('סינתזת אודיו'), T('לא נבחר קול'), null));
       }
 
       /* שלב 3 — נגינה בדפדפן */
       let step3=null;
       if(step2){
         try{ await sayCloud('This is a test.',1); step3=true;
-          lines.push(row('נגינה במכשיר', 'תקין', true));
-        }catch(e){ step3=false; lines.push(row('נגינה במכשיר', 'נחסמה', false)); }
+          lines.push(row(T('נגינה במכשיר'), T('תקין'), true));
+        }catch(e){ step3=false; lines.push(row(T('נגינה במכשיר'), T('נחסמה'), false)); }
       }
 
       const d=TTS_DIAG;
@@ -6383,28 +7025,28 @@ async function ttsSheet(){
       const keyRefLtd = is403 && /referer|referrer/i.test(gm);
 
       const advice = step2 ? (step3===false
-            ? 'הכול עובד בצד השרת — הדפדפן חסם את הנגינה. געו במסך פעם אחת ונסו שוב.'
-            : 'הכול עובד. אם עדיין נשמע קול מכשיר, ודאו שהמתג "קול ענן" למעלה דלוק.')
-        : apiOff    ? 'ה-API עצמו לא מופעל בפרויקט. פתחו את הקישור שבהודעה למטה ולחצו Enable.'
+            ? T('הכול עובד בצד השרת — הדפדפן חסם את הנגינה. געו במסך פעם אחת ונסו שוב.')
+            : T('הכול עובד. אם עדיין נשמע קול מכשיר, ודאו שהמתג "קול ענן" למעלה דלוק.'))
+        : apiOff    ? T('ה-API עצמו לא מופעל בפרויקט. פתחו את הקישור שבהודעה למטה ולחצו Enable.')
         : keyApiLtd ? 'ה-API מופעל — אבל המפתח מוגבל לרשימת API סגורה, ו-Text-to-Speech לא בתוכה. זה התיקון: Google Cloud Console → APIs & Services → Credentials → לחצו על המפתח → API restrictions → הוסיפו "Cloud Text-to-Speech API" → Save. השינוי לוקח עד כמה דקות להיכנס לתוקף.'
         : keyRefLtd ? 'המפתח מוגבל לדומיינים מסוימים, והדומיין של האפליקציה לא ברשימה. Credentials → המפתח → Application restrictions → הוסיפו את הכתובת של האפליקציה.'
-        : is403     ? 'שגיאת הרשאה. ראו את ההודעה המקורית למטה — היא מציינת מה חסר.'
-        : d && d.status===400 ? 'הבקשה נדחתה כלא תקינה — לרוב מפתח שגוי.'
-        : d && d.status===429 ? 'עברתם את המכסה. בדקו חיוב ומכסות בקונסולה.'
-        : d && d.status===0   ? 'הבקשה לא יצאה כלל — אין רשת, או שהדפדפן חסם אותה.'
-        : 'ראו את ההודעה המקורית למטה.';
+        : is403     ? T('שגיאת הרשאה. ראו את ההודעה המקורית למטה — היא מציינת מה חסר.')
+        : d && d.status===400 ? T('הבקשה נדחתה כלא תקינה — לרוב מפתח שגוי.')
+        : d && d.status===429 ? T('עברתם את המכסה. בדקו חיוב ומכסות בקונסולה.')
+        : d && d.status===0   ? T('הבקשה לא יצאה כלל — אין רשת, או שהדפדפן חסם אותה.')
+        : T('ראו את ההודעה המקורית למטה.');
 
       out.innerHTML = `<div class="card" style="padding:12px">${lines.join('')}</div>
         <p class="sub" style="margin-top:10px">${esc(advice)}</p>
-        ${d && d.msg && d.msg!=='תקין' ? `<div class="sec-title">ההודעה של Google</div>
+        ${d && d.msg && d.msg!=='תקין' ? `<div class="sec-title">${T('ההודעה של Google')}</div>
           <div class="ruleblk"><span class="ex" style="white-space:pre-wrap;font-size:.76rem;line-height:1.6;direction:ltr;text-align:left">${esc(d.msg)}</span></div>
-          ${/https?:\/\/\S+/.test(d.msg)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="window.open('${esc((d.msg.match(/https?:\/\/\S+/)||[''])[0].replace(/[.,)]+$/,''))}','_blank')">פתיחת הקישור מההודעה</button>`:''}`:''}`;
+          ${/https?:\/\/\S+/.test(d.msg)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="window.open('${esc((d.msg.match(/https?:\/\/\S+/)||[''])[0].replace(/[.,)]+$/,''))}','_blank')">${T('פתיחת הקישור מההודעה')}</button>`:''}`:''}`;
     };
 
     sh.querySelector('#clr').onclick=async()=>{
       await clipClear();
       for(const k in MEM_CLIPS) delete MEM_CLIPS[k];
-      closeSheet(); toast('המטמון נוקה');
+      closeSheet(); toast(T('המטמון נוקה'));
     };
   });
 }
@@ -6425,142 +7067,147 @@ function progressBlock(u, opts={}){
   const mx=Math.max(1,...days.map(d=>d.n));
   return `
    <div class="grid2" style="margin-top:14px">
-     <div class="stat"><div class="n">${a.vocab}</div><div class="l">מילים בשליטה מלאה</div></div>
-     <div class="stat"><div class="n">${a.learning}</div><div class="l">בתהליך למידה</div></div>
-     <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">דיוק כולל</div></div>
-     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':'—'}</div><div class="l">זמן שליפה ממוצע</div></div>
+     <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה מלאה')}</div></div>
+     <div class="stat"><div class="n">${a.learning}</div><div class="l">${T('בתהליך למידה')}</div></div>
+     <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">${T('דיוק כולל')}</div></div>
+     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':T('—')}</div><div class="l">${T('זמן שליפה ממוצע')}</div></div>
    </div>
-   <div class="sec-title">פעילות ב־14 הימים האחרונים</div>
+   <div class="sec-title">${T('פעילות ב־14 הימים האחרונים')}</div>
    <div class="card"><div class="bars">${days.map(d=>
       `<div class="${d.n?'hot':''}" style="height:${Math.max(3,d.n/mx*100)}%" title="${d.d}: ${d.n}"></div>`).join('')}</div>
      <div class="legend"><span>${days[0].d.slice(5)}</span><span>${days[13].d.slice(5)}</span></div>
-     <p class="muted" style="margin:10px 0 0">סה"כ ${days.reduce((x,d)=>x+d.n,0)} תרגילים בשבועיים · רצף ${u.streak} ימים</p></div>
-   ${a.weakTypes.length?`<div class="sec-title">איפה כדאי להתמקד</div><div class="card">${
+     <p class="muted" style="margin:10px 0 0">${T('סה"כ {0} תרגילים בשבועיים · רצף {1} ימים', days.reduce((x,d)=>x+d.n,0), u.streak)}</p></div>
+   ${a.weakTypes.length?`<div class="sec-title">${T('איפה כדאי להתמקד')}</div><div class="card">${
      a.weakTypes.map(w=>`<div class="wordrow"><span class="dot" style="background:${w.acc<.6?'var(--bad)':'var(--gold)'}"></span>
-       <span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}
+       <span style="flex:1">${T(TYPE_HE[w.t]||w.t)}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}
      ${opts.self?'<button class="btn sm" style="margin-top:12px;width:100%" onclick="startSession(\'weak\',12)">תרגול ממוקד חולשות</button>':''}</div>`:''}
-   ${a.weakWords.length?`<div class="sec-title">מילים שעדיין לא יושבות</div><div class="card">${
+   ${a.weakWords.length?`<div class="sec-title">${T('מילים שעדיין לא יושבות')}</div><div class="card">${
      a.weakWords.map(x=>{const w=WORDS.find(y=>y.en===x.w)||{he:''};
        return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span>
        <span class="w">${esc(x.w)}</span><span class="h">${esc(w.he)}</span>
        <span class="badge">${x.c.ok}/${x.c.seen}</span></div>`}).join('')}</div>`:''}
-   <div class="sec-title">שליטה לפי רמה</div><div class="card">${
+   <div class="sec-title">${T('שליטה לפי רמה')}</div><div class="card">${
      LEVELS.filter(l=>l.id<=u.lv).map(l=>{const p=l.id<u.lv?(u.mastered[l.id]||100):levelPct(u,l.id);
        return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600">
-         <span>${l.id} · ${l.nm}</span><span class="badge">${p}%</span></div>
+         <span>${l.id} · ${T(l.nm)}</span><span class="badge">${p}%</span></div>
          <div class="progline" style="margin-top:5px"><i style="width:${p}%"></i></div></div>`}).join('')}</div>
-   <p class="muted" style="margin-top:14px">${a.dueNow} פריטים ממתינים לחזרה. אלגוריתם החזרות מציג כל פריט בדיוק לפני שהוא נשכח — לכן חשוב יותר לתרגל כל יום מעט, מאשר הרבה פעם בשבוע.</p>`;
+   <p class="muted" style="margin-top:14px">${T('{0} פריטים ממתינים לחזרה. אלגוריתם החזרות מציג כל פריט בדיוק לפני שהוא נשכח — לכן חשוב יותר לתרגל כל יום מעט, מאשר הרבה פעם בשבוע.', a.dueNow)}</p>`;
 }
 function vStats(s){
   const u=me();
-  s.innerHTML=`<h1>ההתקדמות של ${esc(u.name)}</h1>
-   <p class="sub">רמה ${u.lv} · ${LEVELS[u.lv].nm} · ${LEVELS[u.lv].cefr} · ${levelPct(u,u.lv)}% שליטה</p>
+  s.innerHTML=`<h1>${T('ההתקדמות של ')}${esc(u.name)}</h1>
+   <p class="sub">${T('רמה ')}${u.lv} · ${T(LEVELS[u.lv].nm)} · ${T(LEVELS[u.lv].cefr)} · ${levelPct(u,u.lv)}% ${T('שליטה')}</p>
    ${progressBlock(u,{self:true})}`;
 }
 
 /* ---------------- משפחה / ניהול ---------------- */
 function vFamily(s){
   const u=me();
-  s.innerHTML=`<h1>המשפחה</h1><p class="sub">מעבר בין לומדים, מעקב ושליטה.</p>
+  s.innerHTML=`<h1>${T('המשפחה')}</h1><p class="sub">${T('מעבר בין לומדים, מעקב ושליטה.')}</p>
     <div class="userpick" style="margin-top:14px" id="ul"></div>
-    <button class="btn ghost" style="margin-top:10px" onclick="addUser()">+ הוספת לומד</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="addUser()">${T('+ הוספת לומד')}</button>
     <div class="card" style="margin-top:14px">
-      <b>בקרת הורים ומורים</b>
-      <div class="sub" style="margin-top:4px">יעדים יומיים, מגבלת מסך, נעילת רמה, מצבי תרגול מותרים והקצאת משימות.</div>
-      <button class="btn sm" style="width:100%;margin-top:11px" onclick="askParent(vParent)">פתיחה</button>
+      <b>${T('בקרת הורים ומורים')}</b>
+      <div class="sub" style="margin-top:4px">${T('יעדים יומיים, מגבלת מסך, נעילת רמה, מצבי תרגול מותרים והקצאת משימות.')}</div>
+      <button class="btn sm" style="width:100%;margin-top:11px" onclick="askParent(vParent)">${T('פתיחה')}</button>
     </div>
 
-    <div class="sec-title">קוד הכניסה שלי</div>
+    <div class="sec-title">${T('קוד הכניסה שלי')}</div>
     <div class="card">
-      <p class="sub">${u.code?'לפרופיל שלך יש קוד. הוא נדרש בכל כניסה.':'אין קוד. כל אחד שפותח את האפליקציה יכול להיכנס לפרופיל הזה.'}</p>
-      <button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="setCode(me())">${u.code?'שינוי או הסרת הקוד':'קביעת קוד'}</button>
+      <p class="sub">${u.code?T('לפרופיל שלך יש קוד. הוא נדרש בכל כניסה.'):T('אין קוד. כל אחד שפותח את האפליקציה יכול להיכנס לפרופיל הזה.')}</p>
+      <button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="setCode(me())">${u.code?T('שינוי או הסרת הקוד'):T('קביעת קוד')}</button>
     </div>
 
-    <div class="sec-title">מראה</div>
+    <div class="sec-title">${T('מראה')}</div>
     <div class="card">
-      <div class="field"><label>ערכת נושא</label><div class="seg" id="th">
-        ${[['auto','לפי המכשיר'],['light','בהיר'],['dark','כהה']]
+      <div class="field"><label>${T('שפת הממשק')}</label><div class="seg" id="lg">
+        <button data-v="he" class="${(u.settings.lang||'he')==='he'?'on':''}">עברית</button>
+        <button data-v="en" class="${u.settings.lang==='en'?'on':''}">English</button></div></div>
+      <div class="field"><label>${T('ערכת נושא')}</label><div class="seg" id="th">
+        ${[['auto',T('לפי המכשיר')],['light',T('בהיר')],['dark',T('כהה')]]
           .map(([v,n])=>`<button data-v="${v}" class="${(u.settings.theme||'auto')===v?'on':''}">${n}</button>`).join('')}</div></div>
-      <div class="field" style="margin-bottom:0"><label>גודל טקסט</label><div class="seg" id="sz">
-        ${[['m','רגיל'],['l','גדול'],['xl','ענק']]
+      <div class="field" style="margin-bottom:0"><label>${T('גודל טקסט')}</label><div class="seg" id="sz">
+        ${[['m',T('רגיל')],['l',T('גדול')],['xl',T('ענק')]]
           .map(([v,n])=>`<button data-v="${v}" class="${(u.settings.size||'m')===v?'on':''}">${n}</button>`).join('')}</div></div>
     </div>
 
-    <div class="sec-title">קול ודיבור</div>
+    <div class="sec-title">${T('קול ודיבור')}</div>
     <div class="card" style="border-color:${ttsReady()?'var(--good)':'var(--line)'}">
       <div style="display:flex;align-items:center;gap:9px">
         ${ttsReady()?'<span class="dot" style="background:var(--good)"></span>':''}
-        <b>קול ענן</b><span class="spacer"></span>
-        <span class="badge">${ttsReady()?'פעיל':'כבוי'}</span>
+        <b>${T('קול ענן')}</b><span class="spacer"></span>
+        <span class="badge">${ttsReady()?T('פעיל'):T('כבוי')}</span>
       </div>
       <div class="sub" style="margin-top:5px">${ttsReady()
-        ? 'קול נוירוני אמיתי. נשמר במכשיר אחרי השמעה ראשונה, ולכן מיידי וגם עובד ללא רשת.'
-        : 'קול המכשיר בספארי הוא קול דחוס ונשמע מתכתי — זו מגבלת דפדפן. קול ענן פותר את זה.'}</div>
-      <button class="btn ${ttsReady()?'ghost ':''}sm" style="width:100%;margin-top:11px" onclick="ttsSheet()">${ttsReady()?'הגדרות קול הענן':'הגדרת קול ענן'}</button>
+        ? T('קול נוירוני אמיתי. נשמר במכשיר אחרי השמעה ראשונה, ולכן מיידי וגם עובד ללא רשת.')
+        : T('קול המכשיר בספארי הוא קול דחוס ונשמע מתכתי — זו מגבלת דפדפן. קול ענן פותר את זה.')}</div>
+      <button class="btn ${ttsReady()?'ghost ':''}sm" style="width:100%;margin-top:11px" onclick="ttsSheet()">${ttsReady()?T('הגדרות קול הענן'):T('הגדרת קול ענן')}</button>
     </div>
 
-    <div class="sec-title">קול המכשיר</div>
+    <div class="sec-title">${T('קול המכשיר')}</div>
     <div class="card">
       ${(()=>{ const cur=pickVoice(), ava=findAva();
         const tier=cur?voiceTier(cur):null;
-        const badge={premium:['pill g','איכות גבוהה'],good:['pill','תקין'],plain:['pill o','בסיסי'],junk:['pill r','קול דחוס']}[tier]||['pill','—'];
+        const badge={premium:['pill g',T('איכות גבוהה')],good:['pill',T('תקין')],plain:['pill o',T('בסיסי')],junk:['pill r',T('קול דחוס')]}[tier]||['pill',T('—')];
         return `<div class="ctrl" style="border:0;padding-top:0">
-          <div class="tx"><b>בשימוש כרגע</b>
-            <span class="en" style="direction:ltr;display:block;font-size:.86rem;color:var(--ink);font-weight:600">${cur?esc(cur.name):'—'}</span>
-            <span>${cur?esc(cur.lang):'לא נמצא קול אנגלית במכשיר'}</span></div>
+          <div class="tx"><b>${T('בשימוש כרגע')}</b>
+            <span class="en" style="direction:ltr;display:block;font-size:.86rem;color:var(--ink);font-weight:600">${cur?esc(cur.name):T('—')}</span>
+            <span>${cur?esc(cur.lang):T('לא נמצא קול אנגלית במכשיר')}</span></div>
           <span class="${badge[0]}">${badge[1]}</span></div>
-        ${tier==='junk'?`<p class="muted" style="margin:0 0 12px">זהו קול דחוס והוא יישמע מתכתי. הורידו קול Premium בהגדרות → נגישות → תוכן מדובר → קולות → English.</p>`:''}
-        ${ava && cur!==ava ? `<button class="btn sm" style="width:100%;margin-bottom:12px" id="useava">מעבר ל‑${esc(ava.name)}</button>` : ''}`;})()}
-      <div class="field"><label>קול</label>
-        <select id="vc"><option value="">בחירה אוטומטית — הטוב ביותר במכשיר</option>${
+        ${tier==='junk'?`<p class="muted" style="margin:0 0 12px">${T('זהו קול דחוס והוא יישמע מתכתי. הורידו קול Premium בהגדרות → נגישות → תוכן מדובר → קולות → English.')}</p>`:''}
+        ${ava && cur!==ava ? `<button class="btn sm" style="width:100%;margin-bottom:12px" id="useava">${T('מעבר ל‑')}${esc(ava.name)}</button>` : ''}`;})()}
+      <div class="field"><label>${T('קול')}</label>
+        <select id="vc"><option value="">${T('בחירה אוטומטית — הטוב ביותר במכשיר')}</option>${
           VOICES.map(v=>{const t=voiceTier(v);
             return `<option value="${esc(v.name)}" ${v.name===u.settings.voice?'selected':''}>${esc(v.name)} · ${esc(v.lang)}${t==='premium'?' ✦✦':t==='good'?' ✦':''}</option>`}).join('')}</select>
-        <button class="btn ghost sm" style="width:100%;margin-top:8px" id="tv">השמעת דוגמה</button>
-        <button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="voiceDiag()">אבחון קולות</button>
-        <p class="muted" style="margin-top:6px">${VOICES.length?`${VOICES.length} קולות אנגלית במכשיר · ✦✦ איכות גבוהה, ✦ תקין.`:'עדיין נטענים קולות. אם הרשימה נשארת ריקה — רעננו את הדף.'}</p></div>
-      <div class="field"><label>מהירות הדיבור</label>
-        <select id="sp">${[['0.6','איטית מאוד'],['0.75','איטית'],['0.95','רגילה'],['1.05','מהירה'],['1.2','ילידית']]
+        <button class="btn ghost sm" style="width:100%;margin-top:8px" id="tv">${T('השמעת דוגמה')}</button>
+        <button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="voiceDiag()">${T('אבחון קולות')}</button>
+        <p class="muted" style="margin-top:6px">${VOICES.length?T('{0} קולות אנגלית במכשיר · ✦✦ איכות גבוהה, ✦ תקין.', VOICES.length):T('עדיין נטענים קולות. אם הרשימה נשארת ריקה — רעננו את הדף.')}</p></div>
+      <div class="field"><label>${T('מהירות הדיבור')}</label>
+        <select id="sp">${[['0.6',T('איטית מאוד')],['0.75',T('איטית')],['0.95',T('רגילה')],['1.05',T('מהירה')],['1.2',T('ילידית')]]
           .map(([v,n])=>`<option value="${v}" ${+v===u.settings.speed?'selected':''}>${n}</option>`).join('')}</select></div>
-      <div class="field"><label>גובה הקול</label>
-        <select id="pt">${[['0.85','נמוך'],['1','טבעי'],['1.15','גבוה']]
+      <div class="field"><label>${T('גובה הקול')}</label>
+        <select id="pt">${[['0.85',T('נמוך')],['1',T('טבעי')],['1.15',T('גבוה')]]
           .map(([v,n])=>`<option value="${v}" ${+v===(u.settings.pitch??1)?'selected':''}>${n}</option>`).join('')}</select></div>
-      <div class="field"><label>השמעה אוטומטית</label>
-        <select id="au"><option value="1" ${u.settings.autoSpeak?'selected':''}>מופעלת</option><option value="0" ${!u.settings.autoSpeak?'selected':''}>כבויה</option></select></div>
+      <div class="field"><label>${T('השמעה אוטומטית')}</label>
+        <select id="au"><option value="1" ${u.settings.autoSpeak?'selected':''}>${T('מופעלת')}</option><option value="0" ${!u.settings.autoSpeak?'selected':''}>${T('כבויה')}</option></select></div>
     </div>
 
-    ${u.ctrl.lockLevel?'':`<div class="sec-title">רמה</div>
+    ${u.ctrl.lockLevel?'':`<div class="sec-title">${T('רמה')}</div>
     <div class="card">
-      <div class="field" style="margin-bottom:0"><label>קפיצה ידנית לרמה</label>
-        <select id="lv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===u.lv?'selected':''}>${l.id} · ${l.nm} (${l.cefr})</option>`).join('')}</select>
-        <p class="muted" style="margin-top:7px">בדרך כלל לא צריך לגעת בזה — הרמה עולה מעצמה ב‑${LEVELS[u.lv].need}% שליטה. שימושי אם התחלתם נמוך מדי.</p></div>
-      <button class="btn sm" style="width:100%;margin-top:12px" id="sv">שמירה</button>
+      <div class="field" style="margin-bottom:0"><label>${T('קפיצה ידנית לרמה')}</label>
+        <select id="lv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===u.lv?'selected':''}>${l.id} · ${T(l.nm)} (${T(l.cefr)})</option>`).join('')}</select>
+        <p class="muted" style="margin-top:7px">${T('בדרך כלל לא צריך לגעת בזה — הרמה עולה מעצמה ב‑{0}% שליטה. שימושי אם התחלתם נמוך מדי.', LEVELS[u.lv].need)}</p></div>
+      <button class="btn sm" style="width:100%;margin-top:12px" id="sv">${T('שמירה')}</button>
     </div>`}
-    <div class="sec-title">ענן</div>
+    <div class="sec-title">${T('ענן')}</div>
     ${cloudCard()}
 
-    ${u.ctrl.lockData?'':`<div class="sec-title">גיבוי מקומי</div>
-    <div class="card"><p class="sub">כל הנתונים נשמרים במכשיר בלבד. ייצאו קובץ לפני החלפת מכשיר.</p>
+    ${u.ctrl.lockData?'':`<div class="sec-title">${T('גיבוי מקומי')}</div>
+    <div class="card"><p class="sub">${T('כל הנתונים נשמרים במכשיר בלבד. ייצאו קובץ לפני החלפת מכשיר.')}</p>
       <div class="row" style="margin-top:10px">
-        <button class="btn ghost sm" style="width:100%" onclick="exportData()">ייצוא</button>
-        <button class="btn ghost sm" style="width:100%" onclick="importData()">ייבוא</button>
+        <button class="btn ghost sm" style="width:100%" onclick="exportData()">${T('ייצוא')}</button>
+        <button class="btn ghost sm" style="width:100%" onclick="importData()">${T('ייבוא')}</button>
       </div></div>`}
-    <button class="btn ghost" style="margin-top:12px" onclick="UNLOCKED={};CUR=null;Store.set(K_CUR,null);TAB='users';render()">החלפת לומד</button>
-    ${Store.persistent?'':'<p class="muted" style="margin-top:16px">תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.</p>'}`;
+    <button class="btn ghost" style="margin-top:12px" onclick="UNLOCKED={};CUR=null;Store.set(K_CUR,null);TAB='users';render()">${T('החלפת לומד')}</button>
+    ${Store.persistent?'':('<p class="muted" style="margin-top:16px">'+T('תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.')+'</p>')}`;
   const ul=$('#ul');
   USERS.forEach(x=>{
     const a=analyse(x);
     const b=el(`<button class="usercard ${x.id===CUR?'on':''}"><div class="av">${x.emoji}</div>
-      <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.id===CUR?'<span class="pill">פעיל</span>':''}</div>
-      <div class="muted">רמה ${x.lv} · ${a.vocab} מילים · ${Math.round(a.accAll*100)||0}% דיוק · 🔥 ${x.streak}</div></div></button>`);
+      <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.id===CUR?('<span class="pill">'+T('פעיל')+'</span>'):''}</div>
+      <div class="muted">${T('רמה ')}${x.lv} · ${a.vocab} מילים · ${Math.round(a.accAll*100)||0}% דיוק · 🔥 ${x.streak}</div></div></button>`);
     b.onclick=()=>userSheet(x);
     ul.appendChild(b);
   });
   const segs=(id,key)=>sh=>0;
-  ['th','sz'].forEach(id=>{
-    const key = id==='th'?'theme':'size';
+  ['th','sz','lg'].forEach(id=>{
+    const key = {th:'theme', sz:'size', lg:'lang'}[id];
     document.querySelectorAll('#'+id+' button').forEach(b=>b.onclick=()=>{
       document.querySelectorAll('#'+id+' button').forEach(x=>x.classList.remove('on'));
-      b.classList.add('on'); u.settings[key]=b.dataset.v; saveUsers(); applyTheme();
+      b.classList.add('on'); u.settings[key]=b.dataset.v; saveUsers();
+      /* שינוי שפה הופך את כיוון הדף — צריך ציור מחדש, לא רק החלת ערכה */
+      if(key==='lang'){ applyLang(); render(); } else applyTheme();
     });
   });
   const apply=()=>{
@@ -6578,24 +7225,24 @@ function vFamily(s){
   $('#tv').onclick =()=>{ apply(); say('This is how I will sound. Listen and repeat.'); };
   $('#sp').onchange=()=>{ apply(); say('Listen and repeat.'); };
   $('#pt').onchange=()=>{ apply(); say('Listen and repeat.'); };
-  $('#sv').onclick =()=>{ apply(); u.lv=+$('#lv').value; saveUsers(); toast('נשמר'); render(); };
+  $('#sv').onclick =()=>{ apply(); u.lv=+$('#lv').value; saveUsers(); toast(T('נשמר')); render(); };
 }
 
 function userSheet(x){
   const a=analyse(x);
   sheet(`<div style="display:flex;align-items:center;gap:12px"><div class="av" style="width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:27px;background:var(--brand-soft)">${x.emoji}</div>
-    <div><h2 style="margin:0">${esc(x.name)}</h2><div class="muted">רמה ${x.lv} · ${LEVELS[x.lv].nm} · ${LEVELS[x.lv].cefr}</div></div></div>
+    <div><h2 style="margin:0">${esc(x.name)}</h2><div class="muted">${T('רמה ')}${x.lv} · ${T(LEVELS[x.lv].nm)} · ${T(LEVELS[x.lv].cefr)}</div></div></div>
     <div class="grid2" style="margin-top:14px">
-      <div class="stat"><div class="n">${a.vocab}</div><div class="l">מילים בשליטה</div></div>
-      <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">דיוק</div></div>
-      <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':'—'}</div><div class="l">זמן שליפה</div></div>
-      <div class="stat"><div class="n">${x.streak}</div><div class="l">רצף ימים</div></div>
+      <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה')}</div></div>
+      <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">${T('דיוק')}</div></div>
+      <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':T('—')}</div><div class="l">${T('זמן שליפה')}</div></div>
+      <div class="stat"><div class="n">${x.streak}</div><div class="l">${T('רצף ימים')}</div></div>
     </div>
-    ${a.weakTypes.length?`<div class="sec-title">חולשות</div><div class="card">${a.weakTypes.map(w=>
-      `<div class="wordrow"><span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}</div>`:''}
-    <button class="btn" style="margin-top:14px" id="sw">מעבר ללומד הזה</button>
-    <button class="btn ghost" style="margin-top:8px" id="ct">בקרה והרשאות</button>
-    ${x.ctrl.lockData?'':'<button class="btn ghost" style="margin-top:8px" id="rm">מחיקת הלומד</button>'}`, sh=>{
+    ${a.weakTypes.length?`<div class="sec-title">${T('חולשות')}</div><div class="card">${a.weakTypes.map(w=>
+      `<div class="wordrow"><span style="flex:1">${T(TYPE_HE[w.t]||w.t)}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}</div>`:''}
+    <button class="btn" style="margin-top:14px" id="sw">${T('מעבר ללומד הזה')}</button>
+    <button class="btn ghost" style="margin-top:8px" id="ct">${T('בקרה והרשאות')}</button>
+    ${x.ctrl.lockData?'':('<button class="btn ghost" style="margin-top:8px" id="rm">'+T('מחיקת הלומד')+'</button>')}`, sh=>{
     sh.querySelector('#ct').onclick=()=>{ closeSheet(); askParent(()=>ctrlSheet(x)); };
     sh.querySelector('#sw').onclick=()=>{ CUR=x.id; Store.set(K_CUR,CUR); closeSheet(); TAB='home'; render(); };
     /* מחיקה תמיד עוברת דרך שער הורה, גם אם לפרופיל הזה עצמו אין קוד —
@@ -6604,11 +7251,11 @@ function userSheet(x){
     if(sh.querySelector('#rm')) sh.querySelector('#rm').onclick=()=>{
       closeSheet();
       askParent(async()=>{
-        if(!confirm(`למחוק את ${x.name} ואת כל ההתקדמות? אי אפשר לבטל.`)) return;
+        if(!confirm(T('למחוק את {0} ואת כל ההתקדמות? אי אפשר לבטל.', x.name))) return;
         /* deleteProfile מטפל גם במחיקה בענן ובמצבה — בלעדיו הפרופיל
            היה חוזר בסנכרון הבא מהעותק שנשאר בענן.                  */
         await deleteProfile(x.id);
-        toast('נמחק'); render();
+        toast(T('נמחק')); render();
       });
     };
   });
@@ -6625,9 +7272,9 @@ function importData(){
   i.onchange=()=>{ const f=i.files[0]; if(!f)return; const r=new FileReader();
     r.onload=()=>{ try{ const d=JSON.parse(r.result);
       if(!d.users) throw 0;
-      if(!confirm('הייבוא יחליף את כל הנתונים הקיימים. להמשיך?')) return;
-      USERS=d.users; USERS.forEach(normalise); CUR=USERS[0]?.id||null; saveUsers(); Store.set(K_CUR,CUR); toast('יובא'); render();
-    }catch(e){ toast('הקובץ לא תקין'); } };
+      if(!confirm(T('הייבוא יחליף את כל הנתונים הקיימים. להמשיך?'))) return;
+      USERS=d.users; USERS.forEach(normalise); CUR=USERS[0]?.id||null; saveUsers(); Store.set(K_CUR,CUR); toast(T('יובא')); render();
+    }catch(e){ toast(T('הקובץ לא תקין')); } };
     r.readAsText(f); };
   i.click();
 }
@@ -6644,6 +7291,7 @@ function closeSheet(){ document.querySelector('.sheet-bg')?.remove(); }
 
 /* ---------------- הפעלה ---------------- */
 if(CUR && !me()) CUR=null;
+applyLang();
 applyTheme();
 render();
 pinFixedBars();
@@ -6677,22 +7325,22 @@ function voiceDiag(){
   const row = v=>`<div class="wordrow">
     <span class="dot" style="background:${voiceTier(v)==='premium'?'var(--good)':voiceTier(v)==='junk'?'var(--bad)':'var(--gold)'}"></span>
     <span class="w">${esc(v.name)}</span>
-    <span class="h">${esc(v.lang)} · ${v.localService===false?'רשת':'מקומי'}${v.default?' · ברירת מחדל':''}</span>
+    <span class="h">${esc(v.lang)} · ${v.localService===false?T('רשת'):T('מקומי')}${v.default?' · ברירת מחדל':''}</span>
     <span class="badge">${voiceScore(v)}</span></div>`;
-  sheet(`<h2>אבחון קולות</h2>
+  sheet(`<h2>${T('אבחון קולות')}</h2>
     <div class="grid3" style="margin-top:14px">
-      <div class="stat"><div class="n">${all.length}</div><div class="l">סה"כ קולות</div></div>
-      <div class="stat"><div class="n">${en.length}</div><div class="l">אנגלית</div></div>
-      <div class="stat"><div class="n">${all.filter(v=>/premium|enhanced|neural/i.test(v.name)).length}</div><div class="l">משודרגים</div></div>
+      <div class="stat"><div class="n">${all.length}</div><div class="l">${T('סה"כ קולות')}</div></div>
+      <div class="stat"><div class="n">${en.length}</div><div class="l">${T('אנגלית')}</div></div>
+      <div class="stat"><div class="n">${all.filter(v=>/premium|enhanced|neural/i.test(v.name)).length}</div><div class="l">${T('משודרגים')}</div></div>
     </div>
     ${all.some(v=>/\bava\b/i.test(v.name))
-      ? '<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)"><b>Ava נמצאה</b><div class="sub" style="margin-top:3px">אפשר לבחור אותה ברשימת הקולות.</div></div>'
-      : `<div class="card" style="margin-top:12px;border-color:var(--gold)"><b>Ava לא נחשפת לדפדפן</b>
-         <div class="sub" style="margin-top:4px">היא כנראה מותקנת במכשיר, אבל ספארי לא מעביר קולות Premium ו‑Enhanced לדפי אינטרנט — רק לאפליקציות מקוריות ול‑VoiceOver. זו מגבלה של הדפדפן ולא של האפליקציה, ואין דרך לעקוף אותה מהקוד.</div></div>`}
-    <div class="sec-title">כל הקולות שהמכשיר מדווח</div>
+      ? ('<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">'+'<b>'+T('Ava נמצאה')+'</b>'+'<div class="sub" style="margin-top:3px">'+T('אפשר לבחור אותה ברשימת הקולות.')+'</div>'+'</div>')
+      : `<div class="card" style="margin-top:12px;border-color:var(--gold)"><b>${T('Ava לא נחשפת לדפדפן')}</b>
+         <div class="sub" style="margin-top:4px">${T('היא כנראה מותקנת במכשיר, אבל ספארי לא מעביר קולות Premium ו‑Enhanced לדפי אינטרנט — רק לאפליקציות מקוריות ול‑VoiceOver. זו מגבלה של הדפדפן ולא של האפליקציה, ואין דרך לעקוף אותה מהקוד.')}</div></div>`}
+    <div class="sec-title">${T('כל הקולות שהמכשיר מדווח')}</div>
     <div class="card">${all.length?all.slice().sort((a,b)=>voiceScore(b)-voiceScore(a)).map(row).join('')
-      :'<p class="sub">הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.</p>'}</div>
-    <p class="muted" style="margin-top:12px">אם הרשימה נראית שונה כשפותחים ישירות בספארי לעומת אפליקציה אחרת — זה סימן שהתצוגה המוטמעת מגבילה את הקולות.</p>`);
+      :('<p class="sub">'+T('הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.')+'</p>')}</div>
+    <p class="muted" style="margin-top:12px">${T('אם הרשימה נראית שונה כשפותחים ישירות בספארי לעומת אפליקציה אחרת — זה סימן שהתצוגה המוטמעת מגבילה את הקולות.')}</p>`);
 }
 
 </script>
