@@ -5297,6 +5297,7 @@ function startSession(mode, size, lv, fromTask){
   u.lv=oldLv;
   if(!items.length){ toast(T('אין פריטים זמינים')); return; }
   S={items,i:0,ok:0,msSum:0,mode,size,answered:false,t0:0,hardIds:[],finished:false};
+  prefetchSession(items);   /* מושכים את האודיו ברקע לפני שהוא נדרש */
   TAB='practice'; render();
 }
 
@@ -6846,42 +6847,158 @@ async function fetchCloudVoices(){
 const TIER_HE = {5:'Studio · הטבעי ביותר',4:'Chirp · טבעי מאוד',3:'Neural2 · טבעי',2:'WaveNet · טוב',1:'Standard · בסיסי'};
 
 /* ---------- סינתזה ---------- */
-const MEM_CLIPS={};
+/* ============================================================
+   השהיית הדיבור — שלוש שכבות
+   ------------------------------------------------------------
+   1. CLIP_URL — כתובת Blob מוכנה לנגינה. data URL מפוענח מחדש בכל
+      השמעה; Blob מפוענח פעם אחת ואז הנגינה מיידית.
+   2. PENDING — בקשה אחת בלבד לכל טקסט, גם אם ביקשו אותו במקביל
+      מהפריפטץ' ומהתרגיל עצמו.
+   3. מרוץ מול קול המכשיר — אם הענן לא הספיק, מדברים מיד בקול
+      המקומי לאותה השמעה בלבד. אף פעם אין שקט.
+   ============================================================ */
+const MEM_CLIPS={};      /* key -> base64 */
+const CLIP_URL={};       /* key -> Blob URL מוכן לנגינה */
+const PENDING={};        /* key -> Promise, מונע בקשה כפולה */
 let ttsFails=0;
+
+const clipKey = text => TTS.voice+'|'+text;
+
+function b64ToURL(b64){
+  const bin=atob(b64), n=bin.length, arr=new Uint8Array(n);
+  for(let i=0;i<n;i++) arr[i]=bin.charCodeAt(i);
+  return URL.createObjectURL(new Blob([arr],{type:'audio/mpeg'}));
+}
 
 async function ttsSynth(text, voice){
   const key=voice+'|'+text;
-  if(MEM_CLIPS[key]) return MEM_CLIPS[key];
-  const cached=await clipGet(key);
-  if(cached){ MEM_CLIPS[key]=cached; return cached; }
+  if(CLIP_URL[key]) return CLIP_URL[key];
+  if(PENDING[key])  return PENDING[key];
 
-  const url=`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(FIREBASE_KEY)}`;
-  const body={
-    input:{text:String(text)},
-    voice:{languageCode:'en-US', name:voice},
-    audioConfig:{audioEncoding:'MP3', speakingRate: TTS.rate || 1.0}
-  };
-  const j=await ttsRequest(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!j.audioContent) throw new Error(T('השרת החזיר תשובה בלי אודיו'));
-  const dataURL='data:audio/mp3;base64,'+j.audioContent;
-  MEM_CLIPS[key]=dataURL;
-  clipSet(key,dataURL);   /* לא ממתינים — הכתיבה למטמון לא צריכה לעכב נגינה */
-  return dataURL;
+  PENDING[key]=(async()=>{
+    let b64=MEM_CLIPS[key];
+    if(!b64){
+      const cached=await clipGet(key);
+      /* גרסאות קודמות שמרו data URL שלם — תומכים בשתי הצורות */
+      if(cached) b64 = cached.startsWith('data:') ? cached.split(',')[1] : cached;
+    }
+    if(!b64){
+      const url=`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(FIREBASE_KEY)}`;
+      const body={
+        input:{text:String(text)},
+        voice:{languageCode:'en-US', name:voice},
+        audioConfig:{audioEncoding:'MP3', speakingRate: TTS.rate || 1.0}
+      };
+      const j=await ttsRequest(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      if(!j.audioContent) throw new Error(T('השרת החזיר תשובה בלי אודיו'));
+      b64=j.audioContent;
+      clipSet(key,b64);   /* לא ממתינים — הכתיבה למטמון לא צריכה לעכב נגינה */
+    }
+    MEM_CLIPS[key]=b64;
+    const u=b64ToURL(b64);
+    CLIP_URL[key]=u;
+    return u;
+  })();
+
+  try{ return await PENDING[key]; }
+  finally{ delete PENDING[key]; }
 }
 
 let curAudio=null;
 function stopAudio(){ if(curAudio){ try{ curAudio.pause(); }catch(e){} curAudio=null; } }
 
-async function sayCloud(text, rate){
-  const clip=await ttsSynth(text, TTS.voice);
+function playClip(url, rate){
   stopAudio();
-  const a=new Audio(clip);
+  const a=new Audio(url);
   /* rate כאן הוא כיוונון עדין מעל הקצב שנקבע בסינתזה — כך שהאטה
      בתרגיל האזנה עדיין עובדת בלי לבקש קליפ חדש מהשרת.          */
   a.playbackRate = Math.max(.5, Math.min(2, (rate||1)/( .95 )));
   curAudio=a;
-  await a.play();
-  return true;
+  return a.play().then(()=>true);
+}
+
+/* כמה זמן מחכים לענן לפני שנופלים לקול המכשיר. 250ms הוא בערך הסף
+   שבו אוזן מתחילה לחוש עיכוב; מעבר לזה עדיף קול פחות טוב מיד.     */
+const TTS_WAIT_MS = 250;
+
+async function sayCloud(text, rate){
+  const key=clipKey(text);
+  if(CLIP_URL[key]) return playClip(CLIP_URL[key], rate);   /* המסלול המהיר */
+
+  let handled=false;
+  const timer=setTimeout(()=>{
+    if(handled) return;
+    handled=true;
+    sayDevice(text, rate);      /* הבקשה לענן ממשיכה ברקע ונשמרת למטמון */
+  }, TTS_WAIT_MS);
+
+  try{
+    const url=await ttsSynth(text, TTS.voice);
+    clearTimeout(timer);
+    if(handled) return true;    /* קול המכשיר כבר דיבר — לא משמיעים פעמיים */
+    handled=true;
+    return playClip(url, rate);
+  }catch(e){
+    clearTimeout(timer);
+    if(handled) return true;
+    throw e;                    /* say() ייפול לקול המכשיר */
+  }
+}
+
+/* ---------- פריפטץ' של הסשן ----------
+   ברגע שהסשן נבנה ידועים כל הטקסטים שיושמעו בו. מושכים אותם ברקע
+   בזמן שהלומד עונה על השאלה הראשונה, שלושה במקביל. עד הפריט הרביעי
+   הכול כבר במטמון והנגינה מיידית.                                  */
+function speechTexts(it){
+  const d=it.d;
+  switch(it.t){
+    case 'letter':        return [d.u+'. '+d.ex, d.ex];
+    case 'letter-hear':
+    case 'letter-case':
+    case 'letter-name':   return [d.u];
+    case 'phonics':       return [d.w];
+    case 'w-recog':
+    case 'w-recall':
+    case 'w-listen':
+    case 'w-speak':       return [d.en];
+    case 'build':
+    case 'dictate':       return [d.en];
+    case 'cloze':         return [d.s.replace('___', d.a)];
+    case 'proof':         return [d.s.replace(d.bad, d.fix==='--'?'':d.fix).replace(/\s+/g,' ').trim()];
+    case 'rule':          return d.ex.map(e=>e.en);
+    case 'talk':          return [d.q];
+    case 'mp-hear':       return [d.a, d.b, d.a+' … '+d.b];
+    case 'mp-say':        return [d.a, d.b];
+    case 'contract':      return [d.full, d.short];
+    case 'spoken':        return [d.ex];
+    case 'irr-past':
+    case 'irr-pp':        return [`${d.base}, ${d.past}, ${d.pp}`];
+    case 'conjug':        return [d.subj+' '+d.ans];
+    default:              return [];
+  }
+}
+
+function prefetchSession(items){
+  if(typeof ttsReady!=='function' || !ttsReady()) return;
+  const seen=new Set(), queue=[];
+  items.forEach(it=>{
+    let list=[];
+    try{ list=speechTexts(it)||[]; }catch(e){}
+    list.forEach(t=>{
+      if(!t || seen.has(t)) return;
+      seen.add(t);
+      if(!CLIP_URL[clipKey(t)]) queue.push(t);
+    });
+  });
+  let i=0;
+  const worker=async()=>{
+    while(i<queue.length){
+      const t=queue[i++];
+      try{ await ttsSynth(t, TTS.voice); }
+      catch(e){ return; }   /* נכשל — כנראה אין רשת; מפסיקים בשקט */
+    }
+  };
+  for(let k=0;k<3;k++) worker();
 }
 
 /* ---------- שחרור אודיו ב-iOS ----------
@@ -7046,6 +7163,7 @@ async function ttsSheet(){
     sh.querySelector('#clr').onclick=async()=>{
       await clipClear();
       for(const k in MEM_CLIPS) delete MEM_CLIPS[k];
+      for(const k in CLIP_URL){ try{ URL.revokeObjectURL(CLIP_URL[k]); }catch(e){} delete CLIP_URL[k]; }
       closeSheet(); toast(T('המטמון נוקה'));
     };
   });
