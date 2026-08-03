@@ -5385,9 +5385,33 @@ function answer(it, correct, target, extraHtml){
   $('#q').lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function next(){ S.i++; render(); }
-addEventListener('keydown',e=>{
-  if(e.key!=='Enter'||!S||TAB!=='practice') return;
-  if(S.answered){ e.preventDefault(); next(); }
+/* ---------- קיצורי מקלדת (מחשב) ----------
+   Enter = בדיקה, Shift = הבא.
+   שתי הגנות חשובות:
+   • בשדה טקסט, ה-input כבר מטפל ב-Enter בעצמו — לא לוחצים פעמיים.
+   • Shift נתפס רק אחרי שנענתה השאלה. בזמן הקלדה הוא משמש לאות
+     גדולה, וכל "I" היה מדלג לשאלה הבאה.                        */
+addEventListener('keydown', e=>{
+  if(TAB!=='practice' || !S || S.finished) return;
+  const inField = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target&&e.target.tagName)||'');
+
+  if(e.key==='Enter'){
+    if(S.answered){ e.preventDefault(); return next(); }
+    if(inField) return;                    /* onkeydown של השדה עושה את העבודה */
+    const chk = document.querySelector('#chk');
+    if(chk){ e.preventDefault(); return chk.click(); }
+    /* בסרגל הפעולה יש גם 'ידעתי' ו'תרגלתי' — Enter לא אמור לסמן
+       שידעת, ולכן רק פעולה שהיא באמת בדיקה מופעלת מהמקלדת.      */
+    if(S.primary && S.primary.label===T('בדיקה')){ e.preventDefault(); S.primary.fn(); }
+    return;
+  }
+
+  if(e.key==='Shift'){
+    if(e.repeat || !S.answered) return;
+    e.preventDefault();
+    const nx = document.querySelector('#nx');
+    if(nx) nx.click(); else next();
+  }
 });
 
 /* ---------- סיום ---------- */
