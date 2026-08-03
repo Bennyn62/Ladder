@@ -1106,6 +1106,10 @@ const EN_UI = {
 'ניתוק מהמשפחה':'Leave the family',
 'צריך להזין קוד':'A code is required',
 'לא נמצאו פרופילים בקוד הזה':'No profiles found for that code',
+'המכשיר מחובר למשפחה':'This device is connected to a family',
+'עדיין לא הגיעו פרופילים מהענן. אל תיצרו לומד חדש לפני שתנסו לסנכרן — אחרת ייווצר פרופיל כפול.':'No profiles have arrived from the cloud yet. Don\u2019t create a new learner before trying to sync \u2014 that is what creates a duplicate profile.',
+'החלפת קוד משפחה':'Change family code',
+'יצירת לומד חדש':'Create a new learner',
 'הקוד לא תואם לאף משפחה, או שהמכשיר הראשון עוד לא סונכרן. פתחו בו את האפליקציה, הריצו "סנכרון עכשיו", ונסו שוב.':'The code doesn\u2019t match any family, or the first device hasn\u2019t synced yet. Open the app there, run \u201cSync now\u201d, and try again.',
 'מתחבר…':'Connecting\u2026',
 'יוצר משפחה חדשה…':'Creating a new family\u2026',
@@ -5080,9 +5084,24 @@ function vWelcome(){
       <div class="step"><span class="k">04</span><div><b>${T('עשר דקות ביום מנצחות שעה בשבוע')}</b>
         <span>${T('המערכת מציפה כל פריט בדיוק לפני שהוא נשכח. רצף יומי שווה יותר מכל מרתון.')}</span></div></div>
     </div>
+    ${cloudReady()?`
+    <div class="card" style="margin-top:26px;border-color:var(--brand)">
+      <b>${T('המכשיר מחובר למשפחה')}</b>
+      <div class="muted" style="margin-top:4px"><span class="en">${esc(CFG.family)}</span></div>
+      <div class="sub" style="margin-top:6px">${T('עדיין לא הגיעו פרופילים מהענן. אל תיצרו לומד חדש לפני שתנסו לסנכרן — אחרת ייווצר פרופיל כפול.')}</div>
+      <button class="btn sm" style="width:100%;margin-top:11px" id="wsync">${T('סנכרון עכשיו')}</button>
+      <button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="cloudSheet()">${T('החלפת קוד משפחה')}</button>
+    </div>
+    <button class="btn ghost" style="margin-top:12px" onclick="addUser()">${T('יצירת לומד חדש')}</button>`
+    :`
     <button class="btn" style="margin-top:28px" onclick="addUser()">${T('יצירת הלומד הראשון')}</button>
-    <button class="btn ghost" style="margin-top:9px" onclick="cloudSheet()">${T('כבר יש קוד משפחה? התחברות')}</button>
+    <button class="btn ghost" style="margin-top:9px" onclick="cloudSheet()">${T('כבר יש קוד משפחה? התחברות')}</button>`}
   </div>`;
+  if($('#wsync')) $('#wsync').onclick=async ()=>{
+    toast(T('מתחבר…'));
+    await cloudSync();
+    render();   /* אם הגיעו פרופילים — הרשימה תופיע במקום מסך הפתיחה */
+  };
 }
 
 /* ---------- בחירת לומד ---------- */
@@ -7467,7 +7486,13 @@ applyLang();
 applyTheme();
 render();
 pinFixedBars();
-if(CFG.auto && cloudReady()) cloudSync(true);
+if(CFG.auto && cloudReady()){
+  const before = USERS.length;
+  cloudSync(true).then(()=>{
+    /* לא מציירים מחדש באמצע תרגול — זה היה מאפס את המסך תחת היד */
+    if(!S && USERS.length!==before) render();
+  });
+}
 
 /* קישור הצטרפות שנפתח מסריקת QR: ?join=קוד-המשפחה.
    מנקים את הפרמטר מהכתובת מיד, כדי שלא יישאר בהיסטוריה/סימניה
