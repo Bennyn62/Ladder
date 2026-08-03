@@ -1105,6 +1105,8 @@ const EN_UI = {
 'אחרי כל תרגול ובכל פתיחה של האפליקציה.':'After every session and every time the app opens.',
 'ניתוק מהמשפחה':'Leave the family',
 'צריך להזין קוד':'A code is required',
+'לא נמצאו פרופילים בקוד הזה':'No profiles found for that code',
+'הקוד לא תואם לאף משפחה, או שהמכשיר הראשון עוד לא סונכרן. פתחו בו את האפליקציה, הריצו "סנכרון עכשיו", ונסו שוב.':'The code doesn\u2019t match any family, or the first device hasn\u2019t synced yet. Open the app there, run \u201cSync now\u201d, and try again.',
 'מתחבר…':'Connecting\u2026',
 'יוצר משפחה חדשה…':'Creating a new family\u2026',
 'לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.':'Couldn\u2019t connect. Check the code and your internet connection.',
@@ -6446,6 +6448,13 @@ const cloudConfigured = ()=> !!(FIREBASE_PROJECT && FIREBASE_KEY);
 if(!CFG.hashes) CFG.hashes={};
 if(!CFG.tombs)  CFG.tombs=[];
 
+/* קוד המשפחה הוא חלק מנתיב המסמך ב-Firestore, והנתיב רגיש לרישיות.
+   iOS מוסיף אות גדולה בתחילת שדה טקסט, ומקלידים נוטים להוסיף רווח —
+   ובלי נרמול, קוד נכון "כמעט" פותח משפחה ריקה חדשה במקום להצטרף.  */
+function normFamily(s){
+  return (s||'').toLowerCase().replace(/[\s\u200e\u200f\u2010-\u2015]/g, m => /[\u2010-\u2015]/.test(m) ? '-' : '');
+}
+
 const newFamilyCode = ()=>{
   const a='abcdefghjkmnpqrstuvwxyz23456789';
   const g=n=>[...Array(n)].map(()=>a[Math.floor(Math.random()*a.length)]).join('');
@@ -6550,11 +6559,13 @@ async function cloudList(){
 
 /* ---------- סנכרון מלא ---------- */
 let SYNCING=false;
+let LAST_PULL=0;   /* מספר הפרופילים שנמצאו בענן בסנכרון האחרון */
 async function cloudSync(silent){
   if(!cloudReady() || SYNCING) return false;
   SYNCING=true;
   try{
     const {users:remote, tombs:remoteTombs} = await cloudList();
+    LAST_PULL = remote.length;
     /* קונפיג שנשמר לפני שהמצבות נוספו לא יכיל את המערך — משלימים */
     if(!Array.isArray(CFG.tombs)) CFG.tombs=[];
     /* מאחדים מצבות: מה שנמחק כאן ומה שנמחק במכשיר אחר */
@@ -6634,8 +6645,9 @@ function joinSheet(prefill){
       :T('הזינו את קוד המשפחה שקיבלתם, או סרקו את קוד ה‑QR שלו במצלמת המכשיר.')}</p>
     <div class="card">
       <div class="field" style="margin-bottom:10px">
-        <input id="fm" class="en" style="text-align:center;font-size:1.1rem;letter-spacing:.03em" value="${esc(prefill||CFG.family)}" placeholder="xxxx-xxxx-xxxx-xxxx"></div>
+        <input id="fm" class="en" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="text" style="text-align:center;font-size:1.1rem;letter-spacing:.03em" value="${esc(prefill||CFG.family)}" placeholder="xxxx-xxxx-xxxx-xxxx"></div>
       <button class="btn" id="join">${scanned?T('התחברות'):cloudReady()?T('עדכון'):T('התחברות')}</button>
+      <p class="muted hide" id="joinerr" style="margin-top:9px">${T('הקוד לא תואם לאף משפחה, או שהמכשיר הראשון עוד לא סונכרן. פתחו בו את האפליקציה, הריצו "סנכרון עכשיו", ונסו שוב.')}</p>
     </div>
     ${cloudReady() && !scanned?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="showJoinQR()">${T('הצגת קוד QR לשיתוף עם תלמיד')}</button>
       <div class="ctrl" style="margin-top:6px"><div class="tx"><b>${T('סנכרון אוטומטי')}</b><span>${T('אחרי כל תרגול ובכל פתיחה של האפליקציה.')}</span></div>
@@ -6645,11 +6657,21 @@ function joinSheet(prefill){
     ${!scanned?`<p class="muted" style="margin-top:16px">${T('מקימים משפחה בפעם הראשונה?')}
       <button class="en" style="text-decoration:underline;color:var(--brand);font-weight:700" id="newfam">${T('יצירת קוד חדש')}</button></p>`:''}`, sh=>{
     const doJoin=async()=>{
-      const v=sh.querySelector('#fm').value.trim();
+      const v=normFamily(sh.querySelector('#fm').value);
       if(!v) return toast(T('צריך להזין קוד'));
+      const prev=CFG.family;
       CFG.project=FIREBASE_PROJECT; CFG.key=FIREBASE_KEY; CFG.family=v; saveCfg();
       toast(T('מתחבר…'));
-      if(await cloudSync()){ closeSheet(); render(); } else toast(T('לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.'));
+      if(!await cloudSync()) return toast(T('לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.'));
+      /* קוד שגוי לא נכשל — הוא פשוט פותח משפחה ריקה. בלי הבדיקה הזו
+         המשתמש היה יוצר פרופיל חדש ומקבל כפילות במקום להצטרף.      */
+      if(!USERS.length && LAST_PULL===0){
+        CFG.family=prev; saveCfg();
+        sh.querySelector('#fm').value=v;
+        sh.querySelector('#joinerr').classList.remove('hide');
+        return toast(T('לא נמצאו פרופילים בקוד הזה'));
+      }
+      closeSheet(); render();
     };
     sh.querySelector('#join').onclick=doJoin;
     /* יצירת קוד חדש = תביעת בעלות על משפחה חדשה בענן. בלי שער כאן, כל
@@ -7428,7 +7450,7 @@ if(CFG.auto && cloudReady()) cloudSync(true);
   const p=new URLSearchParams(location.search).get('join');
   if(!p || !cloudConfigured()) return;
   history.replaceState(null,'',location.pathname);
-  setTimeout(()=>joinSheet(p.trim()), 250);
+  setTimeout(()=>joinSheet(normFamily(p)), 250);
 })();
 /* רשימת הקולות מגיעה מהדפדפן באיחור — מרעננים את מסך ההגדרות כשהיא נטענת */
 if(window.speechSynthesis){
