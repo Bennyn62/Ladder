@@ -5,19 +5,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" id="themeColorMeta" content="#eceeed">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>BeEnglish · לימוד אנגלית למשפחה</title>
-<meta name="apple-mobile-web-app-title" content="BeEnglish">
-<meta name="application-name" content="BeEnglish">
-<link rel="manifest" href="./manifest.webmanifest">
-<link rel="apple-touch-icon" href="./beenglish-180.png">
-<link rel="icon" type="image/svg+xml" href="./beenglish-icon.svg">
-<link rel="icon" type="image/png" sizes="192x192" href="./beenglish-192.png">
+<title>Ladder · לימוד אנגלית למשפחה</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   BeEnglish — מערכת עיצוב
+   Ladder — מערכת עיצוב
    הרעיון: מכשיר מדידה. האפליקציה מודדת את הפער בין "לדעת" ל"לשלוף",
    ולכן הנתונים מוצגים בדיוק של ציוד בדיקה — והתוכן עצמו גדול וחם.
    שתי מערכות כתב, שני כיווני קריאה, שלוש משפחות גופנים.
@@ -105,7 +99,7 @@ input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
   font-family:var(--en);font-weight:800;letter-spacing:-.045em;font-size:21px;
   direction:ltr;font-variation-settings:'opsz' 40;line-height:1
 }
-.wordmark i{font-style:normal;color:var(--live)}
+.wordmark i{font-style:normal;color:var(--brand)}
 .chip{
   display:inline-flex;align-items:center;gap:5px;background:var(--card);
   border:1px solid var(--line);border-radius:999px;padding:5px 10px;
@@ -452,8 +446,8 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 
 /* ---------- מסך פתיחה ---------- */
 .welcome{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 24px calc(env(safe-area-inset-bottom) + 32px);max-width:var(--shell);margin:0 auto}
-.welcome .mark{font-family:var(--en);font-weight:800;font-size:clamp(2.3rem,12.5vw,3.4rem);letter-spacing:-.05em;direction:ltr;line-height:1;font-variation-settings:'opsz' 96}
-.welcome .mark i{font-style:normal;color:var(--live)}
+.welcome .mark{font-family:var(--en);font-weight:800;font-size:3.4rem;letter-spacing:-.05em;direction:ltr;line-height:1;font-variation-settings:'opsz' 96}
+.welcome .mark i{font-style:normal;color:var(--brand)}
 .welcome .tagline{font-size:1.05rem;color:var(--ink2);margin:14px 0 0;line-height:1.6;max-width:32ch}
 .steps{margin:30px 0 0;display:grid}
 .step{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--line)}
@@ -568,15 +562,17 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
   :root{--shell:840px}
 }
 
-/* ---------- ממשק באנגלית ---------- */
-html[lang="en"] body{font-family:var(--en)}
-html[lang="en"] .readout .tag,
-html[lang="en"] .keypad button.act{font-family:var(--en)}
-html[lang="en"] .slot:empty::after{content:'Arrange the words here';direction:ltr;font-family:var(--en)}
-/* תוכן עברי בתוך ממשק אנגלי — תרגומי מילים ומשפטי דוגמה */
-.hetext{direction:rtl;unicode-bidi:isolate;font-family:var(--he)}
-html[lang="en"] .prompt .big.he,
-html[lang="en"] .prompt .med.he{font-family:var(--he);direction:rtl}
+/* תוכן עברי בתוך ממשק אנגלי: מבודדים כיוון כדי שפיסוק וסוגריים
+   לא יקפצו לצד הלא נכון. תרגומי המילים נשארים עבריים תמיד, ולכן
+   הם מופיעים גם כשהממשק LTR.                                     */
+[dir="ltr"] .hetext,
+[dir="ltr"] .h,
+[dir="ltr"] .hint{ direction:rtl; unicode-bidi:isolate; display:inline-block }
+[dir="ltr"] .prompt .big.he,
+[dir="ltr"] .prompt .med.he{ direction:rtl; unicode-bidi:isolate }
+[dir="ltr"] .ruleblk{ direction:rtl; unicode-bidi:isolate; text-align:right }
+[dir="ltr"] .ruleblk .ex{ direction:ltr; text-align:left }
+[dir="ltr"] .mnem{ direction:rtl; unicode-bidi:isolate; text-align:right }
 
 @media (prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
 :focus-visible{outline:2.5px solid var(--brand);outline-offset:2px;border-radius:4px}
@@ -591,212 +587,132 @@ html[lang="en"] .prompt .med.he{font-family:var(--he);direction:rtl}
 <div class="actionbar hide" id="actionbar"></div>
 <script>
 /* ============================================================
-   שפת ממשק — עברית / אנגלית
+   מילון הממשק — עברית → אנגלית
    ------------------------------------------------------------
-   המפתח במילון הוא המחרוזת העברית עצמה: תרגום חסר נופל אוטומטית
-   לעברית במקום להציג מפתח שבור, ואפשר לעטוף קוד בהדרגה.
+   המפתח הוא המחרוזת העברית כפי שהיא בקוד. מחרוזת שאין לה ערך
+   כאן פשוט מוצגת בעברית — כיסוי חלקי לעולם לא שובר מסך.
 
-   רק טקסט *ממשק* עובר כאן. התוכן הלימודי — תרגומי מילים, משפטי
-   דוגמה, הסברי דקדוק, טיפי הגייה — לעולם לא מתורגם, כי הוא הנלמד.
-
-   חדש בגרסה הזו:
-     • T() מקבל פרמטרים: T('היעד היומי · {0}/{1}', done, goal)
-     • רישום מפתחות חסרים: בקונסולה T.missing() מחזיר כל מחרוזת
-       עברית שעברה ב-T() באנגלית ולא נמצאה במילון. זו הדרך המהירה
-       למצוא גם טעויות הקלדה במפתח וגם קריאות שטרם נעטפו.
-     • השפה נשמרת גם ברמת המכשיר, כדי שמסך הפתיחה ומסך הנעילה —
-       שרצים לפני שיש משתמש פעיל — יישארו בשפה שנבחרה.
-   ============================================================ */
-
-const K_LANG = 'ladder.lang';
-let UI_LANG = 'he';
-const T_MISS = {};
-
-function T(s, ...a){
-  let v;
-  if(UI_LANG === 'en'){
-    v = EN_UI[s];
-    if(v === undefined){ T_MISS[s] = (T_MISS[s]||0)+1; v = s; }
-  } else v = s;
-  return a.length ? String(v).replace(/\{(\d+)\}/g, (m,i)=> a[i] ?? '') : v;
-}
-T.missing = ()=> Object.keys(T_MISS).sort();
-
-/* החלת השפה: כיוון, שפה, ומחלקה ל-CSS ייעודי.
-   כל ה-CSS כתוב בתכונות לוגיות, ולכן ההיפוך עובד בלי כללים כפולים. */
-function applyLang(){
-  const u = (typeof me === 'function') ? me() : null;
-  UI_LANG = (u && u.settings && u.settings.lang)
-    ? u.settings.lang
-    : (localStorage.getItem(K_LANG) || 'he');
-  try{ localStorage.setItem(K_LANG, UI_LANG); }catch(e){}
-  const html = document.documentElement;
-  html.setAttribute('lang', UI_LANG === 'en' ? 'en' : 'he');
-  html.setAttribute('dir',  UI_LANG === 'en' ? 'ltr' : 'rtl');
-  html.dataset.uilang = UI_LANG;
-}
-
-/* תוכן עברי בתוך ממשק אנגלי — מבודד כיוון כדי שפיסוק לא יקפוץ */
-const heSpan = s => `<span class="hetext">${esc(s)}</span>`;
-
-/* ============================================================
-   EN_UI — המילון
+   לא מתורגם בכוונה: תרגומי מילים, משפטי דוגמה, הסברי דקדוק
+   ואסוציאציות. זה חומר הלימוד — הוא נשאר עברי בשתי השפות.
    ============================================================ */
 const EN_UI = {
 
-/* ---------- מעטפת וניווט ---------- */
+/* --- ניווט ומסכים ראשיים --- */
 'בית':'Home',
 'תרגול':'Practice',
 'התקדמות':'Progress',
 'משפחה':'Family',
-'רמה':'Level',
-'רמה ':'Level ',
+'המשפחה':'Family',
+'המשפחה שלי':'My family',
+'הסולם':'The ladder',
+'הגדרות':'Settings',
 'יציאה':'Exit',
-'סגירה':'Close',
-'שמירה':'Save',
+'הבא':'Next',
+'בדיקה':'Check',
+'שליחה':'Send',
 'ביטול':'Cancel',
 'מחיקה':'Delete',
+'החלפה':'Switch',
 'הבנתי':'Got it',
-'לא עכשיו':'Not now',
-'פתיחה':'Open',
+'הבנתי, מתחילים':'Got it — let\'s start',
+'התחלה':'Start',
+'חזרה':'Review',
+'חדש':'New',
+'סגירה':'Close',
+'שמירה':'Save',
+'רמה':'Level',
+'מילים':'words',
 'פריטים':'items',
-'מתוך':'of',
-'נשמר':'Saved',
-'נמחק':'Deleted',
-'אופס':'Reset',
-'סונכרן':'Synced',
-'—':'—',
+'ימים':'days',
+'רצף':'streak',
+'היום':'today',
+'דיוק':'Accuracy',
+'זמן שליפה':'Recall time',
+'מילים בשליטה':'Words mastered',
 
-/* ---------- מסך פתיחה ---------- */
-'אנגלית מאפס עד שטף, בקצב של כל אחד במשפחה בנפרד.':'English from zero to fluency, at each family member\u2019s own pace.',
-'כל אחד והסולם שלו':'Everyone climbs their own ladder',
+/* --- מסך פתיחה --- */
+'אנגלית מאפס עד שטף, בקצב של כל אחד במשפחה בנפרד.':'English from zero to fluency, at each family member\'s own pace.',
+'כל אחד והסולם שלו':'Everyone has their own ladder',
 'תשע רמות, מהאותיות ועד שיחה חופשית. כל לומד מתקדם לפי הקצב שלו, עם התקדמות נפרדת.':'Ten levels, from letters to free conversation. Each learner moves at their own pace, with separate progress.',
-'לא רק לדעת — לשלוף':'Not just knowing \u2014 retrieving',
+'לא רק לדעת — לשלוף':'Not just knowing — recalling',
 'כל תשובה נמדדת בשניות. תשובה נכונה אבל איטית תחזור מוקדם יותר, עד שהיא יוצאת בלי מחשבה.':'Every answer is timed. A correct but slow answer comes back sooner, until it comes out without thinking.',
-'לדבר, לא רק לסמן':'Speak, don\u2019t just tap',
-'הקלטה, הכתבה, בניית משפטים והגייה. אנגלית נבנית בפה, לא רק בעין.':'Recording, dictation, sentence building and pronunciation. English is built in the mouth, not only in the eye.',
+'לדבר, לא רק לסמן':'Speak, don\'t just tap',
+'הקלטה, הכתבה, בניית משפטים והגייה. אנגלית נבנית בפה, לא רק בעין.':'Recording, dictation, sentence building and pronunciation. English is built in the mouth, not only the eye.',
 'עשר דקות ביום מנצחות שעה בשבוע':'Ten minutes a day beats an hour a week',
-'המערכת מציפה כל פריט בדיוק לפני שהוא נשכח. רצף יומי שווה יותר מכל מרתון.':'The system resurfaces each item right before it would be forgotten. A daily streak is worth more than any marathon.',
+'המערכת מציפה כל פריט בדיוק לפני שהוא נשכח. רצף יומי שווה יותר מכל מרתון.':'The system resurfaces each item just before it fades. A daily streak beats any marathon.',
 'יצירת הלומד הראשון':'Create the first learner',
 'כבר יש קוד משפחה? התחברות':'Already have a family code? Sign in',
 
-/* ---------- בחירת לומד ופרופיל ---------- */
-'מי לומד עכשיו?':'Who is learning now?',
+/* --- בחירת לומד ויצירה --- */
+'מי לומד עכשיו?':'Who is learning?',
 'לכל אחד התקדמות, רמה ורצף משלו.':'Everyone has their own progress, level and streak.',
-'הוספת לומד':'Add a learner',
-'+ הוספת לומד':'+ Add a learner',
-'הורה או מורה':'Parent or teacher',
-'לומד':'Learner',
+'הוספת לומד':'Add learner',
 'לומד חדש':'New learner',
+'לומד':'Learner',
+'הורה או מורה':'Parent or teacher',
 'פרופיל הורה או מורה':'Parent or teacher profile',
 'שם':'Name',
-'למשל: אבא':'e.g. Dad',
-'למשל: יעל':'e.g. Maya',
-'תפקיד':'Role',
 'אווטאר':'Avatar',
-'גודל טקסט':'Text size',
-'רגיל':'Normal',
-'גדול':'Large',
-'ענק':'Huge',
+'תפקיד':'Role',
 'רמת פתיחה':'Starting level',
-'לא בטוחים? התחילו מ‑0. אפשר לשנות בכל רגע.':'Not sure? Start at 0. You can change it any time.',
-'קוד כניסה':'Access code',
-'ארבע ספרות. נדרש בכניסה לפרופיל ולפתיחת בקרת ההורים.':'Four digits. Required to open the profile and to unlock parental controls.',
 'יצירה':'Create',
 'צריך שם':'A name is required',
-'מעבר ללומד הזה':'Switch to this learner',
-'בקרה והרשאות':'Controls and permissions',
-'מחיקת הלומד':'Delete learner',
+'לא בטוחים? התחילו מ‑0. אפשר לשנות בכל רגע.':'Not sure? Start at 0. You can change it any time.',
+'אפשר לשנות בכל רגע.':'You can change it any time.',
 'החלפת לומד':'Switch learner',
-'פעיל':'active',
-'קוד':'code',
-'חולשות':'Weak spots',
-'רצף ימים':'Day streak',
+'מחיקת הלומד':'Delete learner',
+'בקרה והרשאות':'Controls and permissions',
+'מעבר ללומד הזה':'Switch to this learner',
 
-/* ---------- בית ---------- */
-'הכול מעודכן — היום לומדים חדש':'All caught up \u2014 today is for new material',
+/* --- מסך הבית --- */
+'תרגול היום':'Practice today',
+'חיזוק חולשות':'Target weak spots',
+'אוזן והגייה':'Ear and pronunciation',
+'טבלת חמשת הזמנים':'The five tenses table',
+'האלף-בית והאסוציאציות':'Alphabet and associations',
+'הכול מעודכן — היום לומדים חדש':'All caught up — new material today',
+'הכול מעודכן':'All caught up',
 'פריטים ממתינים לחזרה':'items due for review',
 'פריטים לחזרה, ואחר כך חומר חדש':'items to review, then new material',
 'היעד היומי':'Daily goal',
 'היעד היומי הושלם':'Daily goal complete',
-'מגבלה: ':'Limit: ',
-'משימה':'Task',
-'משימה פעילה':'Active task',
-'המשך המשימה':'Continue the task',
-'תרגול היום · 14 פריטים':'Today\u2019s practice \u00b7 14 items',
-'חיזוק חולשות':'Strengthen weak spots',
-'אוזן והגייה':'Ear and pronunciation',
-'טבלת חמשת הזמנים':'The five core tenses',
-'מילים בשליטה':'Words mastered',
-'דיוק':'Accuracy',
-'זמן שליפה':'Retrieval time',
-'הסולם':'The ladder',
+'מתוך':'of',
+'מגבלה':'limit',
+'משימה':'Assignment',
+'המשך המשימה':'Continue assignment',
+'נפתח ב':'Unlocks at',
 
-/* ---------- רמות ---------- */
-'האותיות':'The letters',
-'שמות האותיות, צורה גדולה וקטנה':'Letter names, upper and lower case',
-'הצלילים':'The sounds',
-'פונטיקה — לחבר אותיות למילה':'Phonics \u2014 blending letters into a word',
-'מילים ראשונות':'First words',
-'מילות הליבה + הצלילים שאין בעברית':'Core words + the sounds Hebrew doesn\u2019t have',
-'משפט ראשון':'First sentence',
-'to be, הווה פשוט, סדר המילים':'to be, present simple, word order',
-'שאלות ושלילה':'Questions and negation',
-'שאלות, שלילה, הווה ממושך':'Questions, negation, present continuous',
-'עבר ועתיד':'Past and future',
-'זמנים בסיסיים, עבר מתמשך ופעלים חריגים':'Basic tenses, past continuous and irregular verbs',
-'קישור והרחבה':'Linking and expanding',
-'מילות יחס, קישור, השוואה':'Prepositions, connectors, comparison',
-'השלמת ההווה':'Completing the present',
-'Present Perfect, מודאלים, תנאי ראשון':'Present Perfect, modals, first conditional',
-'מבנים מתקדמים':'Advanced structures',
-'תנאי שני, סביל, דיבור עקיף':'Second conditional, passive, reported speech',
-'שטף ילידי':'Native fluency',
-'Phrasal verbs, ניבים, דיבור מהיר ושיחה':'Phrasal verbs, idioms, fast speech and conversation',
-'טרום-קריאה':'Pre-reading',
-'תרגול הרמה':'Practice this level',
-'דקדוק בלבד':'Grammar only',
-'האלף-בית והאסוציאציות':'The alphabet and its associations',
-'טבלת הפעלים החריגים':'Irregular verb table',
-'חוקים':'Rules',
-'מילים · ':'Words \u00b7 ',
-'הערכה מקורבת לפי תוכן הרמה — שימושית לכיוון כללי בבחירת ספרי קריאה, לא תחליף למבחן מיון רשמי.':'An approximate estimate based on the level\u2019s content \u2014 useful for picking graded readers, not a substitute for a real placement test.',
-'שלב טרום-קריאה — אין לו מקבילה בסולם CEFR, שמניח קריאה בסיסית.':'A pre-reading stage \u2014 it has no CEFR equivalent, since CEFR assumes basic reading.',
-'האלף-בית':'The alphabet',
-'לכל אות יש אסוציאציית צורה — משהו מוכר שהצורה מזכירה. זה מה שהופך סימן מופשט לתמונה שנדבקת.':'Every letter has a shape association \u2014 something familiar the shape resembles. That is what turns an abstract sign into a picture that sticks.',
-'תרגול אותיות':'Practice letters',
-
-/* ---------- מצבי תרגול ---------- */
+/* --- מצבי תרגול --- */
+'כל מצב מאמן שריר אחר.':'Each mode trains a different muscle.',
+'חלק מהמצבים נעולים על ידי ההורה.':'Some modes are locked by the parent.',
 'תרגול מעורב':'Mixed practice',
-'חזרות שהגיע זמנן יחד עם חומר חדש, בשזירה בין סוגי תרגיל. המצב היעיל ביותר לזיכרון ארוך טווח.':'Due reviews together with new material, interleaved across exercise types. The most effective mode for long-term memory.',
-'רק הפריטים שנכשלת בהם או ששולף אותם לאט מדי.':'Only the items you got wrong or retrieve too slowly.',
-'זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. השריר שחסר לרוב דוברי העברית.':'Minimal pairs like ship/sheep and think/sink, contractions and fast speech. The muscle most Hebrew speakers are missing.',
-'אותיות':'Letters',
-'זיהוי האותיות בלבד — בשמיעה, בהתאמת גדולה־קטנה ובשם. בלי קריאת מילים, מתאים מגיל 4.':'Letter recognition only \u2014 by ear, by case matching and by name. No word reading, suitable from age 4.',
+'חזרות שהגיע זמנן יחד עם חומר חדש, בשזירה בין סוגי תרגיל. המצב היעיל ביותר לזיכרון ארוך טווח.':'Due reviews mixed with new material, interleaved across exercise types. The most effective mode for long-term memory.',
+'רק הפריטים שנכשלת בהם או ששולף אותם לאט מדי.':'Only the items you got wrong or recall too slowly.',
+'זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. השריר שחסר לרוב דוברי העברית.':'Minimal pairs like ship/sheep and think/sink, contractions and fast speech. The muscle most Hebrew speakers lack.',
 'חמשת הזמנים':'The five tenses',
-'הטיית פעלים בחמשת הזמנים שמכסים כמעט את כל האנגלית המדוברת. זה מה שנשבר בדיבור — לא הידיעה, אלא המהירות.':'Conjugating verbs in the five tenses that cover almost all spoken English. This is what breaks down in speech \u2014 not the knowledge, but the speed.',
+'הטיית פעלים בחמשת הזמנים שמכסים כמעט את כל האנגלית המדוברת. זה מה שנשבר בדיבור — לא הידיעה, אלא המהירות.':'Conjugating verbs in the five tenses that cover nearly all spoken English. This is what breaks down in speech — not the knowledge, but the speed.',
 'פעלים חריגים':'Irregular verbs',
 'מאה פעלים בשלוש צורות, מקובצים ל‑12 תבניות הטיה. התבנית היא הקיצור.':'A hundred verbs in three forms, grouped into 12 conjugation patterns. The pattern is the shortcut.',
 'דקדוק ותחביר':'Grammar and syntax',
-'חוקים, השלמת חסר, בניית משפט, הגהה וקיצורים.':'Rules, fill in the blank, sentence building, proofreading and contractions.',
-'אימון שיחה':'Conversation drill',
-'שאלות פתוחות. עונים בקול או בכתב ומשווים לתשובת מודל.':'Open questions. Answer aloud or in writing and compare with a model answer.',
+'חוקים, השלמת חסר, בניית משפט, הגהה וקיצורים.':'Rules, fill-in-the-blank, sentence building, proofreading and contractions.',
+'אימון שיחה':'Conversation practice',
+'שאלות פתוחות. עונים בקול או בכתב ומשווים לתשובת מודל.':'Open questions. Answer by voice or in writing and compare with a model answer.',
 'מרתון':'Marathon',
 'שלושים פריטים ברצף, לתרגול עומק.':'Thirty items in a row, for deep practice.',
-'כל מצב מאמן שריר אחר.':'Each mode trains a different muscle.',
-'חלק מהמצבים נעולים על ידי ההורה.':'Some modes are locked by a parent.',
-'התחלה · ':'Start \u00b7 ',
-'המצב הזה נעול על ידי ההורה':'This mode is locked by a parent',
-'אין פריטים זמינים':'No items available',
-'תרגול פעלים חריגים':'Practice irregular verbs',
-'תרגול הטיות':'Practice conjugation',
+'האלף-בית':'The alphabet',
+'זיהוי האותיות בלבד — בשמיעה, בהתאמת גדולה־קטנה ובשם. בלי קריאת מילים, מתאים מגיל 4.':'Letter recognition only — by ear, by matching upper and lower case, and by name. No word reading; suitable from age 4.',
+'דקדוק בלבד':'Grammar only',
+'תרגול הרמה':'Practice this level',
 'תרגול ממוקד חולשות':'Targeted weak-spot practice',
+'המצב הזה נעול על ידי ההורה':'This mode is locked by the parent',
+'אין פריטים זמינים':'No items available',
 
-/* ---------- סוגי תרגיל (TYPE_HE) ---------- */
+/* --- סוגי תרגיל: שמות --- */
+'אותיות':'Letters',
+'אות ומילה':'Letter and word',
 'זיהוי אות בשמיעה':'Letter by ear',
 'גדולה וקטנה':'Upper and lower case',
 'שם האות':'Letter name',
-'אות ומילה':'Letter and word',
 'פונטיקה':'Phonics',
 'זיהוי מילים':'Word recognition',
 'שליפת מילים':'Word recall',
@@ -812,421 +728,428 @@ const EN_UI = {
 'הגייה מדויקת':'Precise pronunciation',
 'קיצורים':'Contractions',
 'דיבור מהיר':'Fast speech',
-'פועל חריג · עבר':'Irregular verb \u00b7 past',
-'פועל חריג · שלישית':'Irregular verb \u00b7 participle',
 'הטיית זמן':'Tense conjugation',
+'פועל חריג · עבר':'Irregular verb · past',
+'פועל חריג · שלישית':'Irregular verb · participle',
 
-/* ---------- הסברי סוגי תרגיל (TYPE_INFO) ---------- */
-'שומעים שם של אות ובוחרים אותה מבין ארבע. אפשר להקיש על הרמקול ולשמוע שוב, כמה פעמים שצריך.':'You hear a letter name and pick it from four. Tap the speaker to hear it again, as many times as you need.',
-'כל אות באנגלית נראית אחרת בגדולה ובקטנה. כאן מתאימים ביניהן.':'Every English letter looks different in upper and lower case. Here you match them.',
-'רואים אות, ומקישים על הרמקולים עד שמוצאים את זה שנשמע נכון. הקשה ראשונה משמיעה, שנייה בוחרת.':'You see a letter and tap the speakers until you find the right sound. The first tap plays, the second selects.',
-'מוצגת אות באנגלית, גדולה וקטנה. בחרו את המילה שמתחילה בצליל שלה. אפשר להאזין בכל שלב.':'An English letter is shown in upper and lower case. Pick the word that starts with its sound. You can listen at any point.',
-'חיבור צלילים':'Blending sounds',
-'המילה מפורקת לצלילים. חברו אותם בראש ובחרו איזו מילה יוצאת.':'The word is broken into sounds. Blend them in your head and pick the word they make.',
-'זיהוי מילה':'Word recognition',
-'מילה באנגלית — בחרו את הפירוש בעברית. זה הכיוון הקל, והוא רק ההתחלה.':'An English word \u2014 pick its Hebrew meaning. This is the easy direction, and only the start.',
-'שליפת מילה':'Word recall',
-'מילה בעברית — כתבו אותה באנגלית מהראש. זה הכיוון שבאמת בונה דיבור.':'A Hebrew word \u2014 write it in English from memory. This is the direction that actually builds speech.',
-'שומעים מילה וכותבים אותה. אפשר להאט את ההשמעה כמה פעמים שצריך.':'You hear a word and write it. You can slow the playback as often as you need.',
-'אומרים את המילה בקול והמכשיר מקשיב. אין ציונים על מבטא — רק על בהירות.':'Say the word aloud and the device listens. No scoring on accent \u2014 only on clarity.',
-'משפט בעברית ואריחי מילים באנגלית. סדרו אותם לפי הסדר הנכון: נושא, פועל, מושא.':'A Hebrew sentence and English word tiles. Arrange them in the right order: subject, verb, object.',
-'שומעים משפט שלם וכותבים אותו. התרגיל הכי קרוב להבנת דיבור אמיתי.':'You hear a full sentence and write it. The closest exercise to real listening comprehension.',
-'השלמת חסר':'Fill in the blank',
-'משפט עם חור אחד. בחרו את המילה שמשלימה אותו נכון.':'A sentence with one gap. Pick the word that completes it correctly.',
-'במשפט יש טעות אחת. הקישו על המילה השגויה — ותקבלו את הכלל שמאחוריה.':'The sentence has one mistake. Tap the wrong word \u2014 and you get the rule behind it.',
-'חוק דקדוק':'Grammar rule',
-'קוראים את הכלל, ומיד מתרגמים משפט שמשתמש בו. קריאה לבד לא מספיקה.':'Read the rule, then immediately translate a sentence that uses it. Reading alone is not enough.',
-'שאלה פתוחה. ענו בקול או בכתב, ואז השוו לתשובת מודל וקראו אותה בקול.':'An open question. Answer aloud or in writing, then compare with the model answer and read it aloud.',
-'שתי מילים שנשמעות כמעט זהות. שומעים אחת מהן וצריך לזהות איזו. זה מאמן את האוזן.':'Two words that sound almost identical. You hear one and must identify which. This trains the ear.',
-'אומרים מילה שיש לה תאומה מבלבלת. המערכת תגיד אם יצאה לכם התאומה במקום.':'Say a word that has a confusing twin. The app will tell you if the twin came out instead.',
-'נתון פועל בסיס, גוף וזמן — כתבו את הצורה הנכונה. אפשר לכתוב רק את הפועל או את המשפט המלא.':'Given a base verb, subject and tense \u2014 write the correct form. You can write just the verb or the full phrase.',
-'הפועל בצורת הבסיס — כתבו את צורת העבר. בסוף תראו את שלוש הצורות ואת התבנית שאליה הפועל שייך.':'The verb in base form \u2014 write the past form. At the end you see all three forms and the pattern the verb belongs to.',
-'פועל חריג · צורה שלישית':'Irregular verb \u00b7 past participle',
-'הצורה שבאה אחרי have / has / was. זו הצורה שנחוצה ל‑Present Perfect ולסביל.':'The form that follows have / has / was. This is the form needed for the Present Perfect and the passive.',
-'הצורה המלאה מול הצורה המקוצרת. בדיבור טבעי כמעט תמיד משתמשים בקצרה.':'The full form versus the contracted form. In natural speech the short one is almost always used.',
-'ככה אנגלית באמת נשמעת כשמדברים מהר. תפקידכם לפענח מה נאמר.':'This is how English actually sounds at speed. Your job is to decode what was said.',
-'ההסבר הזה מופיע פעם אחת בלבד':'This explanation appears only once',
-'הבנתי, מתחילים':'Got it, let\u2019s start',
-'תרגיל':'Exercise',
-
-/* ---------- מסך השאלה ---------- */
-'חדש':'new',
-'חזרה':'review',
-'יעד':'target',
-'לצאת מהתרגול?':'Leave the session?',
-'כל מה שענית עד עכשיו כבר נשמר. אפשר להמשיך מאותה נקודה בכל רגע.':'Everything you answered is already saved. You can pick up from the same point any time.',
-'להמשיך לתרגל':'Keep practising',
-'בדיקה':'Check',
-'לא יודע':'I don\u2019t know',
-'לא זכרתי':'I didn\u2019t remember',
-'ידעתי':'I knew it',
-'תרגלתי':'I practised it',
-'שליחה':'Send',
-'הבא':'Next',
-'סיום הסשן':'Finish session',
-'מחיקה אחורה':'Undo last word',
-'האטה':'Slow down',
-'שמיעת דוגמה':'Hear an example',
-'נכון':'Correct',
-'שליפה מיידית':'Instant retrieval',
-'לא מדויק':'Not quite',
-'התשובה: ':'Answer: ',
-'כתבתם: ':'You wrote: ',
-'גם נכון: ':'Also correct: ',
-'הסדר הנכון: ':'Correct order: ',
-'זכרו: נושא ← פועל ← מושא.':'Remember: subject \u2192 verb \u2192 object.',
+/* --- הוראות בתוך התרגילים --- */
+'איזו אות שמעתם?':'Which letter did you hear?',
+'איך קוראים לאות הזאת?':'What is this letter called?',
+'אותה אות, קטנה':'The same letter, lowercase',
+'הקישו על הרמקול כדי לשמוע שוב':'Tap the speaker to hear it again',
+'הקישו על הרמקולים והקישו על הנכון':'Tap the speakers, then tap the right one',
+'הקישו שוב אם זו האות':'Tap again if this is the letter',
+'הקשה לשמיעה':'Tap to listen',
 'אות וצליל':'Letter and sound',
 'איזו מילה מתחילה באות הזאת?':'Which word starts with this letter?',
-'הצליל':'the sound',
-'כמו במילה':'as in',
+'חיבור צלילים':'Blending sounds',
 'מה המילה שיוצאת?':'What word does it make?',
 'מה הפירוש':'What does it mean',
-'שליפה — כתבו באנגלית':'Recall \u2014 write it in English',
-'פועל':'verb',
-'שם עצם':'noun',
-'שם תואר':'adjective',
+'שליפה — כתבו באנגלית':'Recall — write it in English',
 'הקשיבו וכתבו את המילה':'Listen and write the word',
 'הקשיבו וכתבו את המשפט המלא':'Listen and write the full sentence',
-'בניית משפט — תחביר':'Sentence building \u2014 syntax',
+'האטה':'Slower',
+'בניית משפט — תחביר':'Sentence building — syntax',
 'סדרו כאן את המילים':'Arrange the words here',
+'מחיקה אחורה':'Undo',
 'השלמת החסר':'Fill in the blank',
-'(ללא מילה)':'(no word)',
-'הגהה — מצאו את הטעות':'Proofreading \u2014 find the mistake',
-'הקישו על המילה השגויה':'Tap the wrong word',
-'בדיקה מיידית':'Immediate check',
-'מבנה מומלץ: ':'Suggested structure: ',
-'ענו בקול — או כתבו למטה':'Answer aloud \u2014 or type below',
+'הגהה — מצאו את הטעות':'Proofreading — find the error',
+'הקישו על המילה השגויה':'Tap the incorrect word',
+'בדיקה מיידית':'Quick check',
+'אבחנה בין צלילים':'Sound discrimination',
+'איזו מהשתיים נאמרה?':'Which of the two was said?',
+'שמיעת דוגמה':'Hear an example',
+'לחצו והגו את המילה':'Tap and say the word',
+'ידעתי':'I knew it',
+'תרגלתי':'I practised it',
+'לא יודע':'I don\'t know',
+'לא זכרתי':'I didn\'t remember',
+'דלגו — הצג תשובת מודל':'Skip — show model answer',
+'מקשיב…':'Listening…',
+'לא נקלט. נסו שוב או המשיכו.':'Not picked up. Try again or move on.',
+'אין תמיכה בזיהוי דיבור':'Speech recognition is not supported',
+'זיהוי דיבור לא נתמך בדפדפן הזה — אפשר לדלג':'Speech recognition is not supported in this browser — you can skip',
+'זיהוי דיבור לא נתמך כאן':'Speech recognition is not supported here',
+'המיקרופון כבוי בהגדרות ההורים':'The microphone is off in parental settings',
+'ענו בקול — או כתבו למטה':'Answer aloud — or type below',
 'כתבו את התשובה למטה':'Type your answer below',
-'דלגו — הצג תשובת מודל':'Skip \u2014 show the model answer',
-'התשובה שלכם: ':'Your answer: ',
-'תשובת מודל: ':'Model answer: ',
-'קראו את תשובת המודל בקול פעמיים — זה מקבע את המבנה.':'Read the model answer aloud twice \u2014 that locks in the structure.',
+'מבנה מומלץ':'Suggested structure',
+'תשובת מודל':'Model answer',
+'התשובה שלכם':'Your answer',
+'הצורה השלישית':'Past participle',
+'דיבור מהיר — מה נאמר באמת':'Fast speech — what was actually said',
+'הצורה המלאה מול הצורה המקוצרת. בדיבור טבעי כמעט תמיד משתמשים בקצרה.':'The full form versus the contracted form. In natural speech the short form is almost always used.',
+
+/* --- משוב --- */
+'נכון':'Correct',
+'לא מדויק':'Not quite',
+'שליפה מיידית':'Instant recall',
+'התשובה':'The answer',
+'כתבתם':'You wrote',
+'גם נכון':'Also correct',
+'הסדר הנכון':'The correct order',
+'המטרה':'Target',
+'נאמר':'Said',
+'ולא':'not',
+'הצליל':'The sound',
+'כמו במילה':'as in',
+'שמעתי':'I heard',
+'הגייה טובה':'Good pronunciation',
+'תבנית':'Pattern',
+'זכרו: נושא':'Remember: subject',
+'קראו את תשובת המודל בקול פעמיים — זה מקבע את המבנה.':'Read the model answer aloud twice — that locks in the structure.',
 'תשובה קצרה מדי. נסו משפט שלם עם נושא ופועל.':'Too short. Try a full sentence with a subject and a verb.',
 'קראו אותה בקול פעמיים.':'Read it aloud twice.',
-'אבחנה בין צלילים':'Telling sounds apart',
-'איזו מהשתיים נאמרה?':'Which of the two was said?',
-'נאמר ':'You heard ',
-'לא ':'not ',
-'ולא ':'and not ',
-'מדויק: ':'Spot on: ',
-'נשמע כמו ':'That sounded like ',
-'שמעתי: ':'I heard: ',
-'המטרה: ':'Target: ',
-'הגייה טובה: ':'Good pronunciation: ',
-'קיצור — איך זה נשמע בדיבור':'Contraction \u2014 how it sounds in speech',
-'מה הצורה המקוצרת?':'What is the contracted form?',
-'בדיבור טבעי כמעט תמיד משתמשים בצורה המקוצרת. הצורה המלאה נשמעת רשמית או מודגשת.':'Natural speech almost always uses the contracted form. The full form sounds formal or emphatic.',
-'דיבור מהיר — מה נאמר באמת':'Fast speech \u2014 what was actually said',
-'מה הצורה התקנית של ':'What is the standard form of ',
-'פועל חריג · ':'Irregular verb \u00b7 ',
-'צורת העבר':'the past form',
-'הצורה השלישית':'the past participle',
-'Past Simple — "אתמול הוא ___"':'Past Simple \u2014 \u201cyesterday he ___\u201d',
-'Past Participle — הצורה שאחרי have / has / was':'Past Participle \u2014 the form after have / has / was',
-'תבנית: ':'Pattern: ',
-'הטיית זמן · ':'Tense conjugation \u00b7 ',
-'איזו אות שמעתם?':'Which letter did you hear?',
-'הקישו על הרמקול כדי לשמוע שוב':'Tap the speaker to hear it again',
-'אותה אות, קטנה':'The same letter, lower case',
-'איך קוראים לאות הזאת?':'What is this letter called?',
-'הקישו על הרמקולים והקישו על הנכון':'Tap the speakers, then tap the right one',
-'הקשה לשמיעה':'Tap to listen',
-'הקישו שוב אם זו האות':'Tap again if this is the letter',
-'לחצו והגו את המילה':'Tap and say the word',
-'מקשיב…':'Listening\u2026',
-'לא נקלט. נסו שוב או המשיכו.':'Nothing picked up. Try again or move on.',
-'לא נקלט. נסו שוב או כתבו.':'Nothing picked up. Try again or type it.',
-'זיהוי דיבור לא נתמך בדפדפן הזה — אפשר לדלג':'Speech recognition isn\u2019t supported in this browser \u2014 you can skip',
-'זיהוי דיבור לא נתמך כאן':'Speech recognition isn\u2019t supported here',
-'אין תמיכה בזיהוי דיבור':'Speech recognition isn\u2019t supported',
-'המיקרופון כבוי בהגדרות ההורים':'The microphone is off in parental settings',
+'ההסבר הזה מופיע פעם אחת בלבד':'This explanation appears only once',
 
-/* ---------- סיום סשן ---------- */
-'סשן מצוין':'Great session',
-'סיימת':'Done',
-'שליפה מהירה. זה בדיוק מה שמונע גמגום בדיבור.':'Fast retrieval. That is exactly what prevents stumbling in speech.',
-'קצב סביר. כדאי לחתור לשליפה מתחת לשלוש שניות.':'Reasonable pace. Aim for retrieval under three seconds.',
-'השליפה עדיין איטית. סשנים קצרים ויומיים עובדים טוב יותר מארוכים ונדירים.':'Retrieval is still slow. Short daily sessions work better than long, rare ones.',
-'זמן ממוצע':'Average time',
-'נכונות':'Correct',
-'המשימה הושלמה':'Task complete',
-'עלית לרמה ':'You moved up to level ',
-'לחזרה קרובה':'Coming back soon',
-'עוד סשן':'Another session',
-
-/* ---------- התקדמות וניתוח ---------- */
-'מילים בשליטה מלאה':'Words fully mastered',
-'בתהליך למידה':'Still being learned',
-'דיוק כולל':'Overall accuracy',
-'זמן שליפה ממוצע':'Average retrieval time',
-'פעילות ב־14 הימים האחרונים':'Activity over the last 14 days',
-'איפה כדאי להתמקד':'Where to focus',
-'מילים שעדיין לא יושבות':'Words that haven\u2019t settled yet',
-'שליטה לפי רמה':'Mastery by level',
-'ההתקדמות של ':'Progress for ',
+/* --- התקדמות וניתוח --- */
+'ההתקדמות של':'Progress for',
 'שליטה':'mastery',
-'פעילות והתקדמות':'Activity and progress',
+'מילים בשליטה מלאה':'Words fully mastered',
+'בתהליך למידה':'Being learned',
+'דיוק כולל':'Overall accuracy',
+'זמן שליפה ממוצע':'Average recall time',
+'פעילות ב־14 הימים האחרונים':'Activity in the last 14 days',
+'תרגילים בשבועיים':'exercises in two weeks',
+'איפה כדאי להתמקד':'Where to focus',
+'מילים שעדיין לא יושבות':'Words that have not stuck yet',
+'שליטה לפי רמה':'Mastery by level',
+'לחזרה קרובה':'For review soon',
+'זמן ממוצע':'Average time',
+'נכונות':'correct',
+'סשן מצוין':'Great session',
+'סיימת':'Session complete',
+'עוד סשן':'Another session',
+'סיום הסשן':'Finish session',
+'עלית לרמה':'You reached level',
+'שליפה מהירה. זה בדיוק מה שמונע גמגום בדיבור.':'Fast recall. That is exactly what prevents hesitation in speech.',
+'קצב סביר. כדאי לחתור לשליפה מתחת לשלוש שניות.':'Reasonable pace. Aim for recall under three seconds.',
+'השליפה עדיין איטית. סשנים קצרים ויומיים עובדים טוב יותר מארוכים ונדירים.':'Recall is still slow. Short daily sessions work better than long, rare ones.',
+'פריטים ממתינים לחזרה. אלגוריתם החזרות מציג כל פריט בדיוק לפני שהוא נשכח — לכן חשוב יותר לתרגל כל יום מעט, מאשר הרבה פעם בשבוע.':'items are due for review. The spacing algorithm shows each item just before it fades — so a little every day beats a lot once a week.',
+'לצאת מהתרגול?':'Leave the practice?',
+'כל מה שענית עד עכשיו כבר נשמר. אפשר להמשיך מאותה נקודה בכל רגע.':'Everything you have answered is already saved. You can continue from the same point any time.',
+'להמשיך לתרגל':'Keep practising',
 
-/* ---------- משפחה והגדרות ---------- */
-'המשפחה':'Family',
-'מעבר בין לומדים, מעקב ושליטה.':'Switch between learners, track and control.',
-'בקרת הורים ומורים':'Parent and teacher controls',
-'יעדים יומיים, מגבלת מסך, נעילת רמה, מצבי תרגול מותרים והקצאת משימות.':'Daily goals, screen limits, level locking, allowed practice modes and task assignment.',
-'קוד הכניסה שלי':'My access code',
-'לפרופיל שלך יש קוד. הוא נדרש בכל כניסה.':'Your profile has a code. It is required on every sign-in.',
-'אין קוד. כל אחד שפותח את האפליקציה יכול להיכנס לפרופיל הזה.':'No code. Anyone who opens the app can enter this profile.',
-'שינוי או הסרת הקוד':'Change or remove the code',
-'קביעת קוד':'Set a code',
+/* --- רמות ותוכן --- */
+'חוקים':'Rules',
+'חוק דקדוק':'Grammar rule',
+'טרום-קריאה':'Pre-reading',
+'הערכה מקורבת לפי תוכן הרמה — שימושית לכיוון כללי בבחירת ספרי קריאה, לא תחליף למבחן מיון רשמי.':'An approximate estimate based on level content — useful as a rough guide when choosing graded readers, not a substitute for a formal placement test.',
+'שלב טרום-קריאה — אין לו מקבילה בסולם CEFR, שמניח קריאה בסיסית.':'A pre-reading stage — it has no CEFR equivalent, as CEFR assumes basic reading.',
+'טבלת הפעלים החריגים':'Irregular verbs table',
+'אל תשננו אחד אחד. הם מתחלקים ל':'Do not memorise them one by one. They fall into',
+'תבניות — מי שקולט את התבנית מקבל עשרות פעלים במכה.':'patterns — grasp the pattern and you get dozens of verbs at once.',
+'ללא תבנית':'No pattern',
+'חמישה זמנים מכסים כמעט את כל האנגלית המדוברת ביום-יום. שאר הזמנים קיימים, אבל נדירים בדיבור — ולכן הם לא הליבה.':'Five tenses cover almost all everyday spoken English. The other tenses exist, but are rare in speech — so they are not the core.',
+'תרגול הטיות':'Practise conjugation',
+'מילות סימן':'Signal words',
+'לכל אות יש אסוציאציית צורה — משהו מוכר שהצורה מזכירה. זה מה שהופך סימן מופשט לתמונה שנדבקת.':'Every letter has a shape association — something familiar that the shape resembles. That is what turns an abstract symbol into an image that sticks.',
+'כל אות באנגלית נראית אחרת בגדולה ובקטנה. כאן מתאימים ביניהן.':'Every English letter looks different in upper and lower case. Here you match them.',
+'ככה אנגלית באמת נשמעת כשמדברים מהר. תפקידכם לפענח מה נאמר.':'This is how English actually sounds at speed. Your job is to decode what was said.',
+'המילה מפורקת לצלילים. חברו אותם בראש ובחרו איזו מילה יוצאת.':'The word is broken into sounds. Blend them in your head and choose the word.',
+'במשפט יש טעות אחת. הקישו על המילה השגויה — ותקבלו את הכלל שמאחוריה.':'The sentence has one error. Tap the wrong word and you get the rule behind it.',
+'אומרים את המילה בקול והמכשיר מקשיב. אין ציונים על מבטא — רק על בהירות.':'Say the word aloud and the device listens. No marks for accent — only clarity.',
+'אומרים מילה שיש לה תאומה מבלבלת. המערכת תגיד אם יצאה לכם התאומה במקום.':'Say a word that has a confusable twin. The system tells you if the twin came out instead.',
+'שתי מילים שנשמעות כמעט זהות. שומעים אחת מהן וצריך לזהות איזו. זה מאמן את האוזן.':'Two words that sound almost identical. You hear one and must identify which. This trains the ear.',
+'שומעים שם של אות ובוחרים אותה מבין ארבע. אפשר להקיש על הרמקול ולשמוע שוב, כמה פעמים שצריך.':'You hear a letter name and pick it from four. Tap the speaker to hear it again, as often as needed.',
+'רואים אות, ומקישים על הרמקולים עד שמוצאים את זה שנשמע נכון. הקשה ראשונה משמיעה, שנייה בוחרת.':'You see a letter and tap the speakers until you find the right sound. First tap plays, second selects.',
+'נתון פועל בסיס, גוף וזמן — כתבו את הצורה הנכונה. אפשר לכתוב רק את הפועל או את המשפט המלא.':'Given a base verb, subject and tense — write the correct form. You may write just the verb or the full phrase.',
+'הפועל בצורת הבסיס — כתבו את צורת העבר. בסוף תראו את שלוש הצורות ואת התבנית שאליה הפועל שייך.':'The verb in base form — write the past form. At the end you will see all three forms and the pattern it belongs to.',
+'הצורה שבאה אחרי have / has / was. זו הצורה שנחוצה ל‑Present Perfect ולסביל.':'The form that follows have / has / was. This is the form needed for Present Perfect and the passive.',
+'מוצגת אות באנגלית, גדולה וקטנה. בחרו את המילה שמתחילה בצליל שלה. אפשר להאזין בכל שלב.':'An English letter is shown in upper and lower case. Choose the word that starts with its sound. You can listen at any point.',
+
+/* --- הגדרות ומראה --- */
 'מראה':'Appearance',
-'שפת הממשק':'Interface language',
 'ערכת נושא':'Theme',
-'לפי המכשיר':'Match device',
+'לפי המכשיר':'Follow device',
 'בהיר':'Light',
 'כהה':'Dark',
+'גודל טקסט':'Text size',
+'רגיל':'Normal',
+'גדול':'Large',
+'ענק':'Extra large',
+'שפת תצוגה':'Display language',
+'עברית':'Hebrew',
+'אנגלית':'English',
+'תוכן הלימוד — תרגומי מילים והסברי דקדוק — נשאר בעברית בשתי השפות.':'Learning content — word translations and grammar explanations — stays in Hebrew in both languages.',
+
+/* --- קול ודיבור --- */
 'קול ודיבור':'Voice and speech',
+'קול':'Voice',
 'קול המכשיר':'Device voice',
+'קול ענן':'Cloud voice',
+'מהירות הדיבור':'Speech rate',
+'גובה הקול':'Pitch',
+'איטית מאוד':'Very slow',
+'איטית':'Slow',
+'מהירה':'Fast',
+'ילידית':'Native',
+'נמוך':'Low',
+'טבעי':'Natural',
+'גבוה':'High',
+'השמעה אוטומטית':'Auto-play',
+'מופעלת':'On',
+'כבויה':'Off',
+'מיקרופון':'Microphone',
+'השמעת דוגמה':'Play a sample',
+'אבחון קולות':'Voice diagnostics',
 'בשימוש כרגע':'Currently in use',
 'איכות גבוהה':'High quality',
 'תקין':'OK',
 'בסיסי':'Basic',
-'קול דחוס':'Compact voice',
-'זהו קול דחוס והוא יישמע מתכתי. הורידו קול Premium בהגדרות → נגישות → תוכן מדובר → קולות → English.':'This is a compact voice and will sound metallic. Download a Premium voice in Settings \u2192 Accessibility \u2192 Spoken Content \u2192 Voices \u2192 English.',
-'מעבר ל‑':'Switch to ',
-'קול':'Voice',
-'בחירה אוטומטית — הטוב ביותר במכשיר':'Automatic \u2014 the best available on this device',
-'השמעת דוגמה':'Play a sample',
-'אבחון קולות':'Voice diagnostics',
-'מהירות הדיבור':'Speech rate',
-'איטית מאוד':'Very slow',
-'איטית':'Slow',
-'רגילה':'Normal',
-'מהירה':'Fast',
-'ילידית':'Native',
-'גובה הקול':'Pitch',
-'נמוך':'Low',
-'טבעי':'Natural',
-'גבוה':'High',
-'השמעה אוטומטית':'Auto play',
-'מופעלת':'On',
-'כבויה':'Off',
-'לא נמצא קול אנגלית במכשיר':'No English voice found on this device',
-'קפיצה ידנית לרמה':'Jump manually to level',
+'קול דחוס':'Compressed voice',
+'בחירה אוטומטית — הטוב ביותר במכשיר':'Automatic — best available on this device',
+'קול המכשיר בספארי הוא קול דחוס ונשמע מתכתי — זו מגבלת דפדפן. קול ענן פותר את זה.':'The device voice in Safari is a compressed voice and sounds robotic — that is a browser limitation. Cloud voice solves it.',
+'קול נוירוני אמיתי. נשמר במכשיר אחרי השמעה ראשונה, ולכן מיידי וגם עובד ללא רשת.':'A genuine neural voice. Cached on the device after first playback, so it is instant and works offline.',
+'כשכבוי, האפליקציה משתמשת בקול המכשיר.':'When off, the app uses the device voice.',
+'כשכבוי, תרגילי ההגייה יעברו למצב האזנה בלבד בלי בקשת הרשאה.':'When off, pronunciation exercises become listen-only with no permission prompt.',
+'טעינת קולות':'Load voices',
+'טעינת קולות מהשרת':'Load voices from the server',
+'בחרו קול':'Choose a voice',
+'קודם בחרו קול.':'Choose a voice first.',
+'לא נבחר קול':'No voice selected',
+'מנגן…':'Playing…',
+'מנגן דוגמה…':'Playing a sample…',
+'הקול נשמר.':'Voice saved.',
+'טוען…':'Loading…',
+'בודק…':'Checking…',
+'מטמון':'Cache',
+'ניקוי המטמון':'Clear cache',
+'המטמון נוקה':'Cache cleared',
+'אבחון':'Diagnostics',
+'הרצת אבחון':'Run diagnostics',
+'חיבור לאינטרנט':'Internet connection',
+'מחובר':'Connected',
+'לא מחובר':'Not connected',
+'שליפת רשימת קולות':'Fetching voice list',
+'סינתזת אודיו':'Audio synthesis',
+'נגינה במכשיר':'Playback on device',
+'נכשל':'Failed',
+'נחסמה':'Blocked',
+'פתיחת הקישור מההודעה':'Open the link from the message',
+'הפעלה חד-פעמית בקונסולה':'One-time setup in the console',
+'שגיאה:':'Error:',
+
+/* --- ענן וסנכרון --- */
 'ענן':'Cloud',
+'סנכרון עכשיו':'Sync now',
+'סנכרון אוטומטי':'Automatic sync',
+'אחרי כל תרגול ובכל פתיחה של האפליקציה.':'After every practice session and on every app launch.',
+'סונכרן':'Synced',
+'מתחבר…':'Connecting…',
+'התחברות':'Sign in',
+'התחברות למשפחה':'Join a family',
+'התחברות למשפחה קיימת':'Join an existing family',
+'קוד משפחה':'Family code',
+'יצירת קוד חדש':'Create a new code',
+'מקימים משפחה בפעם הראשונה?':'Setting up a family for the first time?',
+'עדכון':'Update',
+'ניתוק מהמשפחה':'Leave the family',
+'הענן מחובר':'Cloud connected',
+'זוהה קוד מהקישור':'Code detected from link',
+'סרקתם או פתחתם קישור עם קוד משפחה. אשרו כדי להתחבר.':'You scanned or opened a link with a family code. Confirm to join.',
+'הזינו את קוד המשפחה שקיבלתם, או סרקו את קוד ה‑QR שלו במצלמת המכשיר.':'Enter the family code you were given, or scan its QR code with the device camera.',
+'המכשיר הזה מחובר ומסנכרן. ההתקדמות ממשיכה לעבוד גם בלי אינטרנט.':'This device is connected and syncing. Progress keeps working offline too.',
+'כרגע הכול נשמר במכשיר הזה בלבד. אם הוא יאבד או שתנקה את הדפדפן — ההתקדמות תיעלם.':'Right now everything is saved on this device only. If it is lost or the browser is cleared, progress disappears.',
+'לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.':'Could not connect. Check the code and your internet connection.',
+'צריך להזין קוד':'A code is required',
 'גיבוי מקומי':'Local backup',
-'כל הנתונים נשמרים במכשיר בלבד. ייצאו קובץ לפני החלפת מכשיר.':'All data is stored on this device only. Export a file before switching devices.',
 'ייצוא':'Export',
 'ייבוא':'Import',
-'תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.':'Preview mode \u2014 data isn\u2019t kept between refreshes. Saving will work once the app is hosted.',
-'הקובץ לא תקין':'The file isn\u2019t valid',
 'יובא':'Imported',
+'הקובץ לא תקין':'The file is not valid',
+'הצגת קוד':'Show QR code',
+'לשיתוף עם תלמיד':'to share with a student',
+'סריקה להצטרפות':'Scan to join',
+'חוקי אבטחה':'Security rules',
 
-/* ---------- אבחון קולות ---------- */
-'סה"כ קולות':'Voices total',
-'אנגלית':'English',
-'משודרגים':'Upgraded',
-'Ava נמצאה':'Ava found',
-'אפשר לבחור אותה ברשימת הקולות.':'You can select her from the voice list.',
-'Ava לא נחשפת לדפדפן':'Ava isn\u2019t exposed to the browser',
-'היא כנראה מותקנת במכשיר, אבל ספארי לא מעביר קולות Premium ו‑Enhanced לדפי אינטרנט — רק לאפליקציות מקוריות ול‑VoiceOver. זו מגבלה של הדפדפן ולא של האפליקציה, ואין דרך לעקוף אותה מהקוד.':'She is probably installed on the device, but Safari doesn\u2019t expose Premium and Enhanced voices to web pages \u2014 only to native apps and VoiceOver. This is a browser limitation, not an app one, and it can\u2019t be worked around in code.',
-'כל הקולות שהמכשיר מדווח':'All voices reported by the device',
-'הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.':'The browser reports no voices. Try refreshing, or open the app from the site itself rather than an embedded view.',
-'אם הרשימה נראית שונה כשפותחים ישירות בספארי לעומת אפליקציה אחרת — זה סימן שהתצוגה המוטמעת מגבילה את הקולות.':'If the list looks different when opened directly in Safari versus another app, the embedded view is limiting the voices.',
-'רשת':'network',
-'מקומי':'local',
-'ברירת מחדל':'default',
-
-/* ---------- קודים ונעילה ---------- */
-'הזינו את קוד הכניסה':'Enter the access code',
-'החלפה':'Switch',
+/* --- בקרת הורים --- */
+'בקרת הורים ומורים':'Parent and teacher controls',
 'קוד הורה':'Parent code',
-'האזור הזה נעול. הזינו את קוד ההורה או המורה.':'This area is locked. Enter the parent or teacher code.',
-'אין עדיין קוד הורה':'No parent code yet',
-'כדי להשתמש בבקרת הורים צריך פרופיל אחד לפחות מסוג "הורה או מורה" עם קוד כניסה.':'To use parental controls you need at least one \u201cparent or teacher\u201d profile with an access code.',
-'יצירת פרופיל הורה':'Create a parent profile',
+'קוד כניסה':'Access code',
+'קוד הכניסה שלי':'My access code',
+'קביעת קוד':'Set a code',
+'שינוי או הסרת הקוד':'Change or remove the code',
+'הסרת הקוד':'Remove the code',
+'הזינו את קוד הכניסה':'Enter the access code',
 'בחרו קוד בן ארבע ספרות.':'Choose a four-digit code.',
 'שוב, לאימות.':'Again, to confirm.',
-'הקודים לא תאמו. מתחילים מחדש.':'The codes didn\u2019t match. Starting over.',
-'הסרת הקוד':'Remove the code',
+'הקודים לא תאמו. מתחילים מחדש.':'The codes did not match. Starting over.',
 'הקוד נשמר':'Code saved',
 'הקוד הוסר':'Code removed',
-
-/* ---------- בקרת הורים ---------- */
-'בחרו לומד כדי לקבוע יעדים, הרשאות ומשימות.':'Pick a learner to set goals, permissions and tasks.',
-'אין עדיין לומדים במשפחה.':'No learners in the family yet.',
+'האזור הזה נעול. הזינו את קוד ההורה או המורה.':'This area is locked. Enter the parent or teacher code.',
+'אין עדיין קוד הורה':'No parent code yet',
+'יצירת פרופיל הורה':'Create a parent profile',
+'לא עכשיו':'Not now',
+'בחרו לומד כדי לקבוע יעדים, הרשאות ומשימות.':'Choose a learner to set goals, permissions and assignments.',
+'פעילות והתקדמות':'Activity and progress',
 'קצב ומסך':'Pace and screen time',
 'יעד יומי':'Daily goal',
 'כמה פריטים ביום. מופיע כטבעת התקדמות במסך הבית.':'How many items per day. Shown as a progress ring on the home screen.',
 'מגבלה יומית':'Daily limit',
-'אחרי כמה פריטים האפליקציה נועלת את התרגול להיום. 0 = ללא הגבלה.':'After how many items the app locks practice for the day. 0 = unlimited.',
+'אחרי כמה פריטים האפליקציה נועלת את התרגול להיום. 0 = ללא הגבלה.':'After how many items the app locks practice for the day. 0 = no limit.',
 'הרשאות':'Permissions',
 'נעילת הרמה':'Lock the level',
-'הלומד לא יוכל לקפוץ רמה ידנית דרך ההגדרות.':'The learner won\u2019t be able to jump levels manually from settings.',
+'הלומד לא יוכל לקפוץ רמה ידנית דרך ההגדרות.':'The learner cannot jump levels manually from settings.',
 'נעילת נתונים':'Lock data',
 'חוסם מחיקת פרופיל, ייצוא וייבוא.':'Blocks profile deletion, export and import.',
-'מיקרופון':'Microphone',
-'כשכבוי, תרגילי ההגייה יעברו למצב האזנה בלבד בלי בקשת הרשאה.':'When off, pronunciation exercises switch to listening only, with no permission prompt.',
 'מצבי תרגול מותרים':'Allowed practice modes',
-'אם הכול פתוח, הלומד רואה את כל המצבים.':'If everything is enabled, the learner sees every mode.',
-'חייב להישאר מצב אחד לפחות':'At least one mode must stay enabled',
+'אם הכול פתוח, הלומד רואה את כל המצבים.':'If everything is open, the learner sees all modes.',
+'חייב להישאר מצב אחד לפחות':'At least one mode must remain',
 'סוג התרגול':'Practice type',
 'מספר פריטים':'Number of items',
 'הערה ללומד':'Note to the learner',
-'למשל: לקראת המבחן ביום שלישי':'e.g. for the test on Tuesday',
-'הקצאת משימה':'Assign task',
-'ביטול המשימה':'Cancel the task',
-'המשימה הוקצתה':'Task assigned',
-'לפרופיל הזה יש קוד. הוא נדרש בכניסה.':'This profile has a code. It is required to sign in.',
-'אין קוד. כל אחד יכול להיכנס לפרופיל הזה.':'No code. Anyone can enter this profile.',
+'הקצאת משימה':'Assign',
+'ביטול המשימה':'Cancel assignment',
+'משימה פעילה':'Active assignment',
+'המשימה הוקצתה':'Assignment created',
+'המשימה הושלמה':'Assignment complete',
 'איפוס':'Reset',
-'מוחק את כל ההתקדמות והחזרות של הלומד ומחזיר אותו לרמה 0. שאר הפרופילים לא מושפעים.':'Erases all of the learner\u2019s progress and reviews and returns them to level 0. Other profiles are unaffected.',
 'איפוס ההתקדמות':'Reset progress',
-'סנכרון אוטומטי':'Automatic sync',
+'מוחק את כל ההתקדמות והחזרות של הלומד ומחזיר אותו לרמה 0. שאר הפרופילים לא מושפעים.':'Erases all of the learner\'s progress and reviews and returns them to level 0. Other profiles are unaffected.',
+'אופס':'Reset',
+'נמחק':'Deleted',
+'הגעת למגבלה היומית':'Daily limit reached',
+'רמה נוכחית':'Current level',
+'קפיצה ידנית לרמה':'Jump to level manually',
+'בחירת תרגול':'Choose practice',
+'מעבר בין לומדים, מעקב ושליטה.':'Switch between learners, track and control.',
+'אין עדיין לומדים במשפחה.':'No learners in the family yet.',
 
-/* ---------- ענן ---------- */
-'שמירה בענן':'Cloud backup',
-'כרגע הכול נשמר במכשיר הזה בלבד. אם הוא יאבד או שתנקה את הדפדפן — ההתקדמות תיעלם.':'Right now everything is stored on this device only. If it is lost or the browser is cleared, the progress is gone.',
-'הגדרת ענן':'Set up the cloud',
-'התחברות למשפחה':'Join a family',
-'התחברות למשפחה קיימת':'Join an existing family',
-'הגדרות ענן':'Cloud settings',
-'הענן מחובר':'Cloud connected',
-'קוד משפחה: ':'Family code: ',
-'סנכרון עכשיו':'Sync now',
-'הגדרות':'Settings',
-'עכשיו':'now',
-'המשפחה שלי':'My family',
-'זוהה קוד מהקישור':'Code detected from the link',
-'סרקתם או פתחתם קישור עם קוד משפחה. אשרו כדי להתחבר.':'You scanned or opened a link with a family code. Confirm to connect.',
-'המכשיר הזה מחובר ומסנכרן. ההתקדמות ממשיכה לעבוד גם בלי אינטרנט.':'This device is connected and syncing. Progress keeps working offline too.',
-'הזינו את קוד המשפחה שקיבלתם, או סרקו את קוד ה‑QR שלו במצלמת המכשיר.':'Enter the family code you received, or scan its QR code with the device camera.',
-'התחברות':'Connect',
-'עדכון':'Update',
-'הצגת קוד QR לשיתוף עם תלמיד':'Show a QR code to share with a student',
-'אחרי כל תרגול ובכל פתיחה של האפליקציה.':'After every session and every time the app opens.',
-'ניתוק מהמשפחה':'Leave the family',
-'צריך להזין קוד':'A code is required',
-'לא נמצאו פרופילים בקוד הזה':'No profiles found for that code',
-'המכשיר מחובר למשפחה':'This device is connected to a family',
-'עדיין לא הגיעו פרופילים מהענן. אל תיצרו לומד חדש לפני שתנסו לסנכרן — אחרת ייווצר פרופיל כפול.':'No profiles have arrived from the cloud yet. Don\u2019t create a new learner before trying to sync \u2014 that is what creates a duplicate profile.',
-'החלפת קוד משפחה':'Change family code',
-'יצירת לומד חדש':'Create a new learner',
-'הקוד לא תואם לאף משפחה, או שהמכשיר הראשון עוד לא סונכרן. פתחו בו את האפליקציה, הריצו "סנכרון עכשיו", ונסו שוב.':'The code doesn\u2019t match any family, or the first device hasn\u2019t synced yet. Open the app there, run \u201cSync now\u201d, and try again.',
-'מתחבר…':'Connecting\u2026',
-'יוצר משפחה חדשה…':'Creating a new family\u2026',
-'לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.':'Couldn\u2019t connect. Check the code and your internet connection.',
-'לא הצלחנו ליצור את המשפחה. בדקו את החיבור לאינטרנט.':'Couldn\u2019t create the family. Check your internet connection.',
-'מקימים משפחה בפעם הראשונה?':'Setting up a family for the first time?',
-'יצירת קוד חדש':'Create a new code',
-'הכול מעודכן':'Everything is up to date',
-'נמחק במכשיר. הסנכרון לענן ייכשל עד שתהיה רשת.':'Deleted on this device. Cloud sync will fail until there is a connection.',
-'סריקה להצטרפות':'Scan to join',
-'התלמיד פותח את מצלמת המכשיר שלו ומכוון אל הקוד. לא צריך להתקין שום דבר — מצלמת ה‑iPhone וה‑Android מזהות QR ישירות.':'The student opens their device camera and points it at the code. Nothing to install \u2014 iPhone and Android cameras read QR directly.',
-'לא ניתן ליצור קוד QR — הקוד ארוך מדי.':'Can\u2019t generate a QR code \u2014 the code is too long.',
-'הגדרת ענן — פעם אחת':'Cloud setup \u2014 one time only',
-'השלב הזה שייך למי שמקים את המערכת, ונעשה פעם אחת בלבד לפני שמשתפים את הקוד עם אף אחד.':'This step belongs to whoever sets the system up, and is done once before the code is shared with anyone.',
-'פרויקט Firebase':'Firebase project',
-'שני הערכים נמצאים ב‑Firebase Console ← Project settings ← General.':'Both values are in the Firebase Console \u2192 Project settings \u2192 General.',
-'צריך למלא את שני השדות':'Both fields are required',
-'שמירה על המכשיר הזה בלבד, לבדיקה':'Save on this device only, for testing',
-'זמני בלבד — לא יעבור למכשיר אחר. שימושי כדי לוודא שהחיבור עובד לפני שעורכים את הקובץ.':'Temporary only \u2014 it won\u2019t carry to another device. Useful to verify the connection works before editing the file.',
-'חוקי אבטחה':'Security rules',
-'הדביקו ב‑Firestore ← Rules. בלי זה, מצב הבדיקה של Firebase יפוג ותאבדו גישה.':'Paste into Firestore \u2192 Rules. Without this, Firebase test mode expires and you lose access.',
-'החוק הזה חוסם סריקה אקראית ומחייב קוד ארוך, אבל הוא לא מצריך התחברות. אל תשמרו כאן שמות מלאים או פרטים מזהים.':'This rule blocks random scanning and requires a long code, but it does not require authentication. Don\u2019t store full names or identifying details here.',
-
-/* ---------- קול ענן ---------- */
-'קול ענן':'Cloud voice',
-'כבוי':'Off',
-'קול נוירוני אמיתי במקום קול המערכת הדחוס. ספארי לא חושף לדפי אינטרנט את הקולות האיכותיים של המכשיר, ולכן זו הדרך היחידה להגיע לקול טבעי באמת.':'A real neural voice instead of the compact system voice. Safari doesn\u2019t expose the device\u2019s high-quality voices to web pages, so this is the only way to get a genuinely natural voice.',
-'קול נוירוני אמיתי. נשמר במכשיר אחרי השמעה ראשונה, ולכן מיידי וגם עובד ללא רשת.':'A real neural voice. Cached on the device after the first playback, so it is instant and works offline.',
-'קול המכשיר בספארי הוא קול דחוס ונשמע מתכתי — זו מגבלת דפדפן. קול ענן פותר את זה.':'The device voice in Safari is a compact voice and sounds metallic \u2014 a browser limitation. The cloud voice solves it.',
-'הגדרות קול הענן':'Cloud voice settings',
-'הגדרת קול ענן':'Set up the cloud voice',
-'כשכבוי, האפליקציה משתמשת בקול המכשיר.':'When off, the app uses the device voice.',
-'— בחרו קול —':'\u2014 choose a voice \u2014',
-'לחצו "טעינת קולות" למטה':'Tap \u201cLoad voices\u201d below',
-'טעינת קולות מהשרת':'Load voices from the server',
-'שימוש ברשימה מקומית (בלי לשאול את השרת)':'Use the built-in list (without asking the server)',
-'טוען…':'Loading\u2026',
-'מנגן…':'Playing\u2026',
-'מנגן דוגמה…':'Playing a sample\u2026',
-'הקול נשמר.':'Voice saved.',
-'קודם בחרו קול.':'Choose a voice first.',
-'מופעל.':'On.',
-'מופעל — עוד צריך לבחור קול.':'On \u2014 you still need to choose a voice.',
-'כבוי. חוזרים לקול המכשיר.':'Off. Falling back to the device voice.',
-'מטמון':'Cache',
-'כל מילה נשלפת מהשרת פעם אחת ואז נשמרת במכשיר — הנגינה מיידית, ועובדת גם בלי אינטרנט. זה גם מה ששומר את העלות אפסית.':'Each word is fetched once and then stored on the device \u2014 playback is instant and works offline. This is also what keeps the cost at zero.',
-'ניקוי המטמון':'Clear the cache',
-'המטמון נוקה':'Cache cleared',
-'אבחון':'Diagnostics',
-'לוחצים, והבדיקה מדווחת בדיוק מה נכשל — כולל ההודעה המקורית של Google, שלרוב אומרת מה חסר ואיך לתקן.':'Tap once and the check reports exactly what failed \u2014 including Google\u2019s original message, which usually states what is missing and how to fix it.',
-'הרצת אבחון':'Run diagnostics',
-'בודק…':'Checking\u2026',
-'הפעלה חד-פעמית בקונסולה':'One-time activation in the console',
-'ה-API משתמש באותו פרויקט ומפתח שכבר בקובץ. צריך רק להפעיל אותו:':'The API uses the same project and key already in the file. It only needs to be enabled:',
+/* --- השלמות: תוויות קצרות והודעות --- */
+' דק׳':' min',
+' שע׳':' hr',
+' קולות':' voices',
+'(לא מוגדר)':'(not set)',
+'(ללא מילה)':'(no word)',
+' · ברירת מחדל':' · default',
+' · משימה פעילה':' · active assignment',
+'Studio · הטבעי ביותר':'Studio · most natural',
+'Chirp · טבעי מאוד':'Chirp · very natural',
+'Neural2 · טבעי':'Neural2 · natural',
+'WaveNet · טוב':'WaveNet · good',
+'Standard · בסיסי':'Standard · basic',
 'Project ID מוגדר':'Project ID set',
 'API key מוגדר':'API key set',
+'Past Simple — "אתמול הוא ___"':'Past Simple — "yesterday he ___"',
+'Past Participle — הצורה שאחרי have / has / was':'Past Participle — the form after have / has / was',
+'אי אפשר לבטל.':'This cannot be undone.',
+'בקרה':'Controls',
+'ברמה':'at level',
+'בהגדרות':'in settings',
+'פתיחה':'Open',
+'עכשיו':'now',
 'חסר':'missing',
-'חיבור לאינטרנט':'Internet connection',
-'לא מחובר':'offline',
-'מחובר':'online',
-'שליפת רשימת קולות':'Fetching the voice list',
-'נכשל':'failed',
-'סינתזת אודיו':'Audio synthesis',
-'לא נבחר קול':'no voice selected',
-'נגינה במכשיר':'Playback on the device',
-'נחסמה':'blocked',
-'ההודעה של Google':'Google\u2019s message',
-'פתיחת הקישור מההודעה':'Open the link from the message',
-'הכול עובד בצד השרת — הדפדפן חסם את הנגינה. געו במסך פעם אחת ונסו שוב.':'Everything works server-side \u2014 the browser blocked playback. Tap the screen once and try again.',
-'הכול עובד. אם עדיין נשמע קול מכשיר, ודאו שהמתג "קול ענן" למעלה דלוק.':'Everything works. If you still hear the device voice, make sure the \u201cCloud voice\u201d switch above is on.',
-'ה-API עצמו לא מופעל בפרויקט. פתחו את הקישור שבהודעה למטה ולחצו Enable.':'The API itself isn\u2019t enabled in the project. Open the link in the message below and press Enable.',
-'שגיאת הרשאה. ראו את ההודעה המקורית למטה — היא מציינת מה חסר.':'A permission error. See the original message below \u2014 it states what is missing.',
-'הבקשה נדחתה כלא תקינה — לרוב מפתח שגוי.':'The request was rejected as invalid \u2014 usually a wrong key.',
-'עברתם את המכסה. בדקו חיוב ומכסות בקונסולה.':'You exceeded the quota. Check billing and quotas in the console.',
-'הבקשה לא יצאה כלל — אין רשת, או שהדפדפן חסם אותה.':'The request never left \u2014 no network, or the browser blocked it.',
-'ראו את ההודעה המקורית למטה.':'See the original message below.',
-'הבקשה לא יצאה בכלל — אין רשת, או שהדפדפן חסם אותה (CORS).':'The request never left \u2014 no network, or the browser blocked it (CORS).',
-'תשובה לא תקינה מהשרת':'Invalid response from the server',
-'השרת החזיר תשובה בלי אודיו':'The server returned a response with no audio',
-'קולות':'voices',
-'רענון':'Refresh',
-
-/* ============================================================
-   תבניות — דורשות שינוי בצד הקורא (ראו i18n-wiring.md).
-   הערכים משתמשים ב-{0},{1} ומקבלים ערכים דרך T(pattern, a, b).
-   ============================================================ */
-'{0} פריטים ממתינים לחזרה':'{0} items due for review',
-'{0} פריטים לחזרה, ואחר כך חומר חדש':'{0} items to review, then new material',
-'{0} מתוך {1} פריטים':'{0} of {1} items',
-'מגבלה: {0}':'Limit: {0}',
-'{0}/{1} פריטים · {2}':'{0}/{1} items \u00b7 {2}',
-'{0} פריטים · {1}':'{0} items \u00b7 {1}',
-'רמה {0} · {1}':'Level {0} \u00b7 {1}',
-'תרגול היום · {0} פריטים':'Today\u2019s practice \u00b7 {0} items',
-'התחלה · {0} פריטים':'Start \u00b7 {0} items',
-'נפתח ב־{0}% ברמה {1}':'Unlocks at {0}% on level {1}',
-'מילים · {0}':'Words \u00b7 {0}',
-'פעלים חריגים · {0}':'Irregular verbs \u00b7 {0}',
-'סה"כ {0} תרגילים בשבועיים · רצף {1} ימים':'{0} exercises in two weeks \u00b7 {1}-day streak',
-'{0} פריטים ממתינים לחזרה. אלגוריתם החזרות מציג כל פריט בדיוק לפני שהוא נשכח — לכן חשוב יותר לתרגל כל יום מעט, מאשר הרבה פעם בשבוע.':'{0} items are due for review. The scheduler shows each item right before it would be forgotten \u2014 so practising a little every day matters more than a lot once a week.',
-'היום {0} פריטים':'{0} items today',
-'רמה {0} · {1} · {2}% שליטה':'Level {0} \u00b7 {1} \u00b7 {2}% mastery',
-'סונכרן · {0} פרופילים':'Synced \u00b7 {0} profiles',
-'{0} קטעי אודיו שמורים.':'{0} audio clips stored.',
-'{0} קולות אנגלית במכשיר · ✦✦ איכות גבוהה, ✦ תקין.':'{0} English voices on this device \u00b7 \u2726\u2726 high quality, \u2726 fine.',
-'עדיין נטענים קולות. אם הרשימה נשארת ריקה — רעננו את הדף.':'Voices are still loading. If the list stays empty, refresh the page.',
-'רענון ({0} קולות)':'Refresh ({0} voices)',
-'למחוק את {0} ואת כל ההתקדמות? אי אפשר לבטל.':'Delete {0} and all their progress? This cannot be undone.',
-'לאפס את כל ההתקדמות של {0}? אי אפשר לבטל.':'Reset all progress for {0}? This cannot be undone.',
-'להתנתק מהמשפחה? הנתונים במכשיר הזה יישארו, והעותק בענן לא יימחק.':'Leave the family? Data on this device stays, and the cloud copy is not deleted.',
+'מדויק':'Exact',
+'נשמר':'Saved',
+'מקומי':'local',
+'משודרגים':'enhanced',
+'פרופילים':'profiles',
+'פרויקט':'project',
+'נגישות':'Accessibility',
+'למטה':'below',
+'לחצו':'Tap',
+'חפשו':'Search for',
+'חולשות':'weak spots',
+'יעד':'target',
+'צורת העבר':'Past form',
+'פועל':'verb',
+'פועל חריג':'Irregular verb',
+'פועל חריג · צורה שלישית':'Irregular verb · participle',
+'זיהוי מילה':'Word recognition',
+'השלמת חסר':'Fill in the blank',
+'מה הצורה המקוצרת?':'What is the contracted form?',
+'מה הצורה התקנית של':'What is the standard form of',
+'מה המילה שיוצאת?':'What word does it make?',
+'אין קוד. כל אחד יכול להיכנס לפרופיל הזה.':'No code. Anyone can open this profile.',
+'אין קוד. כל אחד שפותח את האפליקציה יכול להיכנס לפרופיל הזה.':'No code. Anyone who opens the app can enter this profile.',
+'לפרופיל הזה יש קוד. הוא נדרש בכניסה.':'This profile has a code. It is required to enter.',
+'לפרופיל שלך יש קוד. הוא נדרש בכל כניסה.':'Your profile has a code. It is required every time.',
+'ארבע ספרות. נדרש בכניסה לפרופיל ולפתיחת בקרת ההורים.':'Four digits. Required to enter the profile and to open parental controls.',
+'בדרך כלל לא צריך לגעת בזה — הרמה עולה מעצמה ב':'You usually do not need this — the level rises on its own at',
+'שליטה. שימושי אם התחלתם נמוך מדי.':'mastery. Useful if you started too low.',
 'הייבוא יחליף את כל הנתונים הקיימים. להמשיך?':'Importing will replace all existing data. Continue?',
-'נקבעה מגבלה של {0} פריטים ליום, וסיימת אותם. התרגול ייפתח שוב מחר.':'A limit of {0} items per day is set, and you have finished them. Practice reopens tomorrow.',
-'הגעת למגבלה היומית':'You have reached the daily limit',
-'בדרך כלל לא צריך לגעת בזה — הרמה עולה מעצמה ב‑{0}% שליטה. שימושי אם התחלתם נמוך מדי.':'You usually don\u2019t need this \u2014 the level rises on its own at {0}% mastery. Useful if you started too low.',
+'כל הנתונים נשמרים במכשיר בלבד. ייצאו קובץ לפני החלפת מכשיר.':'All data is stored on this device only. Export a file before switching devices.',
+'להתנתק מהמשפחה? הנתונים במכשיר הזה יישארו, והעותק בענן לא יימחק.':'Leave the family? Data on this device stays, and the cloud copy is not deleted.',
+'לאפס את כל ההתקדמות של':'Reset all progress for',
+'למחוק את':'Delete',
+'ואת כל ההתקדמות? אי אפשר לבטל.':'and all their progress? This cannot be undone.',
+'הסנכרון נכשל: ':'Sync failed: ',
+'לא הצלחנו לטעון: ':'Could not load: ',
+'לא הצלחנו ליצור את המשפחה. בדקו את החיבור לאינטרנט.':'Could not create the family. Check your internet connection.',
+'יוצר משפחה חדשה…':'Creating a new family…',
+'צריך למלא את שני השדות':'Both fields are required',
+'עברתם את המכסה. בדקו חיוב ומכסות בקונסולה.':'You have exceeded the quota. Check billing and quotas in the console.',
+'הבקשה לא יצאה כלל — אין רשת, או שהדפדפן חסם אותה.':'The request never left — no network, or the browser blocked it.',
+'הבקשה לא יצאה בכלל — אין רשת, או שהדפדפן חסם אותה (CORS).':'The request never left — no network, or the browser blocked it (CORS).',
+'הבקשה נדחתה כלא תקינה — לרוב מפתח שגוי.':'The request was rejected as invalid — usually a wrong key.',
+'ה-API עצמו לא מופעל בפרויקט. פתחו את הקישור שבהודעה למטה ולחצו Enable.':'The API itself is not enabled on the project. Open the link in the message below and press Enable.',
+'השרת החזיר תשובה בלי אודיו':'The server returned a response with no audio',
+'הגדרות ענן':'Cloud settings',
+'הגדרת ענן':'Set up cloud',
+'הגדרת קול ענן':'Set up cloud voice',
+'הגדרות קול הענן':'Cloud voice settings',
+'הגדרת ענן — פעם אחת':'Cloud setup — one time',
+'מופעל.':'On.',
+'מופעל — עוד צריך לבחור קול.':'On — you still need to choose a voice.',
+'כבוי. חוזרים לקול המכשיר.':'Off. Back to the device voice.',
+'כבוי':'Off',
+'פעיל':'On',
+'הכול עובד בצד השרת — הדפדפן חסם את הנגינה. געו במסך פעם אחת ונסו שוב.':'Everything works server-side — the browser blocked playback. Tap the screen once and try again.',
+'הכול עובד. אם עדיין נשמע קול מכשיר, ודאו שהמתג "קול ענן" למעלה דלוק.':'Everything works. If you still hear the device voice, make sure the "Cloud voice" switch above is on.',
+'כל מילה נשלפת מהשרת פעם אחת ואז נשמרת במכשיר — הנגינה מיידית, ועובדת גם בלי אינטרנט. זה גם מה ששומר את העלות אפסית.':'Each word is fetched from the server once and then cached on the device — playback is instant and works offline. That is also what keeps the cost at zero.',
+'קטעי אודיו שמורים.':'audio clips cached.',
+'קול נוירוני אמיתי במקום קול המערכת הדחוס. ספארי לא חושף לדפי אינטרנט את הקולות האיכותיים של המכשיר, ולכן זו הדרך היחידה להגיע לקול טבעי באמת.':'A genuine neural voice instead of the compressed system voice. Safari does not expose the device\'s high-quality voices to web pages, so this is the only way to get a truly natural voice.',
+'תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.':'Preview — data is not saved between refreshes. Once uploaded to a site, saving will work.',
+'סה':'Total',
+'נקבעה מגבלה של':'A limit of',
+'פריטים ליום, וסיימת אותם. התרגול ייפתח שוב מחר.':'items per day was set, and you have finished them. Practice reopens tomorrow.',
+'נפתח ב־':'Unlocks at ',
+'מבנה מומלץ':'Suggested structure',
+'למשל: יעל':'e.g. Maya',
+'למשל: אבא':'e.g. Dad',
+'למשל: לקראת המבחן ביום שלישי':'e.g. for the test on Tuesday',
 
 };
+/* ============================================================
+   שפת ממשק — עברית / אנגלית
+   ------------------------------------------------------------
+   העיקרון: העברית היא שפת המקור בקוד, והמפתח במילון הוא המחרוזת
+   העברית עצמה. יתרונות:
+     • אין צורך להמציא מפתחות ולתחזק אותם
+     • תרגום חסר נופל אוטומטית לעברית במקום להציג מפתח שבור
+     • אפשר לעטוף בהדרגה בלי לשבור כלום
 
+   חשוב: רק טקסט *ממשק* עטוף ב-T(). התוכן הלימודי — תרגומי מילים,
+   משפטי דוגמה, הסברי דקדוק — לעולם לא מתורגם, כי הוא הנלמד עצמו.
+   ============================================================ */
+
+const K_LANG='ladder.lang';
+let UI_LANG = 'he';   /* נקבע מחדש מהמשתמש הפעיל בכל render */
+
+function T(s){
+  if(UI_LANG!=='en') return s;
+  const v = EN_UI[s];
+  return v===undefined ? s : v;
+}
+
+/* החלת השפה על המסמך: כיוון, שפה, ומחלקה שמאפשרת כללי CSS ייעודיים.
+   כל ה-CSS כבר כתוב בתכונות לוגיות (inset-inline-start וכו'), ולכן
+   היפוך הכיוון עובד בלי כללים כפולים.                              */
+function applyLang(){
+  const u = (typeof me==='function') ? me() : null;
+  UI_LANG = (u && u.settings && u.settings.lang)
+            ? u.settings.lang
+            : (typeof Store!=='undefined' ? Store.get(K_LANG,'he') : 'he');
+  const html=document.documentElement;
+  html.setAttribute('lang', UI_LANG==='en' ? 'en' : 'he');
+  html.setAttribute('dir',  UI_LANG==='en' ? 'ltr' : 'rtl');
+  html.dataset.uilang = UI_LANG;
+}
+
+/* עוזר לתוכן עברי כשהממשק באנגלית: מבודד את הכיוון כדי שפיסוק
+   לא יקפוץ לצד הלא נכון. משמש בתרגומי מילים בתוך ממשק LTR.      */
+const heSpan = s => `<span class="hetext">${esc(s)}</span>`;
 /* ============================================================
    DATA — מאגר התוכן. הכל כאן, קל להרחבה.
    פורמט מילה:  en|he|ipa|pos|משפט דוגמה|תרגום המשפט
@@ -4482,8 +4405,6 @@ const Store = (()=>{
   };
 })();
 
-/* שמות המפתחות והנתיב בענן נשארים 'ladder' למרות שינוי השם — הם
-   מזהים פנימיים, ושינוי שלהם היה מנתק כל מכשיר קיים מהנתונים שלו. */
 const K_USERS='ladder.users', K_CUR='ladder.current';
 const today = ()=> new Date().toISOString().slice(0,10);
 const dayNum = ()=> Math.floor(Date.now()/864e5);
@@ -4496,7 +4417,7 @@ function normalise(u){
   u.code = u.code||null; u.role = u.role||'learner'; u.task = u.task||null;
   u.ctrl = Object.assign({daily:0,cap:0,lockLevel:false,lockData:false,mic:true,modes:null}, u.ctrl||{});
   u.lv=u.lv||0; u.xp=u.xp||0; u.streak=u.streak||0;
-  u.settings=Object.assign({tts:true,autoSpeak:true,speed:.95,pitch:1,voice:null,theme:'auto',size:'m'}, u.settings||{});
+  u.settings=Object.assign({tts:true,autoSpeak:true,speed:.95,pitch:1,voice:null,theme:'auto',size:'m',lang:'he'}, u.settings||{});
   return u;
 }
 USERS.forEach(normalise);
@@ -4520,7 +4441,7 @@ function newUser(name, emoji, role, lv){
     task:null,                 // משימה שהוקצתה על ידי הורה או מורה
     log:[],                    // {d, n, ok, ms, min}
     mastered:{},               // lvId -> אחוז
-    settings:{tts:true, autoSpeak:true, speed:.95, pitch:1, voice:null, theme:'auto', size:'m'}
+    settings:{tts:true, autoSpeak:true, speed:.95, pitch:1, voice:null, theme:'auto', size:'m', lang:'he'}
   };
   USERS.push(normalise(u)); saveUsers(); return u;
 }
@@ -4843,13 +4764,26 @@ function sayDevice(text, rate){
    לקול המכשיר, כדי שתרגיל האזנה לעולם לא יישאר שקט.                 */
 function say(text, rate){
   if(!text) return false;
+  /* כל בקשה חדשה מבטלת את הקודמת — גם בקול המכשיר וגם בענן */
+  const tok = (typeof sayToken==='function') ? sayToken() : 0;
   if(typeof ttsReady==='function' && ttsReady()){
     if(window.speechSynthesis){ try{ speechSynthesis.cancel(); }catch(e){} }
-    sayCloud(text, rate).catch(()=>{ sayDevice(text, rate); });
+    sayCloud(text, rate, tok).catch(()=>{
+      /* נופלים לקול המכשיר רק אם זו עדיין השאלה הנוכחית */
+      if(typeof sayCurrent!=='function' || sayCurrent(tok)) sayDevice(text, rate);
+    });
     return true;
   }
   if(typeof stopAudio==='function') stopAudio();
   return sayDevice(text, rate);
+}
+
+/* עצירה מוחלטת של כל אודיו: מבטלת גם בקשות ענן שעדיין בדרך,
+   כי הטוקן שלהן כבר לא יהיה העדכני.                            */
+function stopAllAudio(){
+  if(typeof sayToken==='function') sayToken();
+  if(typeof stopAudio==='function') stopAudio();
+  if(window.speechSynthesis){ try{ speechSynthesis.cancel(); }catch(e){} }
 }
 
 /* --- קודי כניסה ובקרת הורים --- */
@@ -4930,7 +4864,7 @@ const ICONS={
 };
 const svg = n => `<svg viewBox="0 0 24 24">${ICONS[n]}</svg>`;
 
-function cefrPill(lv){ return `<span class="pill">${esc(T(LEVELS[lv].cefr))}</span>`; }
+function cefrPill(lv){ return `<span class="pill">${esc(LEVELS[lv].cefr)}</span>`; }
 function toast(t){ const x=el(`<div class="toast">${esc(t)}</div>`); document.body.appendChild(x); setTimeout(()=>x.remove(),1900); }
 
 /* ---------- ערכת נושא וגודל טקסט ----------
@@ -5045,7 +4979,7 @@ function askQuit(then){
     <button class="btn" id="stay">${T('להמשיך לתרגל')}</button>
     <button class="btn ghost" style="margin-top:8px" id="quit">${T('יציאה')}</button>`, sh=>{
     sh.querySelector('#stay').onclick=closeSheet;
-    sh.querySelector('#quit').onclick=()=>{ closeSheet(); clearInterval(TICK); stopListening(); then(); };
+    sh.querySelector('#quit').onclick=()=>{ closeSheet(); clearInterval(TICK); stopListening(); stopAllAudio(); then(); };
   });
 }
 
@@ -5054,11 +4988,11 @@ function drawTop(){
   if(TAB==='practice' && S) return $('#topbar').classList.add('hide');
   $('#topbar').classList.remove('hide');
   $('#topbar').innerHTML = u
-   ? `<div class="wordmark">Be<i>E</i>nglish</div><div class="spacer"></div>
+   ? `<div class="wordmark">Ladd<i>e</i>r</div><div class="spacer"></div>
       ${u.streak?`<span class="chip flame">${u.streak}🔥</span>`:''}
       <span class="chip">L${u.lv}</span>
       <button class="avatar" onclick="go('family')" aria-label="${T('משפחה')}">${u.emoji}</button>`
-   : `<div class="wordmark">Be<i>E</i>nglish</div>`;
+   : `<div class="wordmark">Ladd<i>e</i>r</div>`;
 }
 function drawNav(){
   const t=(k,n,i)=>`<button class="${TAB===k?'on':''}" onclick="go('${k}')">${svg(i)}<span>${n}</span></button>`;
@@ -5072,7 +5006,7 @@ function vWelcome(){
   $('#topbar').classList.add('hide'); $('#topbar').innerHTML='';
   $('#screen').style.padding='0';
   $('#screen').innerHTML=`<div class="welcome">
-    <div class="mark">Be<i>E</i>nglish</div>
+    <div class="mark">Ladd<i>e</i>r</div>
     <p class="tagline">${T('אנגלית מאפס עד שטף, בקצב של כל אחד במשפחה בנפרד.')}</p>
     <div class="steps">
       <div class="step"><span class="k">01</span><div><b>${T('כל אחד והסולם שלו')}</b>
@@ -5084,24 +5018,9 @@ function vWelcome(){
       <div class="step"><span class="k">04</span><div><b>${T('עשר דקות ביום מנצחות שעה בשבוע')}</b>
         <span>${T('המערכת מציפה כל פריט בדיוק לפני שהוא נשכח. רצף יומי שווה יותר מכל מרתון.')}</span></div></div>
     </div>
-    ${cloudReady()?`
-    <div class="card" style="margin-top:26px;border-color:var(--brand)">
-      <b>${T('המכשיר מחובר למשפחה')}</b>
-      <div class="muted" style="margin-top:4px"><span class="en">${esc(CFG.family)}</span></div>
-      <div class="sub" style="margin-top:6px">${T('עדיין לא הגיעו פרופילים מהענן. אל תיצרו לומד חדש לפני שתנסו לסנכרן — אחרת ייווצר פרופיל כפול.')}</div>
-      <button class="btn sm" style="width:100%;margin-top:11px" id="wsync">${T('סנכרון עכשיו')}</button>
-      <button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="cloudSheet()">${T('החלפת קוד משפחה')}</button>
-    </div>
-    <button class="btn ghost" style="margin-top:12px" onclick="addUser()">${T('יצירת לומד חדש')}</button>`
-    :`
     <button class="btn" style="margin-top:28px" onclick="addUser()">${T('יצירת הלומד הראשון')}</button>
-    <button class="btn ghost" style="margin-top:9px" onclick="cloudSheet()">${T('כבר יש קוד משפחה? התחברות')}</button>`}
+    <button class="btn ghost" style="margin-top:9px" onclick="cloudSheet()">${T('כבר יש קוד משפחה? התחברות')}</button>
   </div>`;
-  if($('#wsync')) $('#wsync').onclick=async ()=>{
-    toast(T('מתחבר…'));
-    await cloudSync();
-    render();   /* אם הגיעו פרופילים — הרשימה תופיע במקום מסך הפתיחה */
-  };
 }
 
 /* ---------- בחירת לומד ---------- */
@@ -5132,8 +5051,8 @@ function addUser(asParent){
     <div class="field"><label>${T('אווטאר')}</label><div class="emojipick" id="ep"></div></div>
     <div class="field"><label>${T('גודל טקסט')}</label><div class="seg" id="sz">
       <button data-v="m" class="on">${T('רגיל')}</button><button data-v="l">${T('גדול')}</button><button data-v="xl">${T('ענק')}</button></div></div>
-    <div class="field"><label>${T('רמת פתיחה')}</label><select id="lv">${LEVELS.map(l=>`<option value="${l.id}">${l.id} · ${T(l.nm)} (${T(l.cefr)})</option>`).join('')}</select>
-      <p class="muted" style="margin-top:6px">${T('לא בטוחים? התחילו מ‑0. אפשר לשנות בכל רגע.')}</p></div>
+    <div class="field"><label>${T('רמת פתיחה')}</label><select id="lv">${LEVELS.map(l=>`<option value="${l.id}">${l.id} · ${T(l.nm)} (${l.cefr})</option>`).join('')}</select>
+      <p class="muted" style="margin-top:6px">${T('לא בטוחים? התחילו מ')}‑0. ${T('אפשר לשנות בכל רגע.')}</p></div>
     <div class="ctrl" style="border:0"><div class="tx"><b>${T('קוד כניסה')}</b>
       <span>${T('ארבע ספרות. נדרש בכניסה לפרופיל ולפתיחת בקרת ההורים.')}</span></div>
       <button class="sw ${asParent?'on':''}" id="wantcode"></button></div>
@@ -5153,7 +5072,7 @@ function addUser(asParent){
     sh.querySelector('#ok').onclick=()=>{
       const n=sh.querySelector('#nm').value.trim(); if(!n){toast(T('צריך שם'));return;}
       const u=newUser(n,em,role,+sh.querySelector('#lv').value);
-      u.settings.size=size; u.settings.lang=UI_LANG; saveUsers();
+      u.settings.size=size; saveUsers();
       CUR=u.id; UNLOCKED[u.id]=1; Store.set(K_CUR,CUR); closeSheet(); TAB='home';
       $('#screen').style.padding=''; $('#topbar').classList.remove('hide');
       if(wantCode) setCode(u); else render();
@@ -5165,8 +5084,8 @@ function addUser(asParent){
 function vHome(s){
   const u=me(), a=analyse(u), pct=levelPct(u,u.lv);
   const climb = Math.round(((u.lv + pct/100) / LEVELS.length)*100);
-  const headline = a.dueNow>=8 ? T('{0} פריטים ממתינים לחזרה', a.dueNow)
-                 : a.dueNow>0  ? T('{0} פריטים לחזרה, ואחר כך חומר חדש', a.dueNow)
+  const headline = a.dueNow>=8 ? `${a.dueNow} ${T('פריטים ממתינים לחזרה')}`
+                 : a.dueNow>0  ? `${a.dueNow} ${T('פריטים לחזרה, ואחר כך חומר חדש')}`
                  : T('הכול מעודכן — היום לומדים חדש');
   s.innerHTML=`
    <h1>${esc(u.name)}</h1>
@@ -5176,12 +5095,12 @@ function vHome(s){
    ${taskCard(u)}
    <div class="card" style="margin-top:16px;border-color:var(--brand)">
      <div style="display:flex;align-items:baseline;gap:8px">
-       <b style="font-size:1.05rem">${T('רמה ')}${u.lv} · ${T(LEVELS[u.lv].nm)}</b> ${cefrPill(u.lv)}
+       <b style="font-size:1.05rem">${T('רמה')} ${u.lv} · ${T(LEVELS[u.lv].nm)}</b> ${cefrPill(u.lv)}
        <span class="spacer"></span><span class="badge">${pct}%</span>
      </div>
      <div class="progline" style="margin-top:9px"><i style="width:${pct}%"></i></div>
      <p class="muted" style="margin-top:8px">${T(LEVELS[u.lv].dsc)}</p>
-     <button class="btn" style="margin-top:13px" onclick="startSession('mix',14)">${T('תרגול היום · {0} פריטים', 14)}</button>
+     <button class="btn" style="margin-top:13px" onclick="startSession('mix',14)">${T('תרגול היום')} · 14 ${T('פריטים')}</button>
      <div class="row" style="margin-top:8px">
        <button class="btn ghost sm" style="width:100%" onclick="startSession('weak',10)">${T('חיזוק חולשות')}</button>
        <button class="btn ghost sm" style="width:100%" onclick="startSession('sound',10)">${T('אוזן והגייה')}</button>
@@ -5192,7 +5111,7 @@ function vHome(s){
    <div class="grid3" style="margin-top:14px">
      <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה')}</div></div>
      <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}<span style="font-size:.6em">%</span></div><div class="l">${T('דיוק')}</div></div>
-     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1):T('—')}<span style="font-size:.6em">s</span></div><div class="l">${T('זמן שליפה')}</div></div>
+     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1):'—'}<span style="font-size:.6em">s</span></div><div class="l">${T('זמן שליפה')}</div></div>
    </div>
 
    <div class="sec-title">${T('הסולם')}</div>
@@ -5204,9 +5123,9 @@ function vHome(s){
     const b=el(`<button class="rung ${cls}">
       <div class="fillbar" style="width:${l.id<=u.lv?p:0}%"></div>
       <div class="lv">${l.id}</div>
-      <div style="flex:1;min-width:0"><div class="nm">${T(l.nm)} <span class="badge" style="font-weight:600">${T(l.cefr)}</span></div><div class="dsc">${T(l.dsc)}</div></div>
-      <div class="pct">${l.id<=u.lv?p+'%':T('—')}</div></button>`);
-    b.onclick=()=> l.id<=u.lv ? levelSheet(l) : toast(T('נפתח ב־{0}% ברמה {1}', LEVELS[u.lv].need, u.lv));
+      <div style="flex:1;min-width:0"><div class="nm">${T(l.nm)} <span class="badge" style="font-weight:600">${l.cefr}</span></div><div class="dsc">${T(l.dsc)}</div></div>
+      <div class="pct">${l.id<=u.lv?p+'%':'—'}</div></button>`);
+    b.onclick=()=> l.id<=u.lv ? levelSheet(l) : toast(`${T('נפתח ב־')}${LEVELS[u.lv].need}% ${T('ברמה')} ${u.lv}`);
     ld.appendChild(b);
   });
 }
@@ -5219,7 +5138,7 @@ function goalCard(u){
       <circle cx="23" cy="23" r="20" stroke="var(--${p>=1?'good':'brand'})" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-p)}"/>
     </svg>
     <div style="flex:1;min-width:0"><b>${p>=1?T('היעד היומי הושלם'):T('היעד היומי')}</b>
-      <div class="muted">${T('{0} מתוך {1} פריטים', dn, u.ctrl.daily)}${u.ctrl.cap?` · ${T('מגבלה: {0}', u.ctrl.cap)}`:''}</div></div>
+      <div class="muted">${dn} ${T('מתוך')} ${u.ctrl.daily} ${T('פריטים')}${u.ctrl.cap?` · ${T('מגבלה')}: ${u.ctrl.cap}`:''}</div></div>
   </div></div>`;
 }
 function taskCard(u){
@@ -5227,8 +5146,8 @@ function taskCard(u){
   const t=u.task, p=Math.min(100,(t.prog/t.size)*100);
   return `<div class="card" style="margin-top:14px;padding:0;border:0;box-shadow:none"><div class="task">
     <div class="lbl">${T('משימה')}</div>
-    <b style="display:block;margin-top:2px">${esc(t.note||T(t.label))}</b>
-    <div class="sub" style="margin-top:2px">${t.prog}/${t.size} ${T('פריטים')} · ${esc(T(t.label))}</div>
+    <b style="display:block;margin-top:2px">${esc(t.note||t.label)}</b>
+    <div class="sub" style="margin-top:2px">${t.prog}/${t.size} ${T('פריטים')} · ${esc(t.label)}</div>
     <div class="progline" style="margin-top:9px"><i style="width:${p}%"></i></div>
     <button class="btn sm" style="width:100%;margin-top:11px" onclick="startSession('${t.mode}',${Math.max(4,t.size-t.prog)},null,1)">${T('המשך המשימה')}</button>
   </div></div>`;
@@ -5236,10 +5155,10 @@ function taskCard(u){
 function levelSheet(l){
   const u=me();
   const ws=WORDS.filter(w=>w.lv===l.id), gs=GRAMMAR.filter(g=>g.lv===l.id);
-  const cefrNote = l.cefr==='טרום-קריאה'
+  const cefrNote = l.cefr===T('טרום-קריאה')
     ? T('שלב טרום-קריאה — אין לו מקבילה בסולם CEFR, שמניח קריאה בסיסית.')
-    : T('הערכה מקורבת לפי תוכן הרמה — שימושית לכיוון כללי בבחירת ספרי קריאה, לא תחליף למבחן מיון רשמי.');
-  sheet(`<h2>${T('רמה ')}${l.id} · ${T(l.nm)}</h2><p class="sub">${T(l.cefr)} · ${T(l.dsc)}</p>
+    : `${T('הערכה מקורבת לפי תוכן הרמה — שימושית לכיוון כללי בבחירת ספרי קריאה, לא תחליף למבחן מיון רשמי.')}`;
+  sheet(`<h2>${T('רמה')} ${l.id} · ${T(l.nm)}</h2><p class="sub">${l.cefr} · ${T(l.dsc)}</p>
     <p class="muted" style="margin-top:2px">${cefrNote}</p>
     <div class="row" style="margin-top:16px">
       <button class="btn sm" style="width:100%" onclick="closeSheet();startSession('mix',12,${l.id})">${T('תרגול הרמה')}</button>
@@ -5250,7 +5169,7 @@ function levelSheet(l){
     ${IRREG.some(v=>v.lv===l.id)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="closeSheet();irregSheet(${l.id})">${T('טבלת הפעלים החריגים')}</button>`:''}
     ${gs.length?`<div class="sec-title">${T('חוקים')}</div>${gs.map(g=>`<div class="card"><b>${esc(g.ti)}</b><div class="sub" style="margin-top:5px">${esc(g.he)}</div>
       <div class="ruleblk">${g.ex.map(e=>`<span class="ex en">${esc(e.en)}</span><span class="muted">${esc(e.he)}</span>`).join('')}</div></div>`).join('')}`:''}
-    ${ws.length?`<div class="sec-title">${T('מילים · {0}', ws.length)}</div><div class="card">${ws.map(w=>{
+    ${ws.length?`<div class="sec-title">${T('מילים')} · ${ws.length}</div><div class="card">${ws.map(w=>{
       const st=strength(u.srs[w.id+'#r']);
       const col=st>=.7?'var(--good)':st>0?'var(--gold)':'var(--line)';
       return `<div class="wordrow"><span class="dot" style="background:${col}"></span>
@@ -5259,54 +5178,54 @@ function levelSheet(l){
 
 /* ---------- מסך תרגול ---------- */
 const MODES=[
- ['mix',  14,'תרגול מעורב','חזרות שהגיע זמנן יחד עם חומר חדש, בשזירה בין סוגי תרגיל. המצב היעיל ביותר לזיכרון ארוך טווח.'],
- ['weak', 12,'חיזוק חולשות','רק הפריטים שנכשלת בהם או ששולף אותם לאט מדי.'],
- ['sound',12,'אוזן והגייה','זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. השריר שחסר לרוב דוברי העברית.'],
- ['letters',12,'אותיות','זיהוי האותיות בלבד — בשמיעה, בהתאמת גדולה־קטנה ובשם. בלי קריאת מילים, מתאים מגיל 4.'],
- ['tenses',12,'חמשת הזמנים','הטיית פעלים בחמשת הזמנים שמכסים כמעט את כל האנגלית המדוברת. זה מה שנשבר בדיבור — לא הידיעה, אלא המהירות.'],
- ['irregular',12,'פעלים חריגים','מאה פעלים בשלוש צורות, מקובצים ל‑12 תבניות הטיה. התבנית היא הקיצור.'],
- ['rules',12,'דקדוק ותחביר','חוקים, השלמת חסר, בניית משפט, הגהה וקיצורים.'],
- ['talk', 8, 'אימון שיחה','שאלות פתוחות. עונים בקול או בכתב ומשווים לתשובת מודל.'],
- ['mix',  30,'מרתון','שלושים פריטים ברצף, לתרגול עומק.']
+ ['mix',  14,T('תרגול מעורב'),T('חזרות שהגיע זמנן יחד עם חומר חדש, בשזירה בין סוגי תרגיל. המצב היעיל ביותר לזיכרון ארוך טווח.')],
+ ['weak', 12,T('חיזוק חולשות'),T('רק הפריטים שנכשלת בהם או ששולף אותם לאט מדי.')],
+ ['sound',12,T('אוזן והגייה'),T('זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. השריר שחסר לרוב דוברי העברית.')],
+ ['letters',12,T('אותיות'),T('זיהוי האותיות בלבד — בשמיעה, בהתאמת גדולה־קטנה ובשם. בלי קריאת מילים, מתאים מגיל 4.')],
+ ['tenses',12,T('חמשת הזמנים'),T('הטיית פעלים בחמשת הזמנים שמכסים כמעט את כל האנגלית המדוברת. זה מה שנשבר בדיבור — לא הידיעה, אלא המהירות.')],
+ ['irregular',12,T('פעלים חריגים'),T('מאה פעלים בשלוש צורות, מקובצים ל‑12 תבניות הטיה. התבנית היא הקיצור.')],
+ ['rules',12,T('דקדוק ותחביר'),T('חוקים, השלמת חסר, בניית משפט, הגהה וקיצורים.')],
+ ['talk', 8, T('אימון שיחה'),T('שאלות פתוחות. עונים בקול או בכתב ומשווים לתשובת מודל.')],
+ ['mix',  30,T('מרתון'),T('שלושים פריטים ברצף, לתרגול עומק.')]
 ];
 function vPractice(s){
   if(S) return drawQ(s);
   const allowed=MODES.filter(([m])=>modeAllowed(me(),m));
   s.innerHTML=`<h1>${T('תרגול')}</h1><p class="sub">${allowed.length<MODES.length?T('חלק מהמצבים נעולים על ידי ההורה.'):T('כל מצב מאמן שריר אחר.')}</p>
     <div class="modegrid" style="margin-top:16px">${allowed.map(([m,n,ti,d],i)=>
-      `<div class="card"><b style="font-size:1rem">${T(ti)}</b><div class="sub" style="margin-top:4px">${T(d)}</div>
-       <button class="btn ${i?'ghost ':''}sm" style="margin-top:11px;width:100%" onclick="startSession('${m}',${n})">${T('התחלה · {0} פריטים', n)}</button></div>`).join('')}</div>`;
+      `<div class="card"><b style="font-size:1rem">${ti}</b><div class="sub" style="margin-top:4px">${d}</div>
+       <button class="btn ${i?'ghost ':''}sm" style="margin-top:11px;width:100%" onclick="startSession('${m}',${n})">${T('התחלה')} · ${n} ${T('פריטים')}</button></div>`).join('')}</div>`;
 }
 
 /* ---------- הסבר ראשון לכל סוג תרגיל ---------- */
 const TYPE_INFO={
- 'letter-hear':['👂','זיהוי אות בשמיעה','שומעים שם של אות ובוחרים אותה מבין ארבע. אפשר להקיש על הרמקול ולשמוע שוב, כמה פעמים שצריך.'],
- 'letter-case':['Aa','גדולה וקטנה','כל אות באנגלית נראית אחרת בגדולה ובקטנה. כאן מתאימים ביניהן.'],
- 'letter-name':['🔡','שם האות','רואים אות, ומקישים על הרמקולים עד שמוצאים את זה שנשמע נכון. הקשה ראשונה משמיעה, שנייה בוחרת.'],
- letter:['🔤','אות ומילה','מוצגת אות באנגלית, גדולה וקטנה. בחרו את המילה שמתחילה בצליל שלה. אפשר להאזין בכל שלב.'],
- phonics:['🧩','חיבור צלילים','המילה מפורקת לצלילים. חברו אותם בראש ובחרו איזו מילה יוצאת.'],
- 'w-recog':['👁','זיהוי מילה','מילה באנגלית — בחרו את הפירוש בעברית. זה הכיוון הקל, והוא רק ההתחלה.'],
- 'w-recall':['✍️','שליפת מילה','מילה בעברית — כתבו אותה באנגלית מהראש. זה הכיוון שבאמת בונה דיבור.'],
- 'w-listen':['👂','הבנת הנשמע','שומעים מילה וכותבים אותה. אפשר להאט את ההשמעה כמה פעמים שצריך.'],
- 'w-speak':['🎙','הגייה','אומרים את המילה בקול והמכשיר מקשיב. אין ציונים על מבטא — רק על בהירות.'],
- build:['🧱','בניית משפט','משפט בעברית ואריחי מילים באנגלית. סדרו אותם לפי הסדר הנכון: נושא, פועל, מושא.'],
- dictate:['📝','הכתבה','שומעים משפט שלם וכותבים אותו. התרגיל הכי קרוב להבנת דיבור אמיתי.'],
- cloze:['⬜','השלמת חסר','משפט עם חור אחד. בחרו את המילה שמשלימה אותו נכון.'],
- proof:['🔍','הגהה','במשפט יש טעות אחת. הקישו על המילה השגויה — ותקבלו את הכלל שמאחוריה.'],
- rule:['📐','חוק דקדוק','קוראים את הכלל, ומיד מתרגמים משפט שמשתמש בו. קריאה לבד לא מספיקה.'],
- talk:['💬','שיחה','שאלה פתוחה. ענו בקול או בכתב, ואז השוו לתשובת מודל וקראו אותה בקול.'],
- 'mp-hear':['🎧','אבחנת צלילים','שתי מילים שנשמעות כמעט זהות. שומעים אחת מהן וצריך לזהות איזו. זה מאמן את האוזן.'],
- 'mp-say':['🗣','הגייה מדויקת','אומרים מילה שיש לה תאומה מבלבלת. המערכת תגיד אם יצאה לכם התאומה במקום.'],
- conjug:['🕐','הטיית זמן','נתון פועל בסיס, גוף וזמן — כתבו את הצורה הנכונה. אפשר לכתוב רק את הפועל או את המשפט המלא.'],
- 'irr-past':['⏮','פועל חריג · עבר','הפועל בצורת הבסיס — כתבו את צורת העבר. בסוף תראו את שלוש הצורות ואת התבנית שאליה הפועל שייך.'],
- 'irr-pp':['✅','פועל חריג · צורה שלישית','הצורה שבאה אחרי have / has / was. זו הצורה שנחוצה ל‑Present Perfect ולסביל.'],
- contract:['⚡','קיצורים','הצורה המלאה מול הצורה המקוצרת. בדיבור טבעי כמעט תמיד משתמשים בקצרה.'],
- spoken:['🔊','דיבור מהיר','ככה אנגלית באמת נשמעת כשמדברים מהר. תפקידכם לפענח מה נאמר.']
+ 'letter-hear':['👂',T('זיהוי אות בשמיעה'),T('שומעים שם של אות ובוחרים אותה מבין ארבע. אפשר להקיש על הרמקול ולשמוע שוב, כמה פעמים שצריך.')],
+ 'letter-case':['Aa',T('גדולה וקטנה'),T('כל אות באנגלית נראית אחרת בגדולה ובקטנה. כאן מתאימים ביניהן.')],
+ 'letter-name':['🔡',T('שם האות'),T('רואים אות, ומקישים על הרמקולים עד שמוצאים את זה שנשמע נכון. הקשה ראשונה משמיעה, שנייה בוחרת.')],
+ letter:['🔤',T('אות ומילה'),T('מוצגת אות באנגלית, גדולה וקטנה. בחרו את המילה שמתחילה בצליל שלה. אפשר להאזין בכל שלב.')],
+ phonics:['🧩',T('חיבור צלילים'),T('המילה מפורקת לצלילים. חברו אותם בראש ובחרו איזו מילה יוצאת.')],
+ 'w-recog':['👁',T('זיהוי מילה'),T('מילה באנגלית — בחרו את הפירוש בעברית. זה הכיוון הקל, והוא רק ההתחלה.')],
+ 'w-recall':['✍️',T('שליפת מילה'),T('מילה בעברית — כתבו אותה באנגלית מהראש. זה הכיוון שבאמת בונה דיבור.')],
+ 'w-listen':['👂',T('הבנת הנשמע'),T('שומעים מילה וכותבים אותה. אפשר להאט את ההשמעה כמה פעמים שצריך.')],
+ 'w-speak':['🎙',T('הגייה'),T('אומרים את המילה בקול והמכשיר מקשיב. אין ציונים על מבטא — רק על בהירות.')],
+ build:['🧱',T('בניית משפט'),T('משפט בעברית ואריחי מילים באנגלית. סדרו אותם לפי הסדר הנכון: נושא, פועל, מושא.')],
+ dictate:['📝',T('הכתבה'),T('שומעים משפט שלם וכותבים אותו. התרגיל הכי קרוב להבנת דיבור אמיתי.')],
+ cloze:['⬜',T('השלמת חסר'),T('משפט עם חור אחד. בחרו את המילה שמשלימה אותו נכון.')],
+ proof:['🔍',T('הגהה'),T('במשפט יש טעות אחת. הקישו על המילה השגויה — ותקבלו את הכלל שמאחוריה.')],
+ rule:['📐',T('חוק דקדוק'),T('קוראים את הכלל, ומיד מתרגמים משפט שמשתמש בו. קריאה לבד לא מספיקה.')],
+ talk:['💬',T('שיחה'),T('שאלה פתוחה. ענו בקול או בכתב, ואז השוו לתשובת מודל וקראו אותה בקול.')],
+ 'mp-hear':['🎧',T('אבחנת צלילים'),T('שתי מילים שנשמעות כמעט זהות. שומעים אחת מהן וצריך לזהות איזו. זה מאמן את האוזן.')],
+ 'mp-say':['🗣',T('הגייה מדויקת'),T('אומרים מילה שיש לה תאומה מבלבלת. המערכת תגיד אם יצאה לכם התאומה במקום.')],
+ conjug:['🕐',T('הטיית זמן'),T('נתון פועל בסיס, גוף וזמן — כתבו את הצורה הנכונה. אפשר לכתוב רק את הפועל או את המשפט המלא.')],
+ 'irr-past':['⏮',T('פועל חריג · עבר'),T('הפועל בצורת הבסיס — כתבו את צורת העבר. בסוף תראו את שלוש הצורות ואת התבנית שאליה הפועל שייך.')],
+ 'irr-pp':['✅',T('פועל חריג · צורה שלישית'),T('הצורה שבאה אחרי have / has / was. זו הצורה שנחוצה ל‑Present Perfect ולסביל.')],
+ contract:['⚡',T('קיצורים'),T('הצורה המלאה מול הצורה המקוצרת. בדיבור טבעי כמעט תמיד משתמשים בקצרה.')],
+ spoken:['🔊',T('דיבור מהיר'),T('ככה אנגלית באמת נשמעת כשמדברים מהר. תפקידכם לפענח מה נאמר.')]
 };
 function showIntro(s, it){
-  const [ic,ti,tx]=TYPE_INFO[it.t]||['✳️',T(TYPE_HE[it.t]||'תרגיל'),''];
+  const [ic,ti,tx]=TYPE_INFO[it.t]||['✳️',T(TYPE_HE[it.t])||T('תרגיל'),''];
   s.innerHTML=`<div style="padding-top:34px"><div class="intro">
-    <div class="ic">${ic}</div><h2>${T(ti)}</h2><p>${T(tx)}</p></div>
+    <div class="ic">${ic}</div><h2>${ti}</h2><p>${tx}</p></div>
     <p class="muted" style="text-align:center;margin-top:14px">${T('ההסבר הזה מופיע פעם אחת בלבד')}</p></div>`;
   setAction(`<button class="btn" id="gogo">${T('הבנתי, מתחילים')}</button>`);
   $('#gogo').onclick=()=>{ const u=me(); u.seenTypes[it.t]=1; saveUsers(); drawQ(s); };
@@ -5318,7 +5237,7 @@ function startSession(mode, size, lv, fromTask){
   if(!fromTask && !modeAllowed(u,mode)) return toast(T('המצב הזה נעול על ידי ההורה'));
   const left=capLeft(u);
   if(left<=0) return sheet(`<h2>${T('הגעת למגבלה היומית')}</h2>
-    <p class="sub">${T('נקבעה מגבלה של {0} פריטים ליום, וסיימת אותם. התרגול ייפתח שוב מחר.', u.ctrl.cap)}</p>
+    <p class="sub">${T('נקבעה מגבלה של')} ${u.ctrl.cap} ${T('פריטים ליום, וסיימת אותם. התרגול ייפתח שוב מחר.')}</p>
     <button class="btn" style="margin-top:16px" onclick="closeSheet()">${T('הבנתי')}</button>`);
   size=Math.min(size,left);
   if(lv!=null) u.lv=lv;
@@ -5326,7 +5245,6 @@ function startSession(mode, size, lv, fromTask){
   u.lv=oldLv;
   if(!items.length){ toast(T('אין פריטים זמינים')); return; }
   S={items,i:0,ok:0,msSum:0,mode,size,answered:false,t0:0,hardIds:[],finished:false};
-  prefetchSession(items);   /* מושכים את האודיו ברקע לפני שהוא נדרש */
   TAB='practice'; render();
 }
 
@@ -5359,6 +5277,9 @@ function drawQ(s){
   S.t0=performance.now();
   clearInterval(TICK);
   stopListening();
+  /* מבטלים כל אודיו של השאלה הקודמת, כולל בקשות ענן שעדיין בדרך.
+     בלי זה, קליפ איטי שחוזר מהשרת מתנגן על השאלה החדשה.        */
+  stopAllAudio();
   TICK=setInterval(()=>{
     if(!S||S.answered) return;
     const ms=performance.now()-S.t0, r=ms/target;
@@ -5404,33 +5325,9 @@ function answer(it, correct, target, extraHtml){
   $('#q').lastElementChild.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 function next(){ S.i++; render(); }
-/* ---------- קיצורי מקלדת (מחשב) ----------
-   Enter = בדיקה, Shift = הבא.
-   שתי הגנות חשובות:
-   • בשדה טקסט, ה-input כבר מטפל ב-Enter בעצמו — לא לוחצים פעמיים.
-   • Shift נתפס רק אחרי שנענתה השאלה. בזמן הקלדה הוא משמש לאות
-     גדולה, וכל "I" היה מדלג לשאלה הבאה.                        */
-addEventListener('keydown', e=>{
-  if(TAB!=='practice' || !S || S.finished) return;
-  const inField = /^(INPUT|TEXTAREA|SELECT)$/.test((e.target&&e.target.tagName)||'');
-
-  if(e.key==='Enter'){
-    if(S.answered){ e.preventDefault(); return next(); }
-    if(inField) return;                    /* onkeydown של השדה עושה את העבודה */
-    const chk = document.querySelector('#chk');
-    if(chk){ e.preventDefault(); return chk.click(); }
-    /* בסרגל הפעולה יש גם 'ידעתי' ו'תרגלתי' — Enter לא אמור לסמן
-       שידעת, ולכן רק פעולה שהיא באמת בדיקה מופעלת מהמקלדת.      */
-    if(S.primary && S.primary.label===T('בדיקה')){ e.preventDefault(); S.primary.fn(); }
-    return;
-  }
-
-  if(e.key==='Shift'){
-    if(e.repeat || !S.answered) return;
-    e.preventDefault();
-    const nx = document.querySelector('#nx');
-    if(nx) nx.click(); else next();
-  }
+addEventListener('keydown',e=>{
+  if(e.key!=='Enter'||!S||TAB!=='practice') return;
+  if(S.answered){ e.preventDefault(); next(); }
 });
 
 /* ---------- סיום ---------- */
@@ -5448,12 +5345,12 @@ function drawDone(s){
       <div class="stat"><div class="n">${S.ok}/${n}</div><div class="l">${T('נכונות')}</div></div>
     </div>
     ${u.task&&u.task.done===1?`<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">
-      <b>${T('המשימה הושלמה')}</b><div class="sub" style="margin-top:3px">${esc(u.task.note||T(u.task.label))}</div></div>`:''}
+      <b>${T('המשימה הושלמה')}</b><div class="sub" style="margin-top:3px">${esc(u.task.note||u.task.label)}</div></div>`:''}
     ${promoted?`<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">
-      <b>${T('עלית לרמה ')}${u.lv} · ${T(LEVELS[u.lv].nm)}</b> ${cefrPill(u.lv)}<div class="sub" style="margin-top:3px">${T(LEVELS[u.lv].dsc)}</div></div>`:''}
+      <b>${T('עלית לרמה')} ${u.lv} · ${T(LEVELS[u.lv].nm)}</b> ${cefrPill(u.lv)}<div class="sub" style="margin-top:3px">${T(LEVELS[u.lv].dsc)}</div></div>`:''}
     ${S.hardIds.length?`<div class="sec-title">${T('לחזרה קרובה')}</div><div class="card">${
       S.items.filter(x=>S.hardIds.includes(x.id)).map(x=>{
-        const lbl = x.t.startsWith('w-')?`${x.d.en} ${T('—')} ${x.d.he}` : x.t==='rule'?x.d.ti
+        const lbl = x.t.startsWith('w-')?`${x.d.en} — ${x.d.he}` : x.t==='rule'?x.d.ti
           : (x.d.en||x.d.s||x.d.q||x.d.w||x.d.u||x.d.full||x.d.sp||(x.d.a?x.d.a+' / '+x.d.b:'')||'');
         return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span>
           <span class="w">${esc(lbl)}</span><span class="badge">${T(TYPE_HE[x.t])}</span></div>`;
@@ -5476,7 +5373,7 @@ function mnemLine(en){
   try{
     if(typeof MNEM_BY_WORD==='undefined') return '';
     const m=MNEM_BY_WORD[en];
-    return m ? `<div class="mnem"><b>💡 ${esc(m.key)}</b> ${T('—')} ${esc(m.img)}</div>` : '';
+    return m ? `<div class="mnem"><b>💡 ${esc(m.key)}</b> — ${esc(m.img)}</div>` : '';
   }catch(e){ return ''; }
 }
 
@@ -5544,15 +5441,15 @@ RENDER['w-recall']=(q,it,u,tg)=>{
   const accept=WORDS.filter(w=>w.he===d.he).map(w=>w.en);
   const chk=()=>{ const v=inp.value; const ok=accept.some(a=>near(v,a));
     inp.classList.add(ok?'ok':'no'); say(d.en);
-    const exLine = d.ex?`<br><span class="en">${esc(d.ex)}</span> ${T('—')} ${esc(d.exhe)}`:'';
+    const exLine = d.ex?`<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`:'';
     const alt = accept.filter(a=>a!==d.en);
-    answer(it,ok,tg, ok?`<b class="en">${esc(near(v,d.en)?d.en:accept.find(a=>near(v,a))||d.en)}</b> <span class="ipa">/${d.ipa}/</span>${alt.length?`<br><span class="muted">${T('גם נכון: ')}</span><span class="en">${esc(alt.join(', '))}</span>`:''}${exLine}`
-      :`${T('התשובה: ')}<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${v?`<br>${T('כתבתם: ')}<b class="en">${esc(v)}</b>`:''}${exLine}${mnemLine(d.en)}`); };
+    answer(it,ok,tg, ok?`<b class="en">${esc(near(v,d.en)?d.en:accept.find(a=>near(v,a))||d.en)}</b> <span class="ipa">/${d.ipa}/</span>${alt.length?`<br><span class="muted">${T('גם נכון')}: </span><span class="en">${esc(alt.join(', '))}</span>`:''}${exLine}`
+      :`${T('התשובה')}: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${v?`<br>${T('כתבתם')}: <b class="en">${esc(v)}</b>`:''}${exLine}${mnemLine(d.en)}`); };
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
   $('#chk').onclick=chk;
   S.primary=null; S.revealInline=true;
   S.reveal=()=>{ inp.classList.add('no'); say(d.en); answer(it,false,tg,
-    `${T('התשובה: ')}<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${d.ex?`<br><span class="en">${esc(d.ex)}</span> ${T('—')} ${esc(d.exhe)}`:''}${mnemLine(d.en)}`); };
+    `${T('התשובה')}: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>${d.ex?`<br><span class="en">${esc(d.ex)}</span> — ${esc(d.exhe)}`:''}${mnemLine(d.en)}`); };
   $('#dk').onclick=()=>S.reveal();
 };
 
@@ -5593,8 +5490,8 @@ RENDER['w-speak']=(q,it,u,tg)=>{
     listen(alts=>{
       m.classList.remove('rec');
       const ok=alts.some(a=>near(a,d.en));
-      answer(it,ok,tg, ok?`${T('הגייה טובה: ')}<b class="en">${d.en}</b>`
-        :`${T('שמעתי: ')}<b class="en">${esc(alts[0]||T('—'))}</b><br>${T('המטרה: ')}<b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>`);
+      answer(it,ok,tg, ok?`${T('הגייה טובה')}: <b class="en">${d.en}</b>`
+        :`${T('שמעתי')}: <b class="en">${esc(alts[0]||'—')}</b><br>${T('המטרה')}: <b class="en">${d.en}</b> <span class="ipa">/${d.ipa}/</span>`);
     },()=>{m.classList.remove('rec'); if(!S.answered)$('#st').textContent=T('לא נקלט. נסו שוב או המשיכו.');});
   };
 };
@@ -5617,11 +5514,11 @@ RENDER.build=(q,it,u,tg)=>{
     const ans=chosen.map(c=>c.w).join(' '); const ok=near(ans,d.en.replace(/\.$/,''));
     $('#slot').classList.add(ok?'ok':'no'); say(d.en);
     answer(it,ok,tg, ok?`<span class="en">${esc(d.en)}</span><br>${esc(d.he)}`
-      :`${T('הסדר הנכון: ')}<b class="en">${esc(d.en)}</b><br>${esc(d.he)}<br><span class="muted">${T('זכרו: נושא ← פועל ← מושא.')}</span>`);
+      :`${T('הסדר הנכון')}: <b class="en">${esc(d.en)}</b><br>${esc(d.he)}<br><span class="muted">${T('זכרו: נושא')} ← ${T('פועל')} ← ${T('מושא.')}</span>`);
   };
   S.primary={label:T('בדיקה'),fn:chk};
   S.reveal=()=>{ $('#slot').classList.add('no'); say(d.en); answer(it,false,tg,
-    `${T('הסדר הנכון: ')}<b class="en">${esc(d.en)}</b><br>${esc(d.he)}`); };
+    `${T('הסדר הנכון')}: <b class="en">${esc(d.en)}</b><br>${esc(d.he)}`); };
 };
 
 RENDER.dictate=(q,it,u,tg)=>{
@@ -5634,7 +5531,7 @@ RENDER.dictate=(q,it,u,tg)=>{
     <button class="btn ghost" id="dk">${T('לא יודע')}</button>`;
   say(d.en,.8); const inp=$('#in'); focusInput(inp);
   const chk=()=>{ const ok=near(inp.value,d.en); inp.classList.add(ok?'ok':'no'); say(d.en);
-    answer(it,ok,tg,`<b class="en">${esc(d.en)}</b><br>${esc(d.he)}${ok?'':`<br><span class="muted">${T('כתבתם: ')}</span><span class="en">${esc(inp.value)}</span>`}`); };
+    answer(it,ok,tg,`<b class="en">${esc(d.en)}</b><br>${esc(d.he)}${ok?'':`<br><span class="muted">${T('כתבתם')}: </span><span class="en">${esc(inp.value)}</span>`}`); };
   inp.onkeydown=e=>{if(e.key==='Enter')chk()};
   $('#chk').onclick=chk;
   S.primary=null; S.revealInline=true;
@@ -5705,7 +5602,7 @@ RENDER.talk=(q,it,u,tg)=>{
   q.innerHTML=`<div class="prompt"><div class="kicker">${T('שיחה')}</div>
     <div class="med">${esc(d.q)}</div><div class="small">${esc(d.he)}</div>
     <button class="speakbtn" onclick="say('${jq(d.q)}')">${svg('sound')}</button></div>
-    <div class="ruleblk" style="margin-top:12px">${T('מבנה מומלץ: ')}<span class="ex en">${esc(d.hint)}</span></div>
+    <div class="ruleblk" style="margin-top:12px">${T('מבנה מומלץ')}: <span class="ex en">${esc(d.hint)}</span></div>
     <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
       <p class="muted" id="st" style="margin-top:8px">${(SR&&u.ctrl.mic)?T('ענו בקול — או כתבו למטה'):T('כתבו את התשובה למטה')}</p></div>
     <div class="answerbox"><input id="in" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="your answer"><button class="btn" id="chk">${T('שליחה')}</button></div>
@@ -5714,15 +5611,15 @@ RENDER.talk=(q,it,u,tg)=>{
   const finish=(txt)=>{
     const words=norm(txt).split(' ').filter(Boolean).length;
     const good=words>=3;
-    answer(it,good,tg,`${txt?`<span class="muted">${T('התשובה שלכם: ')}</span><span class="en">${esc(txt)}</span><br>`:''}
-      <span class="muted">${T('תשובת מודל: ')}</span><b class="en">${esc(d.ans)}</b>
+    answer(it,good,tg,`${txt?`<span class="muted">${T('התשובה שלכם')}: </span><span class="en">${esc(txt)}</span><br>`:''}
+      <span class="muted">${T('תשובת מודל')}: </span><b class="en">${esc(d.ans)}</b>
       <br><span class="muted">${good?T('קראו את תשובת המודל בקול פעמיים — זה מקבע את המבנה.'):T('תשובה קצרה מדי. נסו משפט שלם עם נושא ופועל.')}</span>`);
   };
   $('#in').onkeydown=e=>{if(e.key==='Enter')finish(e.target.value.trim())};
   $('#chk').onclick=()=>finish($('#in').value.trim());
   S.primary=null; S.revealInline=true;
   S.reveal=()=>answer(it,false,tg,
-    `<span class="muted">${T('תשובת מודל: ')}</span><b class="en">${esc(d.ans)}</b><br><span class="muted">${T('קראו אותה בקול פעמיים.')}</span>`);
+    `<span class="muted">${T('תשובת מודל')}: </span><b class="en">${esc(d.ans)}</b><br><span class="muted">${T('קראו אותה בקול פעמיים.')}</span>`);
   $('#dk').onclick=()=>S.reveal();
   $('#mic').onclick=()=>{
     if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?T('אין תמיכה בזיהוי דיבור'):T('המיקרופון כבוי בהגדרות ההורים'));
@@ -5743,7 +5640,7 @@ RENDER['mp-hear']=(q,it,u,tg)=>{
     <div class="opts" id="o"></div>`;
   say(target,.85);
   S.reveal=()=>{ say(target,.7); answer(it,false,tg,
-    `${T('נאמר ')}<b class="en">${target}</b> ${T('—')} ${target===d.a?d.heA:d.heB}.<br><b>${esc(d.contrast)}</b> ${T('—')} ${esc(d.tip)}`); };
+    `${T('נאמר')} <b class="en">${target}</b> — ${target===d.a?d.heA:d.heB}.<br><b>${esc(d.contrast)}</b> — ${esc(d.tip)}`); };
   shuffle([d.a,d.b]).forEach(w=>{
     const isA = w===d.a;
     const b=el(`<button class="opt" style="text-align:center">
@@ -5751,9 +5648,9 @@ RENDER['mp-hear']=(q,it,u,tg)=>{
       <span class="hint"><span class="ipa">/${isA?d.ipaA:d.ipaB}/</span> · ${isA?d.heA:d.heB}</span></button>`);
     b.onclick=()=>{ const ok=w===target; b.classList.add(ok?'ok':'no');
       say(d.a+' … '+d.b,.7);
-      answer(it,ok,tg,`${T('נאמר ')}<b class="en">${target}</b> <span class="ipa">/${target===d.a?d.ipaA:d.ipaB}/</span> ${T('—')} ${target===d.a?d.heA:d.heB}.<br>
-        ${T('לא ')}<b class="en">${other}</b> <span class="ipa">/${other===d.a?d.ipaA:d.ipaB}/</span>.<br>
-        <b>${esc(d.contrast)}</b> ${T('—')} ${esc(d.tip)}`); };
+      answer(it,ok,tg,`${T('נאמר')} <b class="en">${target}</b> <span class="ipa">/${target===d.a?d.ipaA:d.ipaB}/</span> — ${target===d.a?d.heA:d.heB}.<br>
+        ${T('לא')} <b class="en">${other}</b> <span class="ipa">/${other===d.a?d.ipaA:d.ipaB}/</span>.<br>
+        <b>${esc(d.contrast)}</b> — ${esc(d.tip)}`); };
     $('#o').appendChild(b);
   });
 };
@@ -5765,7 +5662,7 @@ RENDER['mp-say']=(q,it,u,tg)=>{
   const ipaT = tgt===d.a ? d.ipaA : d.ipaB, heT = tgt===d.a ? d.heA : d.heB;
   q.innerHTML=`<div class="prompt"><div class="kicker">${T('הגייה מדויקת')}</div>
     <div class="med">${tgt}</div><div class="ipa">/${ipaT}/</div><div class="small">${heT}</div>
-    <div class="muted" style="font-size:12.5px">${T('ולא ')}<span class="en">${twin}</span></div>
+    <div class="muted" style="font-size:12.5px">${T('ולא')} <span class="en">${twin}</span></div>
     <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(tgt)}',.7)">${T('שמיעת דוגמה')}</button></div>
     <div class="ruleblk" style="margin-top:12px"><b>${esc(d.contrast)}</b><br>${esc(d.tip)}</div>
     <div style="text-align:center;margin-top:14px"><button class="speakbtn" id="mic">${svg('mic')}</button>
@@ -5774,7 +5671,7 @@ RENDER['mp-say']=(q,it,u,tg)=>{
   say(tgt,.75);
   S.primary={label:T('תרגלתי'),fn:()=>answer(it,true,tg,`<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`)};
   S.reveal=()=>{ say(tgt,.65); answer(it,false,tg,
-    `<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span> ${T('—')} ${heT}<br><b>${esc(d.contrast)}</b> ${T('—')} ${esc(d.tip)}`); };
+    `<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span> — ${heT}<br><b>${esc(d.contrast)}</b> — ${esc(d.tip)}`); };
   $('#mic').onclick=()=>{
     if(!SR||!u.ctrl.mic) return toast(u.ctrl.mic?T('אין תמיכה בזיהוי דיבור'):T('המיקרופון כבוי בהגדרות ההורים'));
     const m=$('#mic'); m.classList.add('rec'); $('#st').textContent=T('מקשיב…');
@@ -5783,10 +5680,10 @@ RENDER['mp-say']=(q,it,u,tg)=>{
       const hitT = alts.some(a=>near(a,tgt));
       const hitW = !hitT && alts.some(a=>near(a,twin));
       answer(it,hitT,tg, hitT
-        ? `${T('מדויק: ')}<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span>`
+        ? `${T('מדויק')}: <b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span>`
         : hitW
-          ? `${T('נשמע כמו ')}<b class="en">${twin}</b>, לא <b class="en">${tgt}</b>.<br><b>${esc(d.contrast)}</b> ${T('—')} ${esc(d.tip)}`
-          : `${T('שמעתי: ')}<b class="en">${esc(alts[0]||T('—'))}</b><br>${T('המטרה: ')}<b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`);
+          ? `${T('נשמע כמו')} <b class="en">${twin}</b>, ${T('לא')} <b class="en">${tgt}</b>.<br><b>${esc(d.contrast)}</b> — ${esc(d.tip)}`
+          : `${T('שמעתי')}: <b class="en">${esc(alts[0]||'—')}</b><br>${T('המטרה')}: <b class="en">${tgt}</b> <span class="ipa">/${ipaT}/</span><br>${esc(d.tip)}`);
     },()=>{ m.classList.remove('rec'); if(!S.answered)$('#st').textContent=T('לא נקלט. נסו שוב או המשיכו.'); });
   };
 };
@@ -5820,15 +5717,15 @@ RENDER.spoken=(q,it,u,tg)=>{
     <button class="speakbtn" onclick="say('${jq(d.ex)}',1.05)">${svg('sound')}</button>
     <div class="med" style="font-size:20px">${esc(d.ex)}</div>
     <button class="btn ghost sm" style="margin:0 auto" onclick="say('${jq(d.ex)}',.6)">${T('האטה')}</button></div>
-    <p class="muted" style="text-align:center;margin:12px 0 0">${T('מה הצורה התקנית של ')}<span class="en">${esc(d.sp)}</span>?</p>
+    <p class="muted" style="text-align:center;margin:12px 0 0">${T('מה הצורה התקנית של')} <span class="en">${esc(d.sp)}</span>?</p>
     <div class="opts" id="o"></div>`;
   say(d.ex,1.05);
   S.reveal=()=>answer(it,false,tg,
-    `<b class="en">${esc(d.sp)}</b> = <b class="en">${esc(d.full)}</b> ${T('—')} ${esc(d.he)}<br><span class="muted">${esc(d.note)}</span>`);
+    `<b class="en">${esc(d.sp)}</b> = <b class="en">${esc(d.full)}</b> — ${esc(d.he)}<br><span class="muted">${esc(d.note)}</span>`);
   opts.forEach(o=>{
     const b=el(`<button class="opt en" style="text-align:center">${esc(o)}</button>`);
     b.onclick=()=>{ const ok=o===d.full; b.classList.add(ok?'ok':'no');
-      answer(it,ok,tg,`<b class="en">${esc(d.sp)}</b> = <b class="en">${esc(d.full)}</b> ${T('—')} ${esc(d.he)}<br>
+      answer(it,ok,tg,`<b class="en">${esc(d.sp)}</b> = <b class="en">${esc(d.full)}</b> — ${esc(d.he)}<br>
         <span class="en">${esc(d.ex)}</span><br><span class="muted">${esc(d.note)}</span>`); };
     $('#o').appendChild(b);
   });
@@ -5839,7 +5736,7 @@ function irrRender(q,it,u,tg,which){
   const want = which==='past' ? d.past : d.pp;
   const label= which==='past' ? T('צורת העבר') : T('הצורה השלישית');
   const help = which==='past' ? T('Past Simple — "אתמול הוא ___"') : T('Past Participle — הצורה שאחרי have / has / was');
-  q.innerHTML=`<div class="prompt"><div class="kicker">${T('פועל חריג · ')}${label}</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('פועל חריג')} · ${label}</div>
     <div class="big">${d.base}</div><div class="ipa">/${d.ipa}/</div>
     <div class="small">${d.he}</div>
     <div class="muted" style="font-size:.78rem">${help}</div></div>
@@ -5847,7 +5744,7 @@ function irrRender(q,it,u,tg,which){
     <button class="btn ghost" id="dk">${T('לא יודע')}</button>`;
   const inp=$('#in'); focusInput(inp);
   const table = `<b class="en">${d.base} · ${d.past} · ${d.pp}</b><br>${esc(d.he)}
-    <br><span class="muted">${T('תבנית: ')}${esc(IRR_GROUPS[d.grp]||'')}</span>`;
+    <br><span class="muted">${T('תבנית')}: ${esc(IRR_GROUPS[d.grp]||'')}</span>`;
   const done=ok=>{ inp.classList.add(ok?'ok':'no'); say(`${d.base}, ${d.past}, ${d.pp}`,.8);
     answer(it,ok,tg,table); };
   /* התאמה מדויקת בלבד — לא near(). זו בדיוק התכלית של התרגיל: להבחין
@@ -5870,11 +5767,11 @@ function irregSheet(lv){
   const byGrp={};
   vs.forEach(v=>(byGrp[v.grp]=byGrp[v.grp]||[]).push(v));
   const order=['same','aught','ent','ept','iau','ioi','eoo','ownew','aken','aten','ame','wild'];
-  sheet(`<h2>פעלים חריגים · ${vs.length}</h2>
-    <p class="sub">אל תשננו אחד אחד. הם מתחלקים ל‑12 תבניות — מי שקולט את התבנית מקבל עשרות פעלים במכה.</p>
+  sheet(`<h2>${T('פעלים חריגים')} · ${vs.length}</h2>
+    <p class="sub">${T('אל תשננו אחד אחד. הם מתחלקים ל')}‑12 ${T('תבניות — מי שקולט את התבנית מקבל עשרות פעלים במכה.')}</p>
     <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('irregular',12)">${T('תרגול פעלים חריגים')}</button>
     ${order.filter(g=>byGrp[g]).map(g=>`
-      <div class="sec-title">${g==='wild'?'ללא תבנית':'תבנית'}</div>
+      <div class="sec-title">${g==='wild'?T('ללא תבנית'):T('תבנית')}</div>
       <div class="card"><div class="sub" style="margin-bottom:8px">${esc(IRR_GROUPS[g])}</div>
       ${byGrp[g].map(v=>{
         const st=Math.max(strength(u.srs['V:'+v.base+'#p']), strength(u.srs['V:'+v.base+'#3']));
@@ -5889,7 +5786,7 @@ function irregSheet(lv){
    אלא לייצר את הצורה הנכונה מהר, בלי לעצור לחשוב.        */
 RENDER.conjug=(q,it,u,tg)=>{
   const d=it.d, t=TENSE_BY_ID[d.tense];
-  q.innerHTML=`<div class="prompt"><div class="kicker">${T('הטיית זמן · ')}${esc(t.nm)}</div>
+  q.innerHTML=`<div class="prompt"><div class="kicker">${T('הטיית זמן')} · ${esc(t.nm)}</div>
     <div class="big">${esc(d.base)}</div>
     <div class="small">${esc(d.he)}</div>
     <div class="med" style="font-size:1.15rem;margin-top:6px">${esc(d.subj)} + ?</div>
@@ -5900,7 +5797,7 @@ RENDER.conjug=(q,it,u,tg)=>{
   const full = d.subj+' '+d.ans;
   const done=ok=>{ inp.classList.add(ok?'ok':'no'); say(full);
     answer(it,ok,tg,`<b class="en">${esc(full)}</b><br>${esc(d.hint)}
-      <br><span class="muted">${esc(t.nm)} ${T('—')} ${esc(t.use)}</span>`); };
+      <br><span class="muted">${esc(t.nm)} — ${esc(t.use)}</span>`); };
   /* מקבלים גם "he works" וגם "works" — הגוף כבר מוצג על המסך */
   const chk=()=>{ const v=norm(inp.value);
     done(v===norm(d.ans) || v===norm(full)); };
@@ -5917,7 +5814,7 @@ RENDER.conjug=(q,it,u,tg)=>{
 function tenseSheet(){
   const u=me();
   sheet(`<h2>${T('חמשת הזמנים')}</h2>
-    <p class="sub">חמישה זמנים מכסים כמעט את כל האנגלית המדוברת ביום-יום. שאר הזמנים קיימים, אבל נדירים בדיבור — ולכן הם לא הליבה.</p>
+    <p class="sub">${T('חמישה זמנים מכסים כמעט את כל האנגלית המדוברת ביום-יום. שאר הזמנים קיימים, אבל נדירים בדיבור — ולכן הם לא הליבה.')}</p>
     <button class="btn" style="margin-top:14px" onclick="closeSheet();startSession('tenses',12)">${T('תרגול הטיות')}</button>
     ${CORE_TENSES.map(t=>{
       const open = t.lv<=u.lv;
@@ -5925,7 +5822,7 @@ function tenseSheet(){
       <div class="card"${open?'':' style="opacity:.5"'}>
         <div class="sub">${esc(t.use)}</div>
         <div class="ruleblk"><span class="ex">${esc(t.form)}</span>
-          <span class="muted" style="display:block;margin-top:5px">מילות סימן: <span class="en">${esc(t.markers)}</span></span></div>
+          <span class="muted" style="display:block;margin-top:5px">${T('מילות סימן')}: <span class="en">${esc(t.markers)}</span></span></div>
         ${t.conj.map(([label,en,he])=>`<div class="wordrow">
           <span class="badge">${esc(label)}</span>
           <span class="w">${esc(en)}</span>
@@ -6088,7 +5985,7 @@ function vLockScreen(u){
 function askParent(then){
   const ps=parents();
   if(!ps.length) return sheet(`<h2>${T('אין עדיין קוד הורה')}</h2>
-    <p class="sub">${T('כדי להשתמש בבקרת הורים צריך פרופיל אחד לפחות מסוג "הורה או מורה" עם קוד כניסה.')}</p>
+    <p class="sub">${T('כדי להשתמש בבקרת הורים צריך פרופיל אחד לפחות מסוג')} "${T('הורה או מורה')}" ${T('עם קוד כניסה.')}</p>
     <button class="btn" style="margin-top:16px" onclick="closeSheet();addUser(true)">${T('יצירת פרופיל הורה')}</button>
     <button class="btn ghost" style="margin-top:8px" onclick="closeSheet()">${T('לא עכשיו')}</button>`);
   sheet(`<h2>${T('קוד הורה')}</h2><p class="sub" style="margin-bottom:6px">${T('האזור הזה נעול. הזינו את קוד ההורה או המורה.')}</p>
@@ -6103,10 +6000,10 @@ function askParent(then){
 /* ---------- קביעה או שינוי של קוד ---------- */
 function setCode(u){
   let first=null;
-  sheet(`<h2>קוד כניסה · ${esc(u.name)}</h2>
+  sheet(`<h2>${T('קוד כניסה')} · ${esc(u.name)}</h2>
     <p class="sub" id="msg">${T('בחרו קוד בן ארבע ספרות.')}</p>
     <div id="kpwrap" style="display:flex;flex-direction:column;align-items:center;padding-top:10px"></div>
-    ${u.code?('<button class="btn ghost" style="margin-top:14px" id="clr">'+T('הסרת הקוד')+'</button>'):''}`, sh=>{
+    ${u.code?T('<button class="btn ghost" style="margin-top:14px" id="clr">הסרת הקוד</button>'):''}`, sh=>{
     const kp=keypad(sh.querySelector('#kpwrap'), 4, c=>{
       if(!first){ first=c; sh.querySelector('#msg').textContent=T('שוב, לאימות.'); kp.reset(); return; }
       if(first!==c){ first=null; sh.querySelector('#msg').textContent=T('הקודים לא תאמו. מתחילים מחדש.'); return false; }
@@ -6124,9 +6021,9 @@ function ctrlSheet(u){
     <button class="sw ${c[k]?'on':''}" data-sw="${k}"></button></div>`;
   const st=(k,ti,tx,step,max)=>`<div class="ctrl"><div class="tx"><b>${ti}</b><span>${tx}</span></div>
     <div class="stepper"><button data-st="${k}" data-d="-${step}">−</button>
-    <span id="v-${k}">${c[k]||T('—')}</span><button data-st="${k}" data-d="${step}" data-max="${max}">+</button></div></div>`;
-  sheet(`<h2>בקרה · ${esc(u.name)}</h2>
-    <p class="sub">${T('רמה ')}${u.lv} · ${T(LEVELS[u.lv].nm)} · ${T(LEVELS[u.lv].cefr)}${u.streak?` · ${T('רצף')} ${u.streak} ${T('ימים')}`:''}</p>
+    <span id="v-${k}">${c[k]||'—'}</span><button data-st="${k}" data-d="${step}" data-max="${max}">+</button></div></div>`;
+  sheet(`<h2>${T('בקרה')} · ${esc(u.name)}</h2>
+    <p class="sub">${T('רמה')} ${u.lv} · ${T(LEVELS[u.lv].nm)} · ${LEVELS[u.lv].cefr}${u.streak?` · ${T('רצף')} ${u.streak} ${T('ימים')}`:''}</p>
 
     <div class="sec-title">${T('פעילות והתקדמות')}</div>
     ${progressBlock(u,{self:false})}
@@ -6148,7 +6045,7 @@ function ctrlSheet(u){
     <div class="card" id="modes">
       ${MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>{
         const on = !c.modes || c.modes.includes(m);
-        return `<div class="ctrl"><div class="tx"><b>${T(ti)}</b></div>
+        return `<div class="ctrl"><div class="tx"><b>${ti}</b></div>
           <button class="sw ${on?'on':''}" data-mode="${m}"></button></div>`}).join('')}
       <p class="muted" style="margin-top:8px">${T('אם הכול פתוח, הלומד רואה את כל המצבים.')}</p>
     </div>
@@ -6156,11 +6053,11 @@ function ctrlSheet(u){
     <div class="sec-title">${T('משימה')}</div>
     <div class="card">
       ${u.task && !u.task.done ? `<div class="task"><div class="lbl">${T('משימה פעילה')}</div>
-        <b>${esc(u.task.note||'')}</b><div class="sub" style="margin-top:3px">${u.task.size} ${T('פריטים')} · ${esc(T(u.task.label))}</div>
+        <b>${esc(u.task.note||'')}</b><div class="sub" style="margin-top:3px">${u.task.size} ${T('פריטים')} · ${esc(u.task.label)}</div>
         <div class="progline" style="margin-top:9px"><i style="width:${Math.min(100,(u.task.prog/u.task.size)*100)}%"></i></div></div>
         <button class="btn ghost sm" style="width:100%;margin-top:10px" id="cleartask">${T('ביטול המשימה')}</button>`
       : `<div class="field"><label>${T('סוג התרגול')}</label><select id="tmode">${
-          MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>`<option value="${m}">${T(ti)}</option>`).join('')}</select></div>
+          MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>`<option value="${m}">${ti}</option>`).join('')}</select></div>
          <div class="field"><label>${T('מספר פריטים')}</label><select id="tsize">${[10,15,20,25,30,40].map(n=>`<option${n===20?' selected':''}>${n}</option>`).join('')}</select></div>
          <div class="field"><label>${T('הערה ללומד')}</label><input id="tnote" placeholder="${T('למשל: לקראת המבחן ביום שלישי')}"></div>
          <button class="btn sm" style="width:100%" id="settask">${T('הקצאת משימה')}</button>`}
@@ -6182,7 +6079,7 @@ function ctrlSheet(u){
     sh.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{
       const k=b.dataset.st, d=+b.dataset.d, max=+(b.dataset.max||999);
       c[k]=Math.max(0, Math.min(max, (c[k]||0)+d));
-      sh.querySelector('#v-'+k).textContent=c[k]||T('—'); u.ctrlAt=Date.now(); saveUsers(); });
+      sh.querySelector('#v-'+k).textContent=c[k]||'—'; u.ctrlAt=Date.now(); saveUsers(); });
     sh.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{
       const all=[...new Set(MODES.map(m=>m[0]))];
       let list = c.modes ? [...c.modes] : [...all];
@@ -6200,7 +6097,7 @@ function ctrlSheet(u){
       u.task=null; saveUsers(); closeSheet(); render(); };
     sh.querySelector('#code').onclick=()=>setCode(u);
     sh.querySelector('#reset').onclick=()=>{
-      if(!confirm(T('לאפס את כל ההתקדמות של {0}? אי אפשר לבטל.', u.name))) return;
+      if(!confirm(`${T('לאפס את כל ההתקדמות של')} ${u.name}? ${T('אי אפשר לבטל.')}`)) return;
       u.srs={}; u.log=[]; u.mastered={}; u.lv=0; u.xp=0; u.streak=0; u.lastDay=null; u.task=null;
       saveUsers(); closeSheet(); toast(T('אופס')); render(); };
   });
@@ -6215,21 +6112,21 @@ function vParent(){
     USERS.filter(x=>x.role!=='parent').forEach(x=>{
       const a=analyse(x), dn=doneToday(x);
       const b=el(`<button class="usercard"><div class="av">${x.emoji}</div>
-        <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.code?('<span class="pill">'+T('קוד')+'</span>'):''}</div>
-        <div class="muted">${T('רמה ')}${x.lv} · ${Math.round(a.accAll*100)||0}% דיוק · ${a.vocab} מילים${x.streak?' · 🔥'+x.streak:''}</div>
-        <div class="muted" style="margin-top:2px">היום ${dn}${x.ctrl.daily?'/'+x.ctrl.daily:''} ${T('פריטים')}
-        ${x.task&&!x.task.done?' · משימה פעילה':''}</div></div></button>`);
+        <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.code?T('<span class="pill">קוד</span>'):''}</div>
+        <div class="muted">${T('רמה')} ${x.lv} · ${Math.round(a.accAll*100)||0}% ${T('דיוק')} · ${a.vocab} ${T('מילים')}${x.streak?' · 🔥'+x.streak:''}</div>
+        <div class="muted" style="margin-top:2px">${T('היום')} ${dn}${x.ctrl.daily?'/'+x.ctrl.daily:''} ${T('פריטים')}
+        ${x.task&&!x.task.done?T(' · משימה פעילה'):''}</div></div></button>`);
       b.onclick=()=>{ closeSheet(); ctrlSheet(x); };
       pl.appendChild(b);
     });
-    if(!pl.children.length) pl.innerHTML=('<div class="card">'+'<p class="sub">'+T('אין עדיין לומדים במשפחה.')+'</p>'+'</div>');
+    if(!pl.children.length) pl.innerHTML=T('<div class="card"><p class="sub">אין עדיין לומדים במשפחה.</p></div>');
   });
 }
 /* ============================================================
    מחולל QR עצמאי בג'אווהסקריפט טהור — בלי ספריות חיצוניות.
    תומך ב-Byte mode בלבד, גרסאות 1-5, תיקון שגיאות L או M,
    בלוק יחיד (אין צורך בפיצול Reed-Solomon למספר בלוקים בגדלים האלה).
-   מטרת הפיתוח: להטמיע בתוך BeEnglish בלי לפנות לרשת כדי להציג QR.
+   מטרת הפיתוח: להטמיע בתוך Ladder בלי לפנות לרשת כדי להציג QR.
    ============================================================ */
 
 /* --- שדה גלואה GF(256), פולינום פרימיטיבי 0x11D (התקן ל-QR) --- */
@@ -6453,11 +6350,11 @@ const joinURL = code => location.href.split('?')[0].split('#')[0] + '?join=' + e
 function showJoinQR(){
   const url=joinURL(CFG.family);
   const svg=qrSVG(url, 280);
-  sheet(`<h2>${T('סריקה להצטרפות')}</h2>
-    <p class="sub">${T('התלמיד פותח את מצלמת המכשיר שלו ומכוון אל הקוד. לא צריך להתקין שום דבר — מצלמת ה‑iPhone וה‑Android מזהות QR ישירות.')}</p>
-    <div class="card" style="padding:16px;margin-top:12px">${svg||('<p class="sub">'+T('לא ניתן ליצור קוד QR — הקוד ארוך מדי.')+'</p>')}</div>
+  sheet(`<h2>סריקה להצטרפות</h2>
+    <p class="sub">התלמיד פותח את מצלמת המכשיר שלו ומכוון אל הקוד. לא צריך להתקין שום דבר — מצלמת ה‑iPhone וה‑Android מזהות QR ישירות.</p>
+    <div class="card" style="padding:16px;margin-top:12px">${svg||'<p class="sub">לא ניתן ליצור קוד QR — הקוד ארוך מדי.</p>'}</div>
     <p class="muted" style="text-align:center;margin-top:10px" class="en">${esc(CFG.family)}</p>
-    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">${T('סגירה')}</button>`);
+    <button class="btn ghost" style="margin-top:10px" onclick="closeSheet()">סגירה</button>`);
 }
 /* ============================================================
    שמירה בענן — Firestore דרך REST, בלי SDK.
@@ -6492,13 +6389,6 @@ const cloudReady = ()=> !!(CFG.project && CFG.key && CFG.family);
 const cloudConfigured = ()=> !!(FIREBASE_PROJECT && FIREBASE_KEY);
 if(!CFG.hashes) CFG.hashes={};
 if(!CFG.tombs)  CFG.tombs=[];
-
-/* קוד המשפחה הוא חלק מנתיב המסמך ב-Firestore, והנתיב רגיש לרישיות.
-   iOS מוסיף אות גדולה בתחילת שדה טקסט, ומקלידים נוטים להוסיף רווח —
-   ובלי נרמול, קוד נכון "כמעט" פותח משפחה ריקה חדשה במקום להצטרף.  */
-function normFamily(s){
-  return (s||'').toLowerCase().replace(/[\s\u200e\u200f\u2010-\u2015]/g, m => /[\u2010-\u2015]/.test(m) ? '-' : '');
-}
 
 const newFamilyCode = ()=>{
   const a='abcdefghjkmnpqrstuvwxyz23456789';
@@ -6552,7 +6442,7 @@ async function cloudTombstone(id){
     at:{stringValue:new Date().toISOString()}
   }};
   const r=await fetch(docURL(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!r.ok) throw new Error('מחיקה בענן נכשלה ('+r.status+')');
+  if(!r.ok) throw new Error(T('מחיקה בענן נכשלה (')+r.status+')');
   return true;
 }
 
@@ -6579,13 +6469,13 @@ async function cloudPush(u){
     name:{stringValue:u.name||''}
   }};
   const r=await fetch(docURL(u.id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!r.ok) throw new Error('כתיבה נכשלה ('+r.status+')');
+  if(!r.ok) throw new Error(T('כתיבה נכשלה (')+r.status+')');
   return true;
 }
 async function cloudList(){
   const r=await fetch(docURL(''));
   if(r.status===404) return {users:[], tombs:[]};
-  if(!r.ok) throw new Error('קריאה נכשלה ('+r.status+')');
+  if(!r.ok) throw new Error(T('קריאה נכשלה (')+r.status+')');
   const j=await r.json();
   const users=[], tombs=[];
   (j.documents||[]).forEach(d=>{
@@ -6604,13 +6494,11 @@ async function cloudList(){
 
 /* ---------- סנכרון מלא ---------- */
 let SYNCING=false;
-let LAST_PULL=0;   /* מספר הפרופילים שנמצאו בענן בסנכרון האחרון */
 async function cloudSync(silent){
   if(!cloudReady() || SYNCING) return false;
   SYNCING=true;
   try{
     const {users:remote, tombs:remoteTombs} = await cloudList();
-    LAST_PULL = remote.length;
     /* קונפיג שנשמר לפני שהמצבות נוספו לא יכיל את המערך — משלימים */
     if(!Array.isArray(CFG.tombs)) CFG.tombs=[];
     /* מאחדים מצבות: מה שנמחק כאן ומה שנמחק במכשיר אחר */
@@ -6643,10 +6531,10 @@ async function cloudSync(silent){
       await cloudPush(u); CFG.hashes[u.id]=h; pushed++;
     }
     CFG.last=new Date().toISOString(); saveCfg();
-    if(!silent) toast(pushed?T('סונכרן · {0} פרופילים', pushed):T('הכול מעודכן'));
+    if(!silent) toast(pushed?`${T('סונכרן')} · ${pushed} ${T('פרופילים')}`:T('הכול מעודכן'));
     return true;
   }catch(e){
-    if(!silent) toast('הסנכרון נכשל: '+e.message);
+    if(!silent) toast(T('הסנכרון נכשל: ')+e.message);
     return false;
   }finally{ SYNCING=false; }
 }
@@ -6664,8 +6552,8 @@ function cloudCard(){
   const ago=t?Math.round((Date.now()-t)/60000):null;
   return `<div class="card"><div style="display:flex;align-items:center;gap:9px">
       <span class="dot" style="background:var(--good)"></span><b>${T('הענן מחובר')}</b>
-      <span class="spacer"></span><span class="badge">${ago==null?T('—'):ago<1?T('עכשיו'):ago<60?ago+' דק׳':Math.round(ago/60)+' שע׳'}</span></div>
-    <div class="muted" style="margin-top:6px">${T('קוד משפחה: ')}<span class="en">${esc(CFG.family)}</span></div>
+      <span class="spacer"></span><span class="badge">${ago==null?'—':ago<1?T('עכשיו'):ago<60?ago+T(' דק׳'):Math.round(ago/60)+T(' שע׳')}</span></div>
+    <div class="muted" style="margin-top:6px">${T('קוד משפחה')}: <span class="en">${esc(CFG.family)}</span></div>
     <div class="row" style="margin-top:11px">
       <button class="btn sm" style="width:100%" onclick="cloudSync()">${T('סנכרון עכשיו')}</button>
       <button class="btn ghost sm" style="width:100%" onclick="cloudSheet()">${T('הגדרות')}</button>
@@ -6690,11 +6578,10 @@ function joinSheet(prefill){
       :T('הזינו את קוד המשפחה שקיבלתם, או סרקו את קוד ה‑QR שלו במצלמת המכשיר.')}</p>
     <div class="card">
       <div class="field" style="margin-bottom:10px">
-        <input id="fm" class="en" autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="text" style="text-align:center;font-size:1.1rem;letter-spacing:.03em" value="${esc(prefill||CFG.family)}" placeholder="xxxx-xxxx-xxxx-xxxx"></div>
+        <input id="fm" class="en" style="text-align:center;font-size:1.1rem;letter-spacing:.03em" value="${esc(prefill||CFG.family)}" placeholder="xxxx-xxxx-xxxx-xxxx"></div>
       <button class="btn" id="join">${scanned?T('התחברות'):cloudReady()?T('עדכון'):T('התחברות')}</button>
-      <p class="muted hide" id="joinerr" style="margin-top:9px">${T('הקוד לא תואם לאף משפחה, או שהמכשיר הראשון עוד לא סונכרן. פתחו בו את האפליקציה, הריצו "סנכרון עכשיו", ונסו שוב.')}</p>
     </div>
-    ${cloudReady() && !scanned?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="showJoinQR()">${T('הצגת קוד QR לשיתוף עם תלמיד')}</button>
+    ${cloudReady() && !scanned?`<button class="btn ghost sm" style="width:100%;margin-top:10px" onclick="showJoinQR()">${T('הצגת קוד')} QR ${T('לשיתוף עם תלמיד')}</button>
       <div class="ctrl" style="margin-top:6px"><div class="tx"><b>${T('סנכרון אוטומטי')}</b><span>${T('אחרי כל תרגול ובכל פתיחה של האפליקציה.')}</span></div>
       <button class="sw ${CFG.auto?'on':''}" id="au"></button></div>
       <button class="btn ghost sm" style="width:100%;margin-top:12px" onclick="cloudSync()">${T('סנכרון עכשיו')}</button>
@@ -6702,21 +6589,11 @@ function joinSheet(prefill){
     ${!scanned?`<p class="muted" style="margin-top:16px">${T('מקימים משפחה בפעם הראשונה?')}
       <button class="en" style="text-decoration:underline;color:var(--brand);font-weight:700" id="newfam">${T('יצירת קוד חדש')}</button></p>`:''}`, sh=>{
     const doJoin=async()=>{
-      const v=normFamily(sh.querySelector('#fm').value);
+      const v=sh.querySelector('#fm').value.trim();
       if(!v) return toast(T('צריך להזין קוד'));
-      const prev=CFG.family;
       CFG.project=FIREBASE_PROJECT; CFG.key=FIREBASE_KEY; CFG.family=v; saveCfg();
       toast(T('מתחבר…'));
-      if(!await cloudSync()) return toast(T('לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.'));
-      /* קוד שגוי לא נכשל — הוא פשוט פותח משפחה ריקה. בלי הבדיקה הזו
-         המשתמש היה יוצר פרופיל חדש ומקבל כפילות במקום להצטרף.      */
-      if(!USERS.length && LAST_PULL===0){
-        CFG.family=prev; saveCfg();
-        sh.querySelector('#fm').value=v;
-        sh.querySelector('#joinerr').classList.remove('hide');
-        return toast(T('לא נמצאו פרופילים בקוד הזה'));
-      }
-      closeSheet(); render();
+      if(await cloudSync()){ closeSheet(); render(); } else toast(T('לא הצלחנו להתחבר. בדקו את הקוד ואת החיבור לאינטרנט.'));
     };
     sh.querySelector('#join').onclick=doJoin;
     /* יצירת קוד חדש = תביעת בעלות על משפחה חדשה בענן. בלי שער כאן, כל
@@ -6743,25 +6620,25 @@ function joinSheet(prefill){
 function setupSheet(){
   sheet(`<h2>${T('הגדרת ענן — פעם אחת')}</h2>
     <p class="sub">${T('השלב הזה שייך למי שמקים את המערכת, ונעשה פעם אחת בלבד לפני שמשתפים את הקוד עם אף אחד.')}</p>
-    <div class="sec-title">${T('פרויקט Firebase')}</div>
+    <div class="sec-title">${T('פרויקט')} Firebase</div>
     <div class="card">
       <div class="field"><label>Project ID</label><input id="pr" class="en" value="${esc(CFG.project)}" placeholder="ladder-family"></div>
       <div class="field" style="margin-bottom:0"><label>Web API Key</label><input id="ky" class="en" value="${esc(CFG.key)}" placeholder="AIza..."></div>
-      <p class="muted" style="margin-top:8px">${T('שני הערכים נמצאים ב‑Firebase Console ← Project settings ← General.')}</p>
+      <p class="muted" style="margin-top:8px">${T('שני הערכים נמצאים ב')}‑Firebase Console ← Project settings ← General.</p>
     </div>
     <div class="card" style="border-color:var(--brand)">
-      <b>הדרך הנכונה — לעשות את זה פעם אחת לתמיד</b>
-      <p class="sub" style="margin-top:5px">פתחו את קובץ ה‑index.html בעורך טקסט, חפשו את השורות</p>
+      <b>${T('הדרך הנכונה — לעשות את זה פעם אחת לתמיד')}</b>
+      <p class="sub" style="margin-top:5px">${T('פתחו את קובץ ה')}‑index.html ${T('בעורך טקסט, חפשו את השורות')}</p>
       <div class="ruleblk"><span class="ex" style="white-space:pre">const FIREBASE_PROJECT = '';
 const FIREBASE_KEY     = '';</span></div>
-      <p class="sub" style="margin-top:8px">והדביקו ביניהן את שני הערכים, בין הגרשיים. אחר כך שמרו והעלו מחדש ל‑GitHub. מהרגע הזה, כל מי שפותח את הקישור — כולל כל תלמיד במכשיר משלו — מקבל את החיבור אוטומטית, ומזין רק קוד משפחה. אף אחד לא צריך לגעת במסך הזה שוב.</p>
+      <p class="sub" style="margin-top:8px">${T('והדביקו ביניהן את שני הערכים, בין הגרשיים. אחר כך שמרו והעלו מחדש ל')}‑GitHub. ${T('מהרגע הזה, כל מי שפותח את הקישור — כולל כל תלמיד במכשיר משלו — מקבל את החיבור אוטומטית, ומזין רק קוד משפחה. אף אחד לא צריך לגעת במסך הזה שוב.')}</p>
     </div>
     <button class="btn" style="margin-top:6px" id="tmp">${T('שמירה על המכשיר הזה בלבד, לבדיקה')}</button>
     <p class="muted" style="margin-top:8px">${T('זמני בלבד — לא יעבור למכשיר אחר. שימושי כדי לוודא שהחיבור עובד לפני שעורכים את הקובץ.')}</p>
 
     <div class="sec-title">${T('חוקי אבטחה')}</div>
     <div class="card">
-      <p class="sub">${T('הדביקו ב‑Firestore ← Rules. בלי זה, מצב הבדיקה של Firebase יפוג ותאבדו גישה.')}</p>
+      <p class="sub">${T('הדביקו ב')}‑Firestore ← Rules. ${T('בלי זה, מצב הבדיקה של')} Firebase ${T('יפוג ותאבדו גישה.')}</p>
       <div class="ruleblk"><span class="ex" style="white-space:pre;font-size:.78rem;line-height:1.6">rules_version = '2';
 service cloud.firestore {
   match /databases/{db}/documents {
@@ -6896,7 +6773,7 @@ async function ttsRequest(url, opt){
                gstatus, msg:gmsg||('HTTP '+r.status), raw:bodyText.slice(0,900) };
     throw new Error(TTS_DIAG.msg);
   }
-  TTS_DIAG={step:url.includes('/voices')?'voices':'synthesize', status:r.status, msg:'תקין', raw:''};
+  TTS_DIAG={step:url.includes('/voices')?'voices':'synthesize', status:r.status, msg:T('תקין'), raw:''};
   try{ return JSON.parse(bodyText); }catch(e){ throw new Error(T('תשובה לא תקינה מהשרת')); }
 }
 
@@ -6917,161 +6794,61 @@ async function fetchCloudVoices(){
   }
   return CLOUD_VOICES;
 }
-const TIER_HE = {5:'Studio · הטבעי ביותר',4:'Chirp · טבעי מאוד',3:'Neural2 · טבעי',2:'WaveNet · טוב',1:'Standard · בסיסי'};
+const TIER_HE = {5:T('Studio · הטבעי ביותר'),4:T('Chirp · טבעי מאוד'),3:T('Neural2 · טבעי'),2:T('WaveNet · טוב'),1:T('Standard · בסיסי')};
 
 /* ---------- סינתזה ---------- */
-/* ============================================================
-   השהיית הדיבור — שלוש שכבות
-   ------------------------------------------------------------
-   1. CLIP_URL — כתובת Blob מוכנה לנגינה. data URL מפוענח מחדש בכל
-      השמעה; Blob מפוענח פעם אחת ואז הנגינה מיידית.
-   2. PENDING — בקשה אחת בלבד לכל טקסט, גם אם ביקשו אותו במקביל
-      מהפריפטץ' ומהתרגיל עצמו.
-   3. מרוץ מול קול המכשיר — אם הענן לא הספיק, מדברים מיד בקול
-      המקומי לאותה השמעה בלבד. אף פעם אין שקט.
-   ============================================================ */
-const MEM_CLIPS={};      /* key -> base64 */
-const CLIP_URL={};       /* key -> Blob URL מוכן לנגינה */
-const PENDING={};        /* key -> Promise, מונע בקשה כפולה */
+const MEM_CLIPS={};
 let ttsFails=0;
-
-const clipKey = text => TTS.voice+'|'+text;
-
-function b64ToURL(b64){
-  const bin=atob(b64), n=bin.length, arr=new Uint8Array(n);
-  for(let i=0;i<n;i++) arr[i]=bin.charCodeAt(i);
-  return URL.createObjectURL(new Blob([arr],{type:'audio/mpeg'}));
-}
 
 async function ttsSynth(text, voice){
   const key=voice+'|'+text;
-  if(CLIP_URL[key]) return CLIP_URL[key];
-  if(PENDING[key])  return PENDING[key];
+  if(MEM_CLIPS[key]) return MEM_CLIPS[key];
+  const cached=await clipGet(key);
+  if(cached){ MEM_CLIPS[key]=cached; return cached; }
 
-  PENDING[key]=(async()=>{
-    let b64=MEM_CLIPS[key];
-    if(!b64){
-      const cached=await clipGet(key);
-      /* גרסאות קודמות שמרו data URL שלם — תומכים בשתי הצורות */
-      if(cached) b64 = cached.startsWith('data:') ? cached.split(',')[1] : cached;
-    }
-    if(!b64){
-      const url=`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(FIREBASE_KEY)}`;
-      const body={
-        input:{text:String(text)},
-        voice:{languageCode:'en-US', name:voice},
-        audioConfig:{audioEncoding:'MP3', speakingRate: TTS.rate || 1.0}
-      };
-      const j=await ttsRequest(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      if(!j.audioContent) throw new Error(T('השרת החזיר תשובה בלי אודיו'));
-      b64=j.audioContent;
-      clipSet(key,b64);   /* לא ממתינים — הכתיבה למטמון לא צריכה לעכב נגינה */
-    }
-    MEM_CLIPS[key]=b64;
-    const u=b64ToURL(b64);
-    CLIP_URL[key]=u;
-    return u;
-  })();
-
-  try{ return await PENDING[key]; }
-  finally{ delete PENDING[key]; }
+  const url=`https://texttospeech.googleapis.com/v1/text:synthesize?key=${encodeURIComponent(FIREBASE_KEY)}`;
+  const body={
+    input:{text:String(text)},
+    voice:{languageCode:'en-US', name:voice},
+    audioConfig:{audioEncoding:'MP3', speakingRate: TTS.rate || 1.0}
+  };
+  const j=await ttsRequest(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!j.audioContent) throw new Error(T('השרת החזיר תשובה בלי אודיו'));
+  const dataURL='data:audio/mp3;base64,'+j.audioContent;
+  MEM_CLIPS[key]=dataURL;
+  clipSet(key,dataURL);   /* לא ממתינים — הכתיבה למטמון לא צריכה לעכב נגינה */
+  return dataURL;
 }
 
 let curAudio=null;
 function stopAudio(){ if(curAudio){ try{ curAudio.pause(); }catch(e){} curAudio=null; } }
 
-function playClip(url, rate){
+/* מונה בקשות. כל קריאה ל-say() מקדמת אותו ותופסת את הערך שלה.
+   כשהאודיו חוזר מהשרת, הוא מנוגן רק אם הבקשה שלו עדיין העדכנית.
+
+   בלי זה נוצר מרוץ אמיתי: שליפת האודיו מהענן לוקחת מאות מילישניות,
+   ואם הלומד עבר לשאלה הבאה בינתיים — האודיו הישן חוזר ומתנגן על
+   השאלה החדשה. הלומד שומע משפט אחד ורואה משפט אחר.            */
+let SAY_SEQ = 0;
+const sayToken = () => ++SAY_SEQ;
+const sayCurrent = tok => tok === SAY_SEQ;
+
+async function sayCloud(text, rate, tok){
+  /* עוצרים מיד, לא אחרי ההמתנה — אחרת האודיו הקודם ממשיך להתנגן
+     כל זמן שהבקשה החדשה בדרך.                                    */
   stopAudio();
-  const a=new Audio(url);
+  if(tok===undefined) tok=sayToken();
+  const clip=await ttsSynth(text, TTS.voice);
+  if(!sayCurrent(tok)) return false;   /* השאלה כבר התחלפה — נוטשים */
+  stopAudio();
+  const a=new Audio(clip);
   /* rate כאן הוא כיוונון עדין מעל הקצב שנקבע בסינתזה — כך שהאטה
      בתרגיל האזנה עדיין עובדת בלי לבקש קליפ חדש מהשרת.          */
   a.playbackRate = Math.max(.5, Math.min(2, (rate||1)/( .95 )));
   curAudio=a;
-  return a.play().then(()=>true);
-}
-
-/* כמה זמן מחכים לענן לפני שנופלים לקול המכשיר. 250ms הוא בערך הסף
-   שבו אוזן מתחילה לחוש עיכוב; מעבר לזה עדיף קול פחות טוב מיד.     */
-const TTS_WAIT_MS = 250;
-
-async function sayCloud(text, rate){
-  const key=clipKey(text);
-  if(CLIP_URL[key]) return playClip(CLIP_URL[key], rate);   /* המסלול המהיר */
-
-  let handled=false;
-  const timer=setTimeout(()=>{
-    if(handled) return;
-    handled=true;
-    sayDevice(text, rate);      /* הבקשה לענן ממשיכה ברקע ונשמרת למטמון */
-  }, TTS_WAIT_MS);
-
-  try{
-    const url=await ttsSynth(text, TTS.voice);
-    clearTimeout(timer);
-    if(handled) return true;    /* קול המכשיר כבר דיבר — לא משמיעים פעמיים */
-    handled=true;
-    return playClip(url, rate);
-  }catch(e){
-    clearTimeout(timer);
-    if(handled) return true;
-    throw e;                    /* say() ייפול לקול המכשיר */
-  }
-}
-
-/* ---------- פריפטץ' של הסשן ----------
-   ברגע שהסשן נבנה ידועים כל הטקסטים שיושמעו בו. מושכים אותם ברקע
-   בזמן שהלומד עונה על השאלה הראשונה, שלושה במקביל. עד הפריט הרביעי
-   הכול כבר במטמון והנגינה מיידית.                                  */
-function speechTexts(it){
-  const d=it.d;
-  switch(it.t){
-    case 'letter':        return [d.u+'. '+d.ex, d.ex];
-    case 'letter-hear':
-    case 'letter-case':
-    case 'letter-name':   return [d.u];
-    case 'phonics':       return [d.w];
-    case 'w-recog':
-    case 'w-recall':
-    case 'w-listen':
-    case 'w-speak':       return [d.en];
-    case 'build':
-    case 'dictate':       return [d.en];
-    case 'cloze':         return [d.s.replace('___', d.a)];
-    case 'proof':         return [d.s.replace(d.bad, d.fix==='--'?'':d.fix).replace(/\s+/g,' ').trim()];
-    case 'rule':          return d.ex.map(e=>e.en);
-    case 'talk':          return [d.q];
-    case 'mp-hear':       return [d.a, d.b, d.a+' … '+d.b];
-    case 'mp-say':        return [d.a, d.b];
-    case 'contract':      return [d.full, d.short];
-    case 'spoken':        return [d.ex];
-    case 'irr-past':
-    case 'irr-pp':        return [`${d.base}, ${d.past}, ${d.pp}`];
-    case 'conjug':        return [d.subj+' '+d.ans];
-    default:              return [];
-  }
-}
-
-function prefetchSession(items){
-  if(typeof ttsReady!=='function' || !ttsReady()) return;
-  const seen=new Set(), queue=[];
-  items.forEach(it=>{
-    let list=[];
-    try{ list=speechTexts(it)||[]; }catch(e){}
-    list.forEach(t=>{
-      if(!t || seen.has(t)) return;
-      seen.add(t);
-      if(!CLIP_URL[clipKey(t)]) queue.push(t);
-    });
-  });
-  let i=0;
-  const worker=async()=>{
-    while(i<queue.length){
-      const t=queue[i++];
-      try{ await ttsSynth(t, TTS.voice); }
-      catch(e){ return; }   /* נכשל — כנראה אין רשת; מפסיקים בשקט */
-    }
-  };
-  for(let k=0;k<3;k++) worker();
+  await a.play();
+  if(!sayCurrent(tok)){ stopAudio(); return false; }
+  return true;
 }
 
 /* ---------- שחרור אודיו ב-iOS ----------
@@ -7104,11 +6881,11 @@ async function ttsSheet(){
       <div class="field" style="margin-bottom:8px"><label>${T('קול')}</label>
         <select id="tv">${
           CLOUD_VOICES && CLOUD_VOICES.length
-            ? `<option value="">${T('— בחרו קול —')}</option>`+CLOUD_VOICES.map(v=>
+            ? `<option value="">— ${T('בחרו קול')} —</option>`+CLOUD_VOICES.map(v=>
                 `<option value="${esc(v.name)}" ${v.name===TTS.voice?'selected':''}>${esc(v.name)} · ${esc(TIER_HE[v.tier]||'')}</option>`).join('')
-            : `<option value="">${T('לחצו "טעינת קולות" למטה')}</option>`
+            : `<option value="">${T('לחצו')} "${T('טעינת קולות')}" ${T('למטה')}</option>`
         }</select></div>
-      <button class="btn ghost sm" style="width:100%" id="load">${listed?T('רענון ({0} קולות)', listed):T('טעינת קולות מהשרת')}</button>
+      <button class="btn ghost sm" style="width:100%" id="load">${listed?`${T('רענון')} (${listed} ${T('קולות)')}`:T('טעינת קולות מהשרת')}</button>
       <button class="btn ghost sm hide" style="width:100%;margin-top:8px" id="fb">${T('שימוש ברשימה מקומית (בלי לשאול את השרת)')}</button>
       <button class="btn sm" style="width:100%;margin-top:8px" id="try">${T('השמעת דוגמה')}</button>
       <p class="muted" id="msg" style="margin-top:9px"></p>
@@ -7117,26 +6894,26 @@ async function ttsSheet(){
     <div class="sec-title">${T('מטמון')}</div>
     <div class="card">
       <p class="sub">${T('כל מילה נשלפת מהשרת פעם אחת ואז נשמרת במכשיר — הנגינה מיידית, ועובדת גם בלי אינטרנט. זה גם מה ששומר את העלות אפסית.')}</p>
-      <p class="muted" style="margin-top:6px">${T('{0} קטעי אודיו שמורים.', n)}</p>
+      <p class="muted" style="margin-top:6px">${n} ${T('קטעי אודיו שמורים.')}</p>
       <button class="btn ghost sm" style="width:100%;margin-top:10px" id="clr">${T('ניקוי המטמון')}</button>
     </div>
 
     <div class="sec-title">${T('אבחון')}</div>
     <div class="card">
-      <p class="sub">${T('לוחצים, והבדיקה מדווחת בדיוק מה נכשל — כולל ההודעה המקורית של Google, שלרוב אומרת מה חסר ואיך לתקן.')}</p>
+      <p class="sub">${T('לוחצים, והבדיקה מדווחת בדיוק מה נכשל — כולל ההודעה המקורית של')} Google, ${T('שלרוב אומרת מה חסר ואיך לתקן.')}</p>
       <button class="btn sm" style="width:100%;margin-top:10px" id="diag">${T('הרצת אבחון')}</button>
       <div id="diagout" style="margin-top:11px"></div>
     </div>
 
     <div class="sec-title">${T('הפעלה חד-פעמית בקונסולה')}</div>
     <div class="card">
-      <p class="sub">${T('ה-API משתמש באותו פרויקט ומפתח שכבר בקובץ. צריך רק להפעיל אותו:')}</p>
+      <p class="sub">${T('ה')}-API ${T('משתמש באותו פרויקט ומפתח שכבר בקובץ. צריך רק להפעיל אותו')}:</p>
       <div class="ruleblk"><span class="ex" style="white-space:pre-wrap;font-size:.8rem;line-height:1.7">1. console.cloud.google.com
-2. בחרו את הפרויקט ${esc(FIREBASE_PROJECT||'(לא מוגדר)')}
+2. ${T('בחרו את הפרויקט')} ${esc(FIREBASE_PROJECT||T('(לא מוגדר)'))}
 3. APIs &amp; Services → Library
-4. חפשו "Cloud Text-to-Speech API"
+4. ${T('חפשו')} "Cloud Text-to-Speech API"
 5. Enable</span></div>
-      <p class="muted" style="margin-top:9px">אם המפתח מוגבל ל-API מסוימים (API restrictions), צריך להוסיף שם גם את Text-to-Speech. יש מדרגה חינמית נדיבה, ולשימוש משפחתי עם מטמון זה כמעט תמיד לא יגיע לחיוב — אבל כדאי לאמת את התמחור העדכני בקונסולה.</p>
+      <p class="muted" style="margin-top:9px">${T('אם המפתח מוגבל ל')}-API ${T('מסוימים')} (API restrictions), ${T('צריך להוסיף שם גם את')} Text-to-Speech. ${T('יש מדרגה חינמית נדיבה, ולשימוש משפחתי עם מטמון זה כמעט תמיד לא יגיע לחיוב — אבל כדאי לאמת את התמחור העדכני בקונסולה.')}</p>
     </div>`, sh=>{
     const msg=t=>{ const m=sh.querySelector('#msg'); if(m) m.textContent=t; };
     sh.querySelector('#ttson').onclick=function(){
@@ -7147,7 +6924,7 @@ async function ttsSheet(){
       msg(T('טוען…'));
       try{ await fetchCloudVoices(); closeSheet(); ttsSheet(); }
       catch(e){
-        msg('לא הצלחנו לטעון: '+e.message);
+        msg(T('לא הצלחנו לטעון: ')+e.message);
         const b=sh.querySelector('#fb'); if(b) b.classList.remove('hide');
       }
     };
@@ -7156,17 +6933,17 @@ async function ttsSheet(){
       TTS.voice=e.target.value; saveTTS();
       if(TTS.voice){ TTS.on=true; saveTTS(); msg(T('מנגן דוגמה…'));
         sayCloud('This is how I will sound. Listen and repeat.',1)
-          .then(()=>msg(T('הקול נשמר.'))).catch(err=>msg('שגיאה: '+err.message)); }
+          .then(()=>msg(T('הקול נשמר.'))).catch(err=>msg(T('שגיאה: ')+err.message)); }
     };
     sh.querySelector('#try').onclick=()=>{
       if(!TTS.voice) return msg(T('קודם בחרו קול.'));
       msg(T('מנגן…'));
       sayCloud('The quick brown fox jumps over the lazy dog.',1)
-        .then(()=>msg('')).catch(err=>msg('שגיאה: '+err.message));
+        .then(()=>msg('')).catch(err=>msg(T('שגיאה: ')+err.message));
     };
     sh.querySelector('#diag').onclick=async()=>{
       const out=sh.querySelector('#diagout');
-      out.innerHTML=('<p class="muted">'+T('בודק…')+'</p>');
+      out.innerHTML=T('<p class="muted">בודק…</p>');
       const lines=[];
       const row=(label,val,good)=>`<div class="wordrow">
         <span class="dot" style="background:${good===null?'var(--line)':good?'var(--good)':'var(--bad)'}"></span>
@@ -7180,7 +6957,7 @@ async function ttsSheet(){
       /* שלב 1 — רשימת קולות */
       let step1=false;
       try{ await fetchCloudVoices(); step1=true;
-        lines.push(row(T('שליפת רשימת קולות'), (CLOUD_VOICES||[]).length+' קולות', true));
+        lines.push(row(T('שליפת רשימת קולות'), (CLOUD_VOICES||[]).length+T(' קולות'), true));
       }catch(e){ lines.push(row(T('שליפת רשימת קולות'), T('נכשל'), false)); }
 
       /* שלב 2 — סינתזה בפועל (הרשאה נפרדת מהרשימה) */
@@ -7218,8 +6995,8 @@ async function ttsSheet(){
             ? T('הכול עובד בצד השרת — הדפדפן חסם את הנגינה. געו במסך פעם אחת ונסו שוב.')
             : T('הכול עובד. אם עדיין נשמע קול מכשיר, ודאו שהמתג "קול ענן" למעלה דלוק.'))
         : apiOff    ? T('ה-API עצמו לא מופעל בפרויקט. פתחו את הקישור שבהודעה למטה ולחצו Enable.')
-        : keyApiLtd ? 'ה-API מופעל — אבל המפתח מוגבל לרשימת API סגורה, ו-Text-to-Speech לא בתוכה. זה התיקון: Google Cloud Console → APIs & Services → Credentials → לחצו על המפתח → API restrictions → הוסיפו "Cloud Text-to-Speech API" → Save. השינוי לוקח עד כמה דקות להיכנס לתוקף.'
-        : keyRefLtd ? 'המפתח מוגבל לדומיינים מסוימים, והדומיין של האפליקציה לא ברשימה. Credentials → המפתח → Application restrictions → הוסיפו את הכתובת של האפליקציה.'
+        : keyApiLtd ? T('ה-API מופעל — אבל המפתח מוגבל לרשימת API סגורה, ו-Text-to-Speech לא בתוכה. זה התיקון: Google Cloud Console → APIs & Services → Credentials → לחצו על המפתח → API restrictions → הוסיפו "Cloud Text-to-Speech API" → Save. השינוי לוקח עד כמה דקות להיכנס לתוקף.')
+        : keyRefLtd ? T('המפתח מוגבל לדומיינים מסוימים, והדומיין של האפליקציה לא ברשימה. Credentials → המפתח → Application restrictions → הוסיפו את הכתובת של האפליקציה.')
         : is403     ? T('שגיאת הרשאה. ראו את ההודעה המקורית למטה — היא מציינת מה חסר.')
         : d && d.status===400 ? T('הבקשה נדחתה כלא תקינה — לרוב מפתח שגוי.')
         : d && d.status===429 ? T('עברתם את המכסה. בדקו חיוב ומכסות בקונסולה.')
@@ -7228,7 +7005,7 @@ async function ttsSheet(){
 
       out.innerHTML = `<div class="card" style="padding:12px">${lines.join('')}</div>
         <p class="sub" style="margin-top:10px">${esc(advice)}</p>
-        ${d && d.msg && d.msg!=='תקין' ? `<div class="sec-title">${T('ההודעה של Google')}</div>
+        ${d && d.msg && d.msg!==T('תקין') ? `<div class="sec-title">${T('ההודעה של')} Google</div>
           <div class="ruleblk"><span class="ex" style="white-space:pre-wrap;font-size:.76rem;line-height:1.6;direction:ltr;text-align:left">${esc(d.msg)}</span></div>
           ${/https?:\/\/\S+/.test(d.msg)?`<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="window.open('${esc((d.msg.match(/https?:\/\/\S+/)||[''])[0].replace(/[.,)]+$/,''))}','_blank')">${T('פתיחת הקישור מההודעה')}</button>`:''}`:''}`;
     };
@@ -7236,7 +7013,6 @@ async function ttsSheet(){
     sh.querySelector('#clr').onclick=async()=>{
       await clipClear();
       for(const k in MEM_CLIPS) delete MEM_CLIPS[k];
-      for(const k in CLIP_URL){ try{ URL.revokeObjectURL(CLIP_URL[k]); }catch(e){} delete CLIP_URL[k]; }
       closeSheet(); toast(T('המטמון נוקה'));
     };
   });
@@ -7261,17 +7037,17 @@ function progressBlock(u, opts={}){
      <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה מלאה')}</div></div>
      <div class="stat"><div class="n">${a.learning}</div><div class="l">${T('בתהליך למידה')}</div></div>
      <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">${T('דיוק כולל')}</div></div>
-     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':T('—')}</div><div class="l">${T('זמן שליפה ממוצע')}</div></div>
+     <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':'—'}</div><div class="l">${T('זמן שליפה ממוצע')}</div></div>
    </div>
    <div class="sec-title">${T('פעילות ב־14 הימים האחרונים')}</div>
    <div class="card"><div class="bars">${days.map(d=>
       `<div class="${d.n?'hot':''}" style="height:${Math.max(3,d.n/mx*100)}%" title="${d.d}: ${d.n}"></div>`).join('')}</div>
      <div class="legend"><span>${days[0].d.slice(5)}</span><span>${days[13].d.slice(5)}</span></div>
-     <p class="muted" style="margin:10px 0 0">${T('סה"כ {0} תרגילים בשבועיים · רצף {1} ימים', days.reduce((x,d)=>x+d.n,0), u.streak)}</p></div>
+     <p class="muted" style="margin:10px 0 0">${T('סה')}"${T('כ')} ${days.reduce((x,d)=>x+d.n,0)} ${T('תרגילים בשבועיים')} · ${T('רצף')} ${u.streak} ${T('ימים')}</p></div>
    ${a.weakTypes.length?`<div class="sec-title">${T('איפה כדאי להתמקד')}</div><div class="card">${
      a.weakTypes.map(w=>`<div class="wordrow"><span class="dot" style="background:${w.acc<.6?'var(--bad)':'var(--gold)'}"></span>
-       <span style="flex:1">${T(TYPE_HE[w.t]||w.t)}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}
-     ${opts.self?'<button class="btn sm" style="margin-top:12px;width:100%" onclick="startSession(\'weak\',12)">תרגול ממוקד חולשות</button>':''}</div>`:''}
+       <span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}
+     ${opts.self?T('<button class="btn sm" style="margin-top:12px;width:100%" onclick="startSession(\'weak\',12)">תרגול ממוקד חולשות</button>'):''}</div>`:''}
    ${a.weakWords.length?`<div class="sec-title">${T('מילים שעדיין לא יושבות')}</div><div class="card">${
      a.weakWords.map(x=>{const w=WORDS.find(y=>y.en===x.w)||{he:''};
        return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span>
@@ -7282,12 +7058,12 @@ function progressBlock(u, opts={}){
        return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:14px;font-weight:600">
          <span>${l.id} · ${T(l.nm)}</span><span class="badge">${p}%</span></div>
          <div class="progline" style="margin-top:5px"><i style="width:${p}%"></i></div></div>`}).join('')}</div>
-   <p class="muted" style="margin-top:14px">${T('{0} פריטים ממתינים לחזרה. אלגוריתם החזרות מציג כל פריט בדיוק לפני שהוא נשכח — לכן חשוב יותר לתרגל כל יום מעט, מאשר הרבה פעם בשבוע.', a.dueNow)}</p>`;
+   <p class="muted" style="margin-top:14px">${a.dueNow} ${T('פריטים ממתינים לחזרה. אלגוריתם החזרות מציג כל פריט בדיוק לפני שהוא נשכח — לכן חשוב יותר לתרגל כל יום מעט, מאשר הרבה פעם בשבוע.')}</p>`;
 }
 function vStats(s){
   const u=me();
-  s.innerHTML=`<h1>${T('ההתקדמות של ')}${esc(u.name)}</h1>
-   <p class="sub">${T('רמה ')}${u.lv} · ${T(LEVELS[u.lv].nm)} · ${T(LEVELS[u.lv].cefr)} · ${levelPct(u,u.lv)}% ${T('שליטה')}</p>
+  s.innerHTML=`<h1>${T('ההתקדמות של')} ${esc(u.name)}</h1>
+   <p class="sub">${T('רמה')} ${u.lv} · ${T(LEVELS[u.lv].nm)} · ${LEVELS[u.lv].cefr} · ${levelPct(u,u.lv)}% ${T('שליטה')}</p>
    ${progressBlock(u,{self:true})}`;
 }
 
@@ -7296,7 +7072,7 @@ function vFamily(s){
   const u=me();
   s.innerHTML=`<h1>${T('המשפחה')}</h1><p class="sub">${T('מעבר בין לומדים, מעקב ושליטה.')}</p>
     <div class="userpick" style="margin-top:14px" id="ul"></div>
-    <button class="btn ghost" style="margin-top:10px" onclick="addUser()">${T('+ הוספת לומד')}</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="addUser()">+ ${T('הוספת לומד')}</button>
     <div class="card" style="margin-top:14px">
       <b>${T('בקרת הורים ומורים')}</b>
       <div class="sub" style="margin-top:4px">${T('יעדים יומיים, מגבלת מסך, נעילת רמה, מצבי תרגול מותרים והקצאת משימות.')}</div>
@@ -7311,15 +7087,16 @@ function vFamily(s){
 
     <div class="sec-title">${T('מראה')}</div>
     <div class="card">
-      <div class="field"><label>${T('שפת הממשק')}</label><div class="seg" id="lg">
-        <button data-v="he" class="${(u.settings.lang||'he')==='he'?'on':''}">עברית</button>
-        <button data-v="en" class="${u.settings.lang==='en'?'on':''}">English</button></div></div>
       <div class="field"><label>${T('ערכת נושא')}</label><div class="seg" id="th">
         ${[['auto',T('לפי המכשיר')],['light',T('בהיר')],['dark',T('כהה')]]
           .map(([v,n])=>`<button data-v="${v}" class="${(u.settings.theme||'auto')===v?'on':''}">${n}</button>`).join('')}</div></div>
-      <div class="field" style="margin-bottom:0"><label>${T('גודל טקסט')}</label><div class="seg" id="sz">
+      <div class="field"><label>${T('גודל טקסט')}</label><div class="seg" id="sz">
         ${[['m',T('רגיל')],['l',T('גדול')],['xl',T('ענק')]]
           .map(([v,n])=>`<button data-v="${v}" class="${(u.settings.size||'m')===v?'on':''}">${n}</button>`).join('')}</div></div>
+      <div class="field" style="margin-bottom:0"><label>${T('שפת תצוגה')}</label><div class="seg" id="lg">
+        ${[['he','עברית'],['en','English']]
+          .map(([v,n])=>`<button data-v="${v}" class="${(u.settings.lang||'he')===v?'on':''}">${n}</button>`).join('')}</div>
+        <p class="muted" style="margin-top:7px">${T('תוכן הלימוד — תרגומי מילים והסברי דקדוק — נשאר בעברית בשתי השפות.')}</p></div>
     </div>
 
     <div class="sec-title">${T('קול ודיבור')}</div>
@@ -7339,21 +7116,21 @@ function vFamily(s){
     <div class="card">
       ${(()=>{ const cur=pickVoice(), ava=findAva();
         const tier=cur?voiceTier(cur):null;
-        const badge={premium:['pill g',T('איכות גבוהה')],good:['pill',T('תקין')],plain:['pill o',T('בסיסי')],junk:['pill r',T('קול דחוס')]}[tier]||['pill',T('—')];
+        const badge={premium:['pill g',T('איכות גבוהה')],good:['pill',T('תקין')],plain:['pill o',T('בסיסי')],junk:['pill r',T('קול דחוס')]}[tier]||['pill','—'];
         return `<div class="ctrl" style="border:0;padding-top:0">
           <div class="tx"><b>${T('בשימוש כרגע')}</b>
-            <span class="en" style="direction:ltr;display:block;font-size:.86rem;color:var(--ink);font-weight:600">${cur?esc(cur.name):T('—')}</span>
+            <span class="en" style="direction:ltr;display:block;font-size:.86rem;color:var(--ink);font-weight:600">${cur?esc(cur.name):'—'}</span>
             <span>${cur?esc(cur.lang):T('לא נמצא קול אנגלית במכשיר')}</span></div>
           <span class="${badge[0]}">${badge[1]}</span></div>
-        ${tier==='junk'?`<p class="muted" style="margin:0 0 12px">${T('זהו קול דחוס והוא יישמע מתכתי. הורידו קול Premium בהגדרות → נגישות → תוכן מדובר → קולות → English.')}</p>`:''}
-        ${ava && cur!==ava ? `<button class="btn sm" style="width:100%;margin-bottom:12px" id="useava">${T('מעבר ל‑')}${esc(ava.name)}</button>` : ''}`;})()}
+        ${tier==='junk'?`<p class="muted" style="margin:0 0 12px">${T('זהו קול דחוס והוא יישמע מתכתי. הורידו קול')} Premium ${T('בהגדרות')} → ${T('נגישות')} → ${T('תוכן מדובר')} → ${T('קולות')} → English.</p>`:''}
+        ${ava && cur!==ava ? `<button class="btn sm" style="width:100%;margin-bottom:12px" id="useava">${T('מעבר ל')}‑${esc(ava.name)}</button>` : ''}`;})()}
       <div class="field"><label>${T('קול')}</label>
         <select id="vc"><option value="">${T('בחירה אוטומטית — הטוב ביותר במכשיר')}</option>${
           VOICES.map(v=>{const t=voiceTier(v);
             return `<option value="${esc(v.name)}" ${v.name===u.settings.voice?'selected':''}>${esc(v.name)} · ${esc(v.lang)}${t==='premium'?' ✦✦':t==='good'?' ✦':''}</option>`}).join('')}</select>
         <button class="btn ghost sm" style="width:100%;margin-top:8px" id="tv">${T('השמעת דוגמה')}</button>
         <button class="btn ghost sm" style="width:100%;margin-top:6px" onclick="voiceDiag()">${T('אבחון קולות')}</button>
-        <p class="muted" style="margin-top:6px">${VOICES.length?T('{0} קולות אנגלית במכשיר · ✦✦ איכות גבוהה, ✦ תקין.', VOICES.length):T('עדיין נטענים קולות. אם הרשימה נשארת ריקה — רעננו את הדף.')}</p></div>
+        <p class="muted" style="margin-top:6px">${VOICES.length?`${VOICES.length} ${T('קולות אנגלית במכשיר')} · ✦✦ ${T('איכות גבוהה')}, ✦ ${T('תקין.')}`:T('עדיין נטענים קולות. אם הרשימה נשארת ריקה — רעננו את הדף.')}</p></div>
       <div class="field"><label>${T('מהירות הדיבור')}</label>
         <select id="sp">${[['0.6',T('איטית מאוד')],['0.75',T('איטית')],['0.95',T('רגילה')],['1.05',T('מהירה')],['1.2',T('ילידית')]]
           .map(([v,n])=>`<option value="${v}" ${+v===u.settings.speed?'selected':''}>${n}</option>`).join('')}</select></div>
@@ -7367,8 +7144,8 @@ function vFamily(s){
     ${u.ctrl.lockLevel?'':`<div class="sec-title">${T('רמה')}</div>
     <div class="card">
       <div class="field" style="margin-bottom:0"><label>${T('קפיצה ידנית לרמה')}</label>
-        <select id="lv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===u.lv?'selected':''}>${l.id} · ${T(l.nm)} (${T(l.cefr)})</option>`).join('')}</select>
-        <p class="muted" style="margin-top:7px">${T('בדרך כלל לא צריך לגעת בזה — הרמה עולה מעצמה ב‑{0}% שליטה. שימושי אם התחלתם נמוך מדי.', LEVELS[u.lv].need)}</p></div>
+        <select id="lv">${LEVELS.map(l=>`<option value="${l.id}" ${l.id===u.lv?'selected':''}>${l.id} · ${T(l.nm)} (${l.cefr})</option>`).join('')}</select>
+        <p class="muted" style="margin-top:7px">${T('בדרך כלל לא צריך לגעת בזה — הרמה עולה מעצמה ב')}‑${LEVELS[u.lv].need}% ${T('שליטה. שימושי אם התחלתם נמוך מדי.')}</p></div>
       <button class="btn sm" style="width:100%;margin-top:12px" id="sv">${T('שמירה')}</button>
     </div>`}
     <div class="sec-title">${T('ענן')}</div>
@@ -7381,24 +7158,24 @@ function vFamily(s){
         <button class="btn ghost sm" style="width:100%" onclick="importData()">${T('ייבוא')}</button>
       </div></div>`}
     <button class="btn ghost" style="margin-top:12px" onclick="UNLOCKED={};CUR=null;Store.set(K_CUR,null);TAB='users';render()">${T('החלפת לומד')}</button>
-    ${Store.persistent?'':('<p class="muted" style="margin-top:16px">'+T('תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.')+'</p>')}`;
+    ${Store.persistent?'':T('<p class="muted" style="margin-top:16px">תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.</p>')}`;
   const ul=$('#ul');
   USERS.forEach(x=>{
     const a=analyse(x);
     const b=el(`<button class="usercard ${x.id===CUR?'on':''}"><div class="av">${x.emoji}</div>
-      <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.id===CUR?('<span class="pill">'+T('פעיל')+'</span>'):''}</div>
-      <div class="muted">${T('רמה ')}${x.lv} · ${a.vocab} מילים · ${Math.round(a.accAll*100)||0}% דיוק · 🔥 ${x.streak}</div></div></button>`);
+      <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.id===CUR?T('<span class="pill">פעיל</span>'):''}</div>
+      <div class="muted">${T('רמה')} ${x.lv} · ${a.vocab} ${T('מילים')} · ${Math.round(a.accAll*100)||0}% ${T('דיוק')} · 🔥 ${x.streak}</div></div></button>`);
     b.onclick=()=>userSheet(x);
     ul.appendChild(b);
   });
   const segs=(id,key)=>sh=>0;
   ['th','sz','lg'].forEach(id=>{
-    const key = {th:'theme', sz:'size', lg:'lang'}[id];
+    const key = id==='th'?'theme' : id==='sz'?'size' : 'lang';
     document.querySelectorAll('#'+id+' button').forEach(b=>b.onclick=()=>{
       document.querySelectorAll('#'+id+' button').forEach(x=>x.classList.remove('on'));
       b.classList.add('on'); u.settings[key]=b.dataset.v; saveUsers();
-      /* שינוי שפה הופך את כיוון הדף — צריך ציור מחדש, לא רק החלת ערכה */
-      if(key==='lang'){ applyLang(); render(); } else applyTheme();
+      if(key==='lang'){ Store.set(K_LANG,b.dataset.v); applyLang(); render(); return; }
+      applyTheme();
     });
   });
   const apply=()=>{
@@ -7422,18 +7199,18 @@ function vFamily(s){
 function userSheet(x){
   const a=analyse(x);
   sheet(`<div style="display:flex;align-items:center;gap:12px"><div class="av" style="width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:27px;background:var(--brand-soft)">${x.emoji}</div>
-    <div><h2 style="margin:0">${esc(x.name)}</h2><div class="muted">${T('רמה ')}${x.lv} · ${T(LEVELS[x.lv].nm)} · ${T(LEVELS[x.lv].cefr)}</div></div></div>
+    <div><h2 style="margin:0">${esc(x.name)}</h2><div class="muted">${T('רמה')} ${x.lv} · ${T(LEVELS[x.lv].nm)} · ${LEVELS[x.lv].cefr}</div></div></div>
     <div class="grid2" style="margin-top:14px">
       <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה')}</div></div>
       <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">${T('דיוק')}</div></div>
-      <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':T('—')}</div><div class="l">${T('זמן שליפה')}</div></div>
+      <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':'—'}</div><div class="l">${T('זמן שליפה')}</div></div>
       <div class="stat"><div class="n">${x.streak}</div><div class="l">${T('רצף ימים')}</div></div>
     </div>
     ${a.weakTypes.length?`<div class="sec-title">${T('חולשות')}</div><div class="card">${a.weakTypes.map(w=>
-      `<div class="wordrow"><span style="flex:1">${T(TYPE_HE[w.t]||w.t)}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}</div>`:''}
+      `<div class="wordrow"><span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}</div>`:''}
     <button class="btn" style="margin-top:14px" id="sw">${T('מעבר ללומד הזה')}</button>
     <button class="btn ghost" style="margin-top:8px" id="ct">${T('בקרה והרשאות')}</button>
-    ${x.ctrl.lockData?'':('<button class="btn ghost" style="margin-top:8px" id="rm">'+T('מחיקת הלומד')+'</button>')}`, sh=>{
+    ${x.ctrl.lockData?'':T('<button class="btn ghost" style="margin-top:8px" id="rm">מחיקת הלומד</button>')}`, sh=>{
     sh.querySelector('#ct').onclick=()=>{ closeSheet(); askParent(()=>ctrlSheet(x)); };
     sh.querySelector('#sw').onclick=()=>{ CUR=x.id; Store.set(K_CUR,CUR); closeSheet(); TAB='home'; render(); };
     /* מחיקה תמיד עוברת דרך שער הורה, גם אם לפרופיל הזה עצמו אין קוד —
@@ -7442,7 +7219,7 @@ function userSheet(x){
     if(sh.querySelector('#rm')) sh.querySelector('#rm').onclick=()=>{
       closeSheet();
       askParent(async()=>{
-        if(!confirm(T('למחוק את {0} ואת כל ההתקדמות? אי אפשר לבטל.', x.name))) return;
+        if(!confirm(`${T('למחוק את')} ${x.name} ${T('ואת כל ההתקדמות? אי אפשר לבטל.')}`)) return;
         /* deleteProfile מטפל גם במחיקה בענן ובמצבה — בלעדיו הפרופיל
            היה חוזר בסנכרון הבא מהעותק שנשאר בענן.                  */
         await deleteProfile(x.id);
@@ -7455,7 +7232,7 @@ function userSheet(x){
 function exportData(){
   const blob=new Blob([JSON.stringify({v:1,users:USERS},null,1)],{type:'application/json'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download='beenglish-backup-'+today()+'.json'; a.click();
+  a.download='ladder-backup-'+today()+'.json'; a.click();
   setTimeout(()=>URL.revokeObjectURL(a.href),2000);
 }
 function importData(){
@@ -7482,17 +7259,10 @@ function closeSheet(){ document.querySelector('.sheet-bg')?.remove(); }
 
 /* ---------------- הפעלה ---------------- */
 if(CUR && !me()) CUR=null;
-applyLang();
 applyTheme();
 render();
 pinFixedBars();
-if(CFG.auto && cloudReady()){
-  const before = USERS.length;
-  cloudSync(true).then(()=>{
-    /* לא מציירים מחדש באמצע תרגול — זה היה מאפס את המסך תחת היד */
-    if(!S && USERS.length!==before) render();
-  });
-}
+if(CFG.auto && cloudReady()) cloudSync(true);
 
 /* קישור הצטרפות שנפתח מסריקת QR: ?join=קוד-המשפחה.
    מנקים את הפרמטר מהכתובת מיד, כדי שלא יישאר בהיסטוריה/סימניה
@@ -7501,7 +7271,7 @@ if(CFG.auto && cloudReady()){
   const p=new URLSearchParams(location.search).get('join');
   if(!p || !cloudConfigured()) return;
   history.replaceState(null,'',location.pathname);
-  setTimeout(()=>joinSheet(normFamily(p)), 250);
+  setTimeout(()=>joinSheet(p.trim()), 250);
 })();
 /* רשימת הקולות מגיעה מהדפדפן באיחור — מרעננים את מסך ההגדרות כשהיא נטענת */
 if(window.speechSynthesis){
@@ -7522,21 +7292,21 @@ function voiceDiag(){
   const row = v=>`<div class="wordrow">
     <span class="dot" style="background:${voiceTier(v)==='premium'?'var(--good)':voiceTier(v)==='junk'?'var(--bad)':'var(--gold)'}"></span>
     <span class="w">${esc(v.name)}</span>
-    <span class="h">${esc(v.lang)} · ${v.localService===false?T('רשת'):T('מקומי')}${v.default?' · ברירת מחדל':''}</span>
+    <span class="h">${esc(v.lang)} · ${v.localService===false?T('רשת'):T('מקומי')}${v.default?T(' · ברירת מחדל'):''}</span>
     <span class="badge">${voiceScore(v)}</span></div>`;
   sheet(`<h2>${T('אבחון קולות')}</h2>
     <div class="grid3" style="margin-top:14px">
-      <div class="stat"><div class="n">${all.length}</div><div class="l">${T('סה"כ קולות')}</div></div>
+      <div class="stat"><div class="n">${all.length}</div><div class="l">${T('סה')}"${T('כ קולות')}</div></div>
       <div class="stat"><div class="n">${en.length}</div><div class="l">${T('אנגלית')}</div></div>
       <div class="stat"><div class="n">${all.filter(v=>/premium|enhanced|neural/i.test(v.name)).length}</div><div class="l">${T('משודרגים')}</div></div>
     </div>
     ${all.some(v=>/\bava\b/i.test(v.name))
-      ? ('<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)">'+'<b>'+T('Ava נמצאה')+'</b>'+'<div class="sub" style="margin-top:3px">'+T('אפשר לבחור אותה ברשימת הקולות.')+'</div>'+'</div>')
-      : `<div class="card" style="margin-top:12px;border-color:var(--gold)"><b>${T('Ava לא נחשפת לדפדפן')}</b>
-         <div class="sub" style="margin-top:4px">${T('היא כנראה מותקנת במכשיר, אבל ספארי לא מעביר קולות Premium ו‑Enhanced לדפי אינטרנט — רק לאפליקציות מקוריות ול‑VoiceOver. זו מגבלה של הדפדפן ולא של האפליקציה, ואין דרך לעקוף אותה מהקוד.')}</div></div>`}
+      ? T('<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)"><b>Ava נמצאה</b><div class="sub" style="margin-top:3px">אפשר לבחור אותה ברשימת הקולות.</div></div>')
+      : `<div class="card" style="margin-top:12px;border-color:var(--gold)"><b>Ava ${T('לא נחשפת לדפדפן')}</b>
+         <div class="sub" style="margin-top:4px">${T('היא כנראה מותקנת במכשיר, אבל ספארי לא מעביר קולות')} Premium ${T('ו')}‑Enhanced ${T('לדפי אינטרנט — רק לאפליקציות מקוריות ול')}‑VoiceOver. ${T('זו מגבלה של הדפדפן ולא של האפליקציה, ואין דרך לעקוף אותה מהקוד.')}</div></div>`}
     <div class="sec-title">${T('כל הקולות שהמכשיר מדווח')}</div>
     <div class="card">${all.length?all.slice().sort((a,b)=>voiceScore(b)-voiceScore(a)).map(row).join('')
-      :('<p class="sub">'+T('הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.')+'</p>')}</div>
+      :T('<p class="sub">הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.</p>')}</div>
     <p class="muted" style="margin-top:12px">${T('אם הרשימה נראית שונה כשפותחים ישירות בספארי לעומת אפליקציה אחרת — זה סימן שהתצוגה המוטמעת מגבילה את הקולות.')}</p>`);
 }
 
