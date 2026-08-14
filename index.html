@@ -5,7 +5,15 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" id="themeColorMeta" content="#eceeed">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Ladder · לימוד אנגלית למשפחה</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- שם האייקון במסך הבית. בלי התגית הזו iOS לוקח את <title> כולו,
+     ולכן הופיע "לימוד אנגלית למשפחה · Ladder" במקום שם קצר. -->
+<meta name="apple-mobile-web-app-title" content="BeEnglish">
+<meta name="application-name" content="BeEnglish">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAACDElEQVR42u3bwQ2CMBSAYTSecQcnYh0TPZnoOk7kDm7g1USDSF9RHt9/LjSBj8KBrtrDuZHetXYJBIfgEByCQ3AIDsEhOASH4JDgEByCQ3AIDsEhOASH4BAcEhyCQ3AIDsEhOASH4BAcgkOCQ3AIDsEhOASH4BAcgkNwCA7ppY1L8G/db9eBI7e7Dg4s+sbXI+K1MlcZ5QfCkVxGVR9wCI68y0a9xQMOwSE4BIfgEByCQ3AIDsEhOCQ4BIfgEByCQ3AIDsEhOASHBIfgUEH2yg7qftoPHLk9XuDAom98DiJeK5Eyyg+EI7mMND7gEBy/eO7nvnjAITgEh+AQHIJDcAgOwSE4BIcEh+AQHIJDcAgOwSE4BIfgkODQ52a8HXKZ+1fhCGPxPB6R/K+Vhe9fhaPWDebDB6mWh8P+VTgEh+AQHIJDcEhwCA7BITgEh+AQHIJDcAgOwSHBITgEh+AQHIJD8yl4r6zNzXAUsXgej0j+14rNzXBUucF8+CDV8nDY3AyH4JDgEByCQ3AIDsEhOASH4BAcUgCOkL91Bp4k7Vy7LmCuiJNYOTQhjsKH7KvD085V9tzXWDbCVo7R13HEgWnnGnuDK8lommbVHs6Bp5vy7/O0c92uP2dRBYd8cwgOwSHBITgEh+AQHIJDcAgOwSE4JDgEh+AQHIJDcAgOwSE4BIcEh+AQHIJDk/UA0PR47M5YTJsAAAAASUVORK5CYII=">
+<link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAACDElEQVR42u3bwQ2CMBSAYTSecQcnYh0TPZnoOk7kDm7g1USDSF9RHt9/LjSBj8KBrtrDuZHetXYJBIfgEByCQ3AIDsEhOASH4JDgEByCQ3AIDsEhOASH4BAcEhyCQ3AIDsEhOASH4BAcgkOCQ3AIDsEhOASH4BAcgkNwCA7ppY1L8G/db9eBI7e7Dg4s+sbXI+K1MlcZ5QfCkVxGVR9wCI68y0a9xQMOwSE4BIfgEByCQ3AIDsEhOCQ4BIfgEByCQ3AIDsEhOASHBIfgUEH2yg7qftoPHLk9XuDAom98DiJeK5Eyyg+EI7mMND7gEBy/eO7nvnjAITgEh+AQHIJDcAgOwSE4BIcEh+AQHIJDcAgOwSE4BIfgkODQ52a8HXKZ+1fhCGPxPB6R/K+Vhe9fhaPWDebDB6mWh8P+VTgEh+AQHIJDcEhwCA7BITgEh+AQHIJDcAgOwSHBITgEh+AQHIJD8yl4r6zNzXAUsXgej0j+14rNzXBUucF8+CDV8nDY3AyH4JDgEByCQ3AIDsEhOASH4BAcUgCOkL91Bp4k7Vy7LmCuiJNYOTQhjsKH7KvD085V9tzXWDbCVo7R13HEgWnnGnuDK8lommbVHs6Bp5vy7/O0c92uP2dRBYd8cwgOwSHBITgEh+AQHIJDcAgOwSE4JDgEh+AQHIJDcAgOwSE4BIcEh+AQHIJDk/UA0PR47M5YTJsAAAAASUVORK5CYII=">
+<title>BeEnglish · לימוד אנגלית למשפחה</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -97,8 +105,12 @@ input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
 .topbar.scrolled{border-bottom-color:var(--line)}
 .wordmark{
   font-family:var(--en);font-weight:800;letter-spacing:-.045em;font-size:21px;
-  direction:ltr;font-variation-settings:'opsz' 40;line-height:1
+  direction:ltr;font-variation-settings:'opsz' 40;line-height:1;
+  /* "BeEnglish" ארוך מהשם הקודם — מונעים שבירת שורה ודחיקה של
+     תגי הרצף והרמה שלצידו במסכים צרים.                          */
+  white-space:nowrap;flex:none
 }
+@media (max-width:360px){ .wordmark{font-size:18px} }
 .wordmark i{font-style:normal;color:var(--brand)}
 .chip{
   display:inline-flex;align-items:center;gap:5px;background:var(--card);
@@ -446,7 +458,7 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 
 /* ---------- מסך פתיחה ---------- */
 .welcome{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 24px calc(env(safe-area-inset-bottom) + 32px);max-width:var(--shell);margin:0 auto}
-.welcome .mark{font-family:var(--en);font-weight:800;font-size:3.4rem;letter-spacing:-.05em;direction:ltr;line-height:1;font-variation-settings:'opsz' 96}
+.welcome .mark{font-family:var(--en);font-weight:800;font-size:clamp(2.3rem,11vw,3.2rem);letter-spacing:-.05em;direction:ltr;line-height:1;font-variation-settings:'opsz' 96;white-space:nowrap}
 .welcome .mark i{font-style:normal;color:var(--brand)}
 .welcome .tagline{font-size:1.05rem;color:var(--ink2);margin:14px 0 0;line-height:1.6;max-width:32ch}
 .steps{margin:30px 0 0;display:grid}
@@ -4988,11 +5000,11 @@ function drawTop(){
   if(TAB==='practice' && S) return $('#topbar').classList.add('hide');
   $('#topbar').classList.remove('hide');
   $('#topbar').innerHTML = u
-   ? `<div class="wordmark">Ladd<i>e</i>r</div><div class="spacer"></div>
+   ? `<div class="wordmark">Be<i>E</i>nglish</div><div class="spacer"></div>
       ${u.streak?`<span class="chip flame">${u.streak}🔥</span>`:''}
       <span class="chip">L${u.lv}</span>
       <button class="avatar" onclick="go('family')" aria-label="${T('משפחה')}">${u.emoji}</button>`
-   : `<div class="wordmark">Ladd<i>e</i>r</div>`;
+   : `<div class="wordmark">Be<i>E</i>nglish</div>`;
 }
 function drawNav(){
   const t=(k,n,i)=>`<button class="${TAB===k?'on':''}" onclick="go('${k}')">${svg(i)}<span>${n}</span></button>`;
@@ -5006,7 +5018,7 @@ function vWelcome(){
   $('#topbar').classList.add('hide'); $('#topbar').innerHTML='';
   $('#screen').style.padding='0';
   $('#screen').innerHTML=`<div class="welcome">
-    <div class="mark">Ladd<i>e</i>r</div>
+    <div class="mark">Be<i>E</i>nglish</div>
     <p class="tagline">${T('אנגלית מאפס עד שטף, בקצב של כל אחד במשפחה בנפרד.')}</p>
     <div class="steps">
       <div class="step"><span class="k">01</span><div><b>${T('כל אחד והסולם שלו')}</b>
