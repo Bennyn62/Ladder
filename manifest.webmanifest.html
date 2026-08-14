@@ -74,35 +74,32 @@
       text-align: center;
     }
 
-    .word-en { font-size: 2.2rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; direction: ltr; }
-    .word-phonetic { font-size: 1.1rem; color: var(--ink3); font-style: italic; margin-bottom: 1rem; direction: ltr; }
+    .word-en { font-size: 2.2rem; font-weight: 700; color: var(--primary); margin-bottom: 0.5rem; }
+    .word-phonetic { font-size: 1.1rem; color: var(--ink3); font-style: italic; margin-bottom: 1rem; }
     .word-he { font-size: 1.5rem; font-weight: 600; color: var(--ink2); margin-bottom: 1.5rem; }
-    .word-example { font-size: 0.95rem; color: var(--ink3); background: var(--bg-paper); padding: 1rem; border-radius: 8px; text-align: right; }
+    .word-example { font-size: 0.95rem; color: var(--ink3); background: var(--bg-paper); padding: 1rem; border-radius: 8px; }
 
-    .btn-group { display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1rem; flex-wrap: wrap; }
     .actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1rem; }
-    
     .btn {
       padding: 0.85rem 1.2rem;
       border-radius: 12px;
       border: none;
       font-weight: 600;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: opacity 0.2s;
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 0.5rem;
-      font-size: 0.95rem;
     }
-    .btn:active { transform: scale(0.98); opacity: 0.9; }
+    .btn:active { opacity: 0.8; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
     .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--ink1); }
 
     .hetext { direction: rtl; unicode-bidi: embed; }
-    .speech-status { font-size: 0.85rem; color: var(--ink3); margin-top: 0.5rem; min-height: 1.2em; }
+    .speech-status { font-size: 0.85rem; color: var(--ink3); margin-top: 0.5rem; }
   </style>
 </head>
 <body>
@@ -120,7 +117,7 @@
 
   <script>
     // ==========================================
-    // 1. SECURITY & SANITIZATION
+    // 5. SECURITY: Sanitization Helper (XSS Protection)
     // ==========================================
     function esc(str) {
       if (!str) return '';
@@ -135,17 +132,16 @@
     const heSpan = s => `<span class="hetext">${esc(s)}</span>`;
 
     // ==========================================
-    // 2. MODULAR DATASET
+    // 4. DATA ARCHITECTURE: Modular Dataset
     // ==========================================
     const INITIAL_WORDS = [
       { id: '1', en: 'avoid', he: 'להימנע', ipa: 'əˈvɔɪd', pos: 'v', exEn: 'Avoid bad habits.', exHe: 'הימנע מהרגלים רעים.' },
       { id: '2', en: 'achieve', he: 'להשיג', ipa: 'əˈtʃiːv', pos: 'v', exEn: 'Achieve your goals.', exHe: 'השג את המטרות שלך.' },
-      { id: '3', en: 'consider', he: 'לשקול / לקחת בחשבון', ipa: 'kənˈsɪdər', pos: 'v', exEn: 'Consider all options.', exHe: 'שקול את כל האפשרויות.' },
-      { id: '4', en: 'improve', he: 'לשפר', ipa: 'ɪmˈpruːv', pos: 'v', exEn: 'Practice to improve.', exHe: 'תרגל כדי להשתפר.' }
+      { id: '3', en: 'consider', he: 'לשקול / לקחת בחשבון', ipa: 'kənˈsɪdər', pos: 'v', exEn: 'Consider all options.', exHe: 'שקול את כל האפשרויות.' }
     ];
 
     // ==========================================
-    // 3. INDEXEDDB & SRS ENGINE (LEITNER / SM-2)
+    // 1. STORAGE & SRS: IndexedDB Engine & SM-2/Leitner Logic
     // ==========================================
     class SRSStorage {
       constructor() { this.dbName = 'BeEnglishDB'; this.db = null; }
@@ -169,7 +165,7 @@
           const tx = this.db.transaction('words', 'readonly');
           const store = tx.objectStore('words');
           const req = store.getAll();
-          req.onsuccess = () => resolve(req.result || []);
+          req.onsuccess = () => resolve(req.result);
         });
       }
 
@@ -195,7 +191,7 @@
     const srs = new SRSStorage();
 
     // ==========================================
-    // 4. SPEECH ENGINE (TTS & STT)
+    // 3. SPEECH ENGINE: Speech Synthesis & Recognition
     // ==========================================
     class SpeechEngine {
       constructor() {
@@ -205,7 +201,6 @@
       }
 
       initVoices() {
-        if (!this.synth) return;
         const updateVoices = () => {
           const voices = this.synth.getVoices();
           this.englishVoice = voices.find(v => v.lang.startsWith('en-US') || v.lang.startsWith('en')) || voices[0];
@@ -221,7 +216,7 @@
         this.synth.cancel();
         const utter = new SpeechSynthesisUtterance(text);
         if (this.englishVoice) utter.voice = this.englishVoice;
-        utter.rate = 0.85;
+        utter.rate = 0.9;
         this.synth.speak(utter);
       }
 
@@ -237,9 +232,6 @@
           const spoken = e.results[0][0].transcript.toLowerCase().trim();
           onResult(spoken === targetWord.toLowerCase().trim(), spoken);
         };
-        rec.onerror = () => {
-          onResult(false, 'לא נקלט שמע');
-        };
         rec.start();
       }
     }
@@ -247,15 +239,16 @@
     const speech = new SpeechEngine();
 
     // ==========================================
-    // 5. APPLICATION LOGIC
+    // APP LOGIC & RENDER ENGINE
     // ==========================================
     let currentWord = null;
 
     async function loadNextCard() {
       const words = await srs.getAllWords();
       const now = Date.now();
+      // סינון מילים שזמן החזרה שלהן הגיע
       let dueWords = words.filter(w => w.nextReview <= now);
-      if (dueWords.length === 0) dueWords = words;
+      if (dueWords.length === 0) dueWords = words; // Fallback אם הכל נלמד
 
       currentWord = dueWords[Math.floor(Math.random() * dueWords.length)];
       renderCard(false);
@@ -271,16 +264,14 @@
       container.innerHTML = `
         <div class="word-en">${esc(currentWord.en)}</div>
         <div class="word-phonetic">/${esc(currentWord.ipa)}/</div>
-        <div class="btn-group">
-          <button class="btn btn-outline" onclick="speech.speak('${esc(currentWord.en)}')">🔊 השמע</button>
-          <button class="btn btn-outline" onclick="practiceSpeech()">🎙️ תרגל דיבור</button>
-        </div>
+        <button class="btn btn-outline" onclick="speech.speak('${esc(currentWord.en)}')">🔊 השמע</button>
+        <button class="btn btn-outline" onclick="practiceSpeech()">🎙️ תרגל דיבור</button>
         <div class="speech-status" id="speech-status"></div>
-        <hr style="margin: 1.2rem 0; border: none; border-top: 1px solid var(--border);">
+        <hr style="margin: 1.5rem 0; border: none; border-top: 1px solid var(--border);">
         ${showAnswer ? `
           <div class="word-he">${heSpan(currentWord.he)}</div>
           <div class="word-example">
-            <div style="direction:ltr; text-align:left;">${esc(currentWord.exEn)}</div>
+            <div>${esc(currentWord.exEn)}</div>
             <div style="margin-top:0.25rem;">${heSpan(currentWord.exHe)}</div>
           </div>
           <div class="actions">
@@ -294,13 +285,13 @@
     }
 
     async function handleAnswer(isCorrect) {
-      const intervals = [0, 1, 3, 7, 14, 30];
+      const intervals = [0, 1, 3, 7, 14, 30]; // ימים לפי תיבות SRS
       let box = currentWord.box || 1;
 
       if (isCorrect) {
         box = Math.min(box + 1, 5);
       } else {
-        box = 1;
+        box = 1; // חזרה למתחילים
       }
 
       const nextReview = Date.now() + (intervals[box] * 24 * 60 * 60 * 1000);
@@ -311,14 +302,12 @@
     function practiceSpeech() {
       const statusEl = document.getElementById('speech-status');
       statusEl.innerText = 'מקשיב... דבר עכשיו באנגלית';
-      statusEl.style.color = 'var(--ink3)';
-      
       speech.listen(currentWord.en, (isMatch, spoken) => {
         if (isMatch) {
           statusEl.innerText = `מצוין! זיהיתי: "${spoken}"`;
           statusEl.style.color = 'var(--success)';
         } else {
-          statusEl.innerText = `נסה שוב. נשמע כמו: "${spoken}"`;
+          statusEl.innerText = `נסה שוב. שמעתי: "${spoken}"`;
           statusEl.style.color = 'var(--danger)';
         }
       });
@@ -332,17 +321,15 @@
 
     // Initialize App
     window.addEventListener('DOMContentLoaded', async () => {
-      try {
-        await srs.init();
-        await srs.seedIfEmpty();
-        loadNextCard();
-      } catch (err) {
-        console.error('Database Initialization Failed:', err);
-      }
+      await srs.init();
+      await srs.seedIfEmpty();
+      loadNextCard();
 
+      // Service Worker Registration
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
-          .catch(() => {}); // התעלמות שקטה אם sw.js עדיין לא קיים בשרת
+          .then(reg => console.log('SW Registered:', reg.scope))
+          .catch(err => console.error('SW Error:', err));
       }
     });
   </script>
