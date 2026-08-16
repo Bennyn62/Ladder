@@ -256,7 +256,14 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .readout{
   scroll-margin-top:calc(env(safe-area-inset-top) + 14px);
   background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-  padding:11px 13px 12px;margin-bottom:14px;box-shadow:var(--sh)
+  padding:11px 13px 12px;margin-bottom:14px;box-shadow:var(--sh);
+  /* נדבק לראש המסך ולא נגלל החוצה כשהמקלדת נפתחת. עדיף על
+     position:fixed כאן — sticky מחושב מחדש באותו מעבר גלילה/פריסה
+     שמטפל בכיווץ ה-visual viewport, ולכן פחות רגיש לחוסר-העקביות
+     שבה ספארי ב-iOS מזיז אלמנטים קבועים ביחס למקלדת פתוחה.
+     בטאב הזה (תרגול פעיל) שורת הניווט העליונה תמיד מוסתרת, אז אין
+     שום דבר שהקריאה הזו צריכה "להתחבא מתחת" אליו.                */
+  position:sticky;top:calc(env(safe-area-inset-top) + 8px);z-index:30
 }
 .readout .hdr{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--ink3);font-weight:500}
 .readout .hdr b{color:var(--ink);font-weight:700}
