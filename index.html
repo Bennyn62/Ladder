@@ -16,7 +16,7 @@
 <title>BeEnglish · לימוד אנגלית למשפחה</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;500;600;700;800&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    Ladder — מערכת עיצוב
@@ -25,55 +25,71 @@
    שתי מערכות כתב, שני כיווני קריאה, שלוש משפחות גופנים.
    ============================================================ */
 :root{
-  color-scheme: light dark;
-  --he:'Assistant',system-ui,sans-serif;
-  --en:'Bricolage Grotesque',system-ui,sans-serif;
-  --mono:'JetBrains Mono',ui-monospace,monospace;
+  color-scheme: light;
+  /* גופן אחד לעברית ולטינית כאחד — Rubik נבחר כי יש לו תמיכה עברית
+     מלאה וגם צורה מעוגלת וחמימה, קרוב ברוחו לגופן המותאם-אישית של
+     Duolingo בלי להעתיק אותו. משתמשים באותו משתנה בכל מקום כדי
+     שהמעבר בין עברית לאנגלית בתוך משפט לא יקפוץ בין סגנונות.     */
+  --he:'Rubik',system-ui,sans-serif;
+  --en:'Rubik',system-ui,sans-serif;
+  --mono:'Rubik',system-ui,sans-serif;
 
-  --ink:#0f1b21; --ink2:#43585f; --ink3:#7d9099; --ink4:#a9b8be;
-  --paper:#eceeed; --card:#ffffff; --line:#dbe0e0; --line2:#eaeeed;
-  --brand:#0e7c86; --brand2:#0a5d66; --brand-soft:#dbeef0;
-  --live:#ff5a36; --live-soft:#ffe7e0;
-  --good:#2f9e6a; --good-soft:#dff2e8;
-  --bad:#d94a2b; --bad-soft:#fce6df;
-  --gold:#d9922b; --gold-soft:#fbeed6;
+  --ink:#3c3c3c; --ink2:#5c6066; --ink3:#8a8f96; --ink4:#c2c7cd;
+  --paper:#ffffff; --card:#ffffff; --line:#e5e5e5; --line2:#f2f2f2;
 
-  --r:14px; --r-lg:20px; --r-xl:28px;
-  --sh:0 1px 1px rgba(15,27,33,.04), 0 4px 14px rgba(15,27,33,.06);
-  --sh-lift:0 2px 4px rgba(15,27,33,.07), 0 18px 44px rgba(15,27,33,.16);
-  --bar:78px;
+  /* הפלטה הרוויה של Duolingo — ירוק כפעולה עיקרית, כחול למידע,
+     אדום לשגיאה, זהב לרצף/ניקוד, סגול לרגעים חגיגיים.            */
+  --brand:#58cc02; --brand2:#4caf00; --brand-soft:#d7ffb8;
+  --blue:#1cb0f6; --blue2:#1899d6; --blue-soft:#ddf4ff;
+  --live:#ff4b4b; --live-soft:#ffdfe0;
+  --good:#58cc02; --good-soft:#d7ffb8;
+  --bad:#ff4b4b; --bad-soft:#ffdfe0;
+  --gold:#ffc800; --gold2:#e5b400; --gold-soft:#fff3c4;
+  --purple:#ce82ff; --purple2:#a568c9; --purple-soft:#f3e3ff;
+
+  /* צלליות ה"מדף" התלת-ממדי של הכפתורים — צבע מוצק בלי טשטוש,
+     לא blur כמו קודם. הגובה שלהן הוא חלק מהאפקט, לא רק הצבע.     */
+  --r:16px; --r-lg:20px; --r-xl:26px;
+  --sh:0 2px 0 rgba(0,0,0,.04);
+  --sh-lift:0 10px 24px rgba(0,0,0,.12);
+  --press:4px;
+  --bar:82px;
   --fs:16px;
 
-  /* רוחב התוכן וסרגל הצד — מוגדרים כמשתנים כדי שנקודות העצירה
-     ישנו אותם במקום אחד, במקום לשכפל max-width בכל כלל.        */
-  --shell:600px;   /* רוחב עמודת התוכן */
-  --side:0px;      /* רוחב סרגל הניווט הצדי (0 בנייד — הניווט למטה) */
+  --shell:600px;
+  --side:0px;
 }
 [data-theme="dark"]{
+  /* גם במצב כהה נשארים בשפה של Duolingo — אותם צבעי מותג רוויים,
+     רק על רקע כהה. לא חוזרים לאסתטיקת "מכשיר המדידה" הקודמת.    */
   color-scheme: dark;
-  --ink:#e8edee; --ink2:#a7bcc2; --ink3:#7b9199; --ink4:#546a72;
-  --paper:#0c1418; --card:#141f24; --line:#243239; --line2:#1b272c;
-  --brand:#2bb3bd; --brand2:#1d8b95; --brand-soft:#123239;
-  --live:#ff7051; --live-soft:#3a1c14;
-  --good:#43c088; --good-soft:#123024;
-  --bad:#f0704f; --bad-soft:#3a1811;
-  --gold:#e8ab4d; --gold-soft:#332512;
-  --sh:0 1px 1px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.35);
-  --sh-lift:0 2px 4px rgba(0,0,0,.4), 0 18px 44px rgba(0,0,0,.5);
+  --ink:#f3f3f3; --ink2:#c2c6cc; --ink3:#8e939a; --ink4:#5a5f66;
+  --paper:#131313; --card:#1e1e1e; --line:#3a3a3a; --line2:#2a2a2a;
+  --brand:#58cc02; --brand2:#4caf00; --brand-soft:#243d0a;
+  --blue:#1cb0f6; --blue2:#1899d6; --blue-soft:#0d2c38;
+  --live:#ff4b4b; --live-soft:#3d1414;
+  --good:#58cc02; --good-soft:#243d0a;
+  --bad:#ff4b4b; --bad-soft:#3d1414;
+  --gold:#ffc800; --gold2:#e5b400; --gold-soft:#3d3007;
+  --purple:#ce82ff; --purple2:#a568c9; --purple-soft:#331a42;
+  --sh:0 2px 0 rgba(0,0,0,.3);
+  --sh-lift:0 10px 24px rgba(0,0,0,.5);
 }
 [data-theme="light"]{ color-scheme: light; }
 @media (prefers-color-scheme:dark){
   [data-theme="auto"]{
     color-scheme: dark;
-    --ink:#e8edee; --ink2:#a7bcc2; --ink3:#7b9199; --ink4:#546a72;
-    --paper:#0c1418; --card:#141f24; --line:#243239; --line2:#1b272c;
-    --brand:#2bb3bd; --brand2:#1d8b95; --brand-soft:#123239;
-    --live:#ff7051; --live-soft:#3a1c14;
-    --good:#43c088; --good-soft:#123024;
-    --bad:#f0704f; --bad-soft:#3a1811;
-    --gold:#e8ab4d; --gold-soft:#332512;
-    --sh:0 1px 1px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.35);
-    --sh-lift:0 2px 4px rgba(0,0,0,.4), 0 18px 44px rgba(0,0,0,.5);
+    --ink:#f3f3f3; --ink2:#c2c6cc; --ink3:#8e939a; --ink4:#5a5f66;
+    --paper:#131313; --card:#1e1e1e; --line:#3a3a3a; --line2:#2a2a2a;
+    --brand:#58cc02; --brand2:#4caf00; --brand-soft:#243d0a;
+    --blue:#1cb0f6; --blue2:#1899d6; --blue-soft:#0d2c38;
+    --live:#ff4b4b; --live-soft:#3d1414;
+    --good:#58cc02; --good-soft:#243d0a;
+    --bad:#ff4b4b; --bad-soft:#3d1414;
+    --gold:#ffc800; --gold2:#e5b400; --gold-soft:#3d3007;
+    --purple:#ce82ff; --purple2:#a568c9; --purple-soft:#331a42;
+    --sh:0 2px 0 rgba(0,0,0,.3);
+    --sh-lift:0 10px 24px rgba(0,0,0,.5);
   }
 }
 [data-size="l"]{--fs:18.5px}
@@ -151,56 +167,88 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .sec-title::after{content:'';flex:1;height:1px;background:var(--line)}
 
 /* ---------- cards ---------- */
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;box-shadow:var(--sh)}
+.card{background:var(--card);border:2px solid var(--line);border-radius:var(--r-lg);padding:16px;box-shadow:var(--sh)}
 .card+.card{margin-top:10px}
 
 /* ---------- buttons ---------- */
+/* ============================================================
+   הכפתור התלת-ממדי — הסימן ההיכר הכי מזוהה של Duolingo.
+   העיקרון: "מדף" צבעוני מתחת לכפתור, בגובה --press. לחיצה מורידה
+   את הכפתור לתוך המדף (translateY) ומאפסת את הגובה שלו — מדמה
+   כפתור פיזי שנלחץ פנימה. אין blur, אין מעברי צבע עדינים; הכול
+   שטוח, מוצק וברור.                                              */
 .btn{
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
-  background:var(--brand);color:#fff;border-radius:13px;padding:15px 18px;
-  font-weight:700;font-size:1rem;width:100%;transition:transform .09s, filter .15s;
-  letter-spacing:-.01em
+  background:var(--brand);color:#fff;border-radius:var(--r);padding:15px 18px;
+  font-weight:800;font-size:1.02rem;width:100%;letter-spacing:0;
+  border:none;box-shadow:0 var(--press) 0 var(--brand2);
+  transform:translateY(0);
+  transition:transform .06s ease-out, box-shadow .06s ease-out, filter .1s
 }
-.btn:active{transform:scale(.977);filter:brightness(1.08)}
-.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
-.btn.ghost:active{background:var(--line2)}
-.btn.live{background:var(--live)}
-.btn.sm{padding:10px 14px;font-size:.87rem;width:auto;border-radius:10px}
-.btn[disabled]{opacity:.4;pointer-events:none}
+.btn:active{transform:translateY(var(--press));box-shadow:0 0 0 var(--brand2)}
+.btn.ghost{
+  background:var(--card);color:var(--brand);border:2px solid var(--line);
+  box-shadow:0 var(--press) 0 var(--line)
+}
+.btn.ghost:active{transform:translateY(var(--press));box-shadow:0 0 0 var(--line)}
+.btn.live{background:var(--live);box-shadow:0 var(--press) 0 #d63c3c}
+.btn.live.ghost{background:var(--card);color:var(--live);border-color:var(--live-soft);box-shadow:0 var(--press) 0 var(--live-soft)}
+.btn.sm{padding:11px 16px;font-size:.9rem;width:auto;border-radius:var(--r)}
+.btn[disabled]{opacity:.4;pointer-events:none;box-shadow:none;transform:none}
 .row{display:flex;gap:8px}.row>*{flex:1}
 
 /* ============================================================
    הסולם — עמוד השדרה
    ============================================================ */
-.ladder{position:relative;padding-inline-start:26px}
-.ladder::before{
-  content:'';position:absolute;inset-block:14px;inset-inline-start:12px;width:2px;
-  background:linear-gradient(var(--brand) 0 var(--climb,0%), var(--line) var(--climb,0%) 100%)
+/* ============================================================
+   מסלול המשחק — שביל מתפתל של תחנות עגולות, בהשראת הפריסה
+   המוכרת ממשחקי לוח: לא רשימה, מסלול שמתקדמים לאורכו.
+   כל תחנה מוסטת שמאלה/ימינה לסירוגין (nth-child), עם קו מקווקו
+   שמחבר ביניהן. שם הרמה מופיע כתווית קטנה מתחת לתחנה בלבד —
+   התיאור המלא נשאר בגיליון שנפתח בהקשה, בדיוק כמו קודם.        */
+.ladder{
+  position:relative;display:flex;flex-direction:column;align-items:center;
+  gap:6px;padding-block:10px 4px
 }
 .rung{
-  position:relative;display:flex;align-items:center;gap:12px;width:100%;text-align:start;
-  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-  padding:13px 14px;margin-bottom:8px;overflow:hidden;transition:.18s
+  position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;
+  width:104px;background:none;border:none;padding:6px 0;
+  transition:transform .12s ease-out
 }
+.rung:nth-child(6n+2){transform:translateX(38%)}
+.rung:nth-child(6n+3){transform:translateX(58%)}
+.rung:nth-child(6n+4){transform:translateX(38%)}
+.rung:nth-child(6n+5){transform:translateX(-38%)}
+.rung:nth-child(6n+6){transform:translateX(-58%)}
+.rung:nth-child(6n+7){transform:translateX(-38%)}
+.rung:not(.locked):active{transform:scale(.94) var(--tx,translateX(0))}
 .rung::before{
-  content:'';position:absolute;inset-inline-start:-20px;top:50%;width:14px;height:2px;background:var(--line)
+  content:'';position:absolute;top:-16px;left:50%;width:5px;height:20px;
+  background:repeating-linear-gradient(var(--line) 0 4px, transparent 4px 8px);
+  transform:translateX(-50%);z-index:0
 }
-.rung:not(.locked)::before{background:var(--brand)}
-.rung:not(.locked):active{transform:scale(.985)}
-.rung.locked{opacity:.42}
-.rung.cur{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft)}
-.rung .fillbar{position:absolute;inset-block:0;inset-inline-start:0;width:0;background:var(--brand-soft);transition:width .7s cubic-bezier(.2,.8,.2,1)}
-.rung>*{position:relative;z-index:1}
+.rung:first-child::before{display:none}
+.rung.locked{opacity:.5}
 .rung .lv{
-  width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none;
-  font-family:var(--mono);font-weight:700;font-size:15px;background:var(--paper);
-  border:1px solid var(--line);color:var(--ink2)
+  position:relative;z-index:1;width:68px;height:68px;border-radius:50%;display:grid;place-items:center;
+  font-weight:800;font-size:22px;background:var(--card);
+  border:none;color:var(--ink3);box-shadow:0 5px 0 var(--line), inset 0 0 0 2px var(--line)
 }
-.rung.done .lv{background:var(--good);color:#fff;border-color:var(--good)}
-.rung.cur .lv{background:var(--brand);color:#fff;border-color:var(--brand)}
-.rung .nm{font-weight:700;font-size:.97rem;line-height:1.25;letter-spacing:-.01em}
-.rung .dsc{font-size:.76rem;color:var(--ink3);margin-top:2px;line-height:1.35}
-.rung .pct{font-family:var(--mono);font-size:12px;color:var(--ink3);flex:none;font-weight:500}
+.rung.done .lv{background:var(--brand);color:#fff;box-shadow:0 5px 0 var(--brand2)}
+.rung.done .lv::after{content:'✓';position:absolute;font-size:26px}
+.rung.done .lv{font-size:0}
+.rung.cur .lv{
+  background:var(--gold);color:#fff;box-shadow:0 5px 0 var(--gold2);
+  animation:pulse-node 1.8s ease-in-out infinite
+}
+@keyframes pulse-node{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.rung.locked .lv{box-shadow:0 5px 0 var(--line)}
+.rung .nm{
+  font-weight:800;font-size:.78rem;line-height:1.2;text-align:center;max-width:100px;
+  color:var(--ink2)
+}
+.rung .badge{display:none}
+.rung .dsc,.rung .pct,.rung .fillbar{display:none}
 
 /* ============================================================
    הסיגנצ'ר: פס הקריאה — מד זמן שליפה עם רצועת סובלנות
@@ -237,12 +285,12 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 
 /* ---------- stage ---------- */
 .prompt{
-  background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);
+  background:var(--card);border:2px solid var(--line);border-radius:var(--r-xl);
   padding:30px 20px;text-align:center;box-shadow:var(--sh);min-height:158px;
   display:flex;flex-direction:column;justify-content:center;gap:9px
 }
 .prompt .kicker{
-  font-size:10.5px;font-weight:800;letter-spacing:.13em;color:var(--brand);
+  font-size:10.5px;font-weight:800;letter-spacing:.13em;color:var(--blue);
   text-transform:uppercase;margin-bottom:2px
 }
 .prompt .big{
@@ -258,27 +306,32 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .prompt .letterpair span{font-size:2.7rem;font-weight:500;color:var(--ink3);line-height:.95}
 
 .opts{display:grid;gap:8px;margin-top:12px}
+/* אפשרות בחירה — אותה שפה של "מדף" תלת-ממדי כמו הכפתורים, אבל
+   נמוכה ורגועה יותר (--press קטן משלה) כי יש כמה מהן זו לצד זו,
+   ורק אחרי שנבחרות הן מקבלות את הצבע המלא (ירוק/אדום) עם ה"מדף". */
 .opt{
-  background:var(--card);border:1.5px solid var(--line);border-radius:12px;
-  padding:15px 16px;text-align:start;font-weight:600;font-size:1.03rem;transition:.12s;width:100%
+  background:var(--card);border:2px solid var(--line);border-radius:var(--r);
+  padding:15px 16px;text-align:start;font-weight:700;font-size:1.03rem;width:100%;
+  box-shadow:0 3px 0 var(--line);transform:translateY(0);
+  transition:transform .06s ease-out, box-shadow .06s ease-out, border-color .1s, background .1s
 }
-.opt:active{transform:scale(.984)}
-.opt.ok{border-color:var(--good);background:var(--good-soft)}
-.opt.no{border-color:var(--bad);background:var(--bad-soft)}
-.opt .hint{display:block;font-size:.76rem;font-weight:400;color:var(--ink3);margin-top:3px}
+.opt:active{transform:translateY(3px);box-shadow:0 0 0 var(--line)}
+.opt.ok{border-color:var(--good);background:var(--good-soft);color:var(--brand2);box-shadow:0 3px 0 var(--good)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft);color:#d63c3c;box-shadow:0 3px 0 var(--bad)}
+.opt .hint{display:block;font-size:.76rem;font-weight:500;color:var(--ink3);margin-top:3px}
 
-.answerbox{display:flex;gap:8px;margin-top:12px;scroll-margin-top:calc(env(safe-area-inset-top) + 70px);scroll-margin-bottom:16px}
+.answerbox{display:flex;gap:10px;margin-top:12px;scroll-margin-top:calc(env(safe-area-inset-top) + 70px);scroll-margin-bottom:16px}
 .answerbox+.btn.ghost{margin-top:8px;width:100%}
 .answerbox input{
-  flex:1;padding:16px 15px;border:1.5px solid var(--line);border-radius:12px;
+  flex:1;padding:16px 15px;border:2px solid var(--line);border-radius:var(--r);
   background:var(--card);font-family:var(--en);direction:ltr;text-align:left;
-  font-size:1.15rem;font-weight:600;outline:none;min-width:0
+  font-size:1.15rem;font-weight:700;outline:none;min-width:0
 }
 .answerbox input::placeholder{color:var(--ink4);font-weight:400}
-.answerbox input:focus{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.answerbox input:focus{border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
 .answerbox input.ok{border-color:var(--good);background:var(--good-soft)}
 .answerbox input.no{border-color:var(--bad);background:var(--bad-soft)}
-.answerbox .btn{width:auto;flex:none;padding:0 20px;border-radius:12px;white-space:nowrap}
+.answerbox .btn{width:auto;flex:none;padding:0 20px;border-radius:var(--r);white-space:nowrap}
 
 .tiles{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;justify-content:center}
 .tile{
@@ -340,9 +393,9 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 /* ---------- stats ---------- */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px}
-.stat .n{font-family:var(--mono);font-size:1.5rem;font-weight:700;letter-spacing:-.045em;line-height:1.1}
-.stat .l{font-size:.72rem;color:var(--ink3);margin-top:4px;font-weight:600;line-height:1.3}
+.stat{background:var(--card);border:2px solid var(--line);border-radius:var(--r-lg);padding:13px;text-align:center}
+.stat .n{font-family:var(--mono);font-size:1.6rem;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--brand2)}
+.stat .l{font-size:.72rem;color:var(--ink3);margin-top:4px;font-weight:700;line-height:1.3}
 .bars{display:flex;align-items:flex-end;gap:3px;height:76px;margin-top:8px}
 .bars>div{flex:1;background:var(--line);border-radius:3px 3px 0 0;min-height:3px}
 .bars>div.hot{background:var(--brand)}
@@ -386,6 +439,13 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .ruleblk{background:var(--paper);border:1px solid var(--line);border-radius:11px;padding:13px;margin-top:10px;font-size:.87rem;line-height:1.65}
 .ruleblk .ex{font-family:var(--en);direction:ltr;font-weight:600;margin-top:7px;display:block;font-size:.97rem}
 .toast{position:fixed;bottom:calc(var(--bar) + 22px);left:50%;transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:12px 18px;border-radius:11px;font-size:.87rem;font-weight:700;z-index:200;animation:pop .2s;box-shadow:var(--sh-lift)}
+
+.confetti-host{position:fixed;inset:0;pointer-events:none;z-index:300;overflow:hidden}
+.confetti-piece{position:absolute;top:-20px;width:9px;height:14px;animation:confetti-fall linear forwards}
+@keyframes confetti-fall{
+  0%{transform:translate(0,0) rotate(0deg);opacity:1}
+  100%{transform:translate(var(--x), 112vh) rotate(var(--rot));opacity:.9}
+}
 
 /* ---------- מסך נעילה ומקלדת קוד ---------- */
 .lock{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -458,14 +518,17 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 
 /* ---------- מסך פתיחה ---------- */
 .welcome{min-height:100dvh;display:flex;flex-direction:column;justify-content:center;padding:32px 24px calc(env(safe-area-inset-bottom) + 32px);max-width:var(--shell);margin:0 auto}
-.welcome .mark{font-family:var(--en);font-weight:800;font-size:clamp(2.3rem,11vw,3.2rem);letter-spacing:-.05em;direction:ltr;line-height:1;font-variation-settings:'opsz' 96;white-space:nowrap}
+.welcome .mark{font-family:var(--en);font-weight:800;font-size:clamp(2.3rem,11vw,3.2rem);letter-spacing:-.03em;direction:ltr;line-height:1;white-space:nowrap;margin-top:14px}
 .welcome .mark i{font-style:normal;color:var(--brand)}
 .welcome .tagline{font-size:1.05rem;color:var(--ink2);margin:14px 0 0;line-height:1.6;max-width:32ch}
 .steps{margin:30px 0 0;display:grid}
-.step{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--line)}
+.step{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:2px solid var(--line2)}
 .step:last-child{border-bottom:0}
-.step .k{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--brand);padding-top:3px;flex:none;width:22px}
-.step b{display:block;font-size:.97rem;margin-bottom:3px}
+.step .k{
+  font-size:20px;flex:none;width:40px;height:40px;border-radius:12px;
+  background:var(--blue-soft);display:grid;place-items:center
+}
+.step b{display:block;font-size:.97rem;margin-bottom:3px;font-weight:800}
 .step span{font-size:.83rem;color:var(--ink3);line-height:1.55}
 
 /* ============================================================
@@ -834,6 +897,7 @@ const EN_UI = {
 'עוד סשן':'Another session',
 'סיום הסשן':'Finish session',
 'עלית לרמה':'You reached level',
+'רמה חדשה!':'New level!',
 'שליפה מהירה. זה בדיוק מה שמונע גמגום בדיבור.':'Fast recall. That is exactly what prevents hesitation in speech.',
 'קצב סביר. כדאי לחתור לשליפה מתחת לשלוש שניות.':'Reasonable pace. Aim for recall under three seconds.',
 'השליפה עדיין איטית. סשנים קצרים ויומיים עובדים טוב יותר מארוכים ונדירים.':'Recall is still slow. Short daily sessions work better than long, rare ones.',
@@ -4906,6 +4970,13 @@ if(window.matchMedia){
   });
 }
 
+/* ============================================================
+   הקוף — הדמות המקורית של האפליקציה. תוכנן במיוחד לכאן ולא
+   מבוסס על שום דמות קיימת: תוכי כחול, לא ינשוף — גם מבחינת
+   הצבע וגם מבחינת הצורה. תוכי נבחר כי חיקוי הוא בדיוק המיומנות
+   שהאפליקציה מתרגלת.                                          */
+function mascotSVG(w){ w=w||120; return `<svg viewBox="0 0 220 260" width="{w}" height="{w}" style="display:block;margin:0 auto"><path d="M92 210 Q78 234 66 246 Q90 240 104 220 Z" fill="#159ce0"/><path d="M110 214 Q104 238 96 250 Q118 242 126 220 Z" fill="#1cb0f6"/><ellipse cx="46" cy="130" rx="17" ry="30" fill="#159ce0" transform="rotate(-28 46 130)"/><ellipse cx="110" cy="155" rx="58" ry="62" fill="#1cb0f6"/><ellipse cx="156" cy="155" rx="20" ry="38" fill="#159ce0"/><ellipse cx="106" cy="169" rx="36" ry="40" fill="#fff8e1"/><path d="M92 216 L88 236 M92 216 L98 234" stroke="#ff9500" stroke-width="6" stroke-linecap="round"/><path d="M124 216 L120 236 M124 216 L130 234" stroke="#ff9500" stroke-width="6" stroke-linecap="round"/><circle cx="108" cy="82" r="52" fill="#1cb0f6"/><path d="M86 34 Q90 12 104 20 Q100 34 90 40 Z" fill="#58cc02"/><path d="M104 26 Q116 6 130 16 Q120 32 108 36 Z" fill="#ffc800"/><circle cx="70" cy="96" r="10" fill="#ffb3b3"/><circle cx="146" cy="96" r="10" fill="#ffb3b3"/><circle cx="88" cy="80" r="19" fill="#fff"/><circle cx="128" cy="80" r="19" fill="#fff"/><circle cx="93" cy="83" r="9" fill="#3c3c3c"/><circle cx="133" cy="83" r="9" fill="#3c3c3c"/><circle cx="97" cy="78" r="3" fill="#fff"/><circle cx="137" cy="78" r="3" fill="#fff"/><path d="M102 96 Q108 118 96 122 Q110 130 122 118 Q126 100 114 92 Z" fill="#ff9500"/></svg>`.replace(/\{w\}/g, w); }
+
 /* ---------- סרגל הפעולה ---------- */
 function setAction(html){
   const a=$('#actionbar'); a.classList.remove('hide');
@@ -5018,16 +5089,17 @@ function vWelcome(){
   $('#topbar').classList.add('hide'); $('#topbar').innerHTML='';
   $('#screen').style.padding='0';
   $('#screen').innerHTML=`<div class="welcome">
+    ${mascotSVG(128)}
     <div class="mark">Be<i>E</i>nglish</div>
     <p class="tagline">${T('אנגלית מאפס עד שטף, בקצב של כל אחד במשפחה בנפרד.')}</p>
     <div class="steps">
-      <div class="step"><span class="k">01</span><div><b>${T('כל אחד והסולם שלו')}</b>
+      <div class="step"><span class="k">🪜</span><div><b>${T('כל אחד והסולם שלו')}</b>
         <span>${T('תשע רמות, מהאותיות ועד שיחה חופשית. כל לומד מתקדם לפי הקצב שלו, עם התקדמות נפרדת.')}</span></div></div>
-      <div class="step"><span class="k">02</span><div><b>${T('לא רק לדעת — לשלוף')}</b>
+      <div class="step"><span class="k">⚡</span><div><b>${T('לא רק לדעת — לשלוף')}</b>
         <span>${T('כל תשובה נמדדת בשניות. תשובה נכונה אבל איטית תחזור מוקדם יותר, עד שהיא יוצאת בלי מחשבה.')}</span></div></div>
-      <div class="step"><span class="k">03</span><div><b>${T('לדבר, לא רק לסמן')}</b>
+      <div class="step"><span class="k">🎙️</span><div><b>${T('לדבר, לא רק לסמן')}</b>
         <span>${T('הקלטה, הכתבה, בניית משפטים והגייה. אנגלית נבנית בפה, לא רק בעין.')}</span></div></div>
-      <div class="step"><span class="k">04</span><div><b>${T('עשר דקות ביום מנצחות שעה בשבוע')}</b>
+      <div class="step"><span class="k">🔥</span><div><b>${T('עשר דקות ביום מנצחות שעה בשבוע')}</b>
         <span>${T('המערכת מציפה כל פריט בדיוק לפני שהוא נשכח. רצף יומי שווה יותר מכל מרתון.')}</span></div></div>
     </div>
     <button class="btn" style="margin-top:28px" onclick="addUser()">${T('יצירת הלומד הראשון')}</button>
@@ -5349,8 +5421,11 @@ function drawDone(s){
   const note = avg<3.5?T('שליפה מהירה. זה בדיוק מה שמונע גמגום בדיבור.')
     : avg<6?T('קצב סביר. כדאי לחתור לשליפה מתחת לשלוש שניות.')
     : T('השליפה עדיין איטית. סשנים קצרים ויומיים עובדים טוב יותר מארוכים ונדירים.');
+  const celebrate = promoted || acc>=80;
   s.innerHTML=`<div style="padding-top:calc(env(safe-area-inset-top) + 18px)">
-    <h1>${acc>=80?T('סשן מצוין'):T('סיימת')}</h1><p class="sub">${note}</p>
+    ${celebrate?`<div style="margin-bottom:6px">${mascotSVG(104)}</div>`:''}
+    <h1 style="text-align:${celebrate?'center':'start'}">${promoted?T('רמה חדשה!') : acc>=80?T('סשן מצוין'):T('סיימת')}</h1>
+    <p class="sub" style="text-align:${celebrate?'center':'start'}">${note}</p>
     <div class="grid3" style="margin-top:16px">
       <div class="stat"><div class="n">${acc}<span style="font-size:.6em">%</span></div><div class="l">${T('דיוק')}</div></div>
       <div class="stat"><div class="n">${avg}<span style="font-size:.6em">s</span></div><div class="l">${T('זמן ממוצע')}</div></div>
@@ -5370,6 +5445,7 @@ function drawDone(s){
   if(u.task && u.task.done===1){ u.task.done=2; saveUsers(); }
   cloudSoon();
   S.finished=true;
+  if(celebrate) confetti(promoted?60:42);
   const m=S.mode, sz=S.size;
   setAction(`<button class="btn ghost" id="hm">${T('בית')}</button><button class="btn" id="ag">${T('עוד סשן')}</button>`);
   $('#hm').onclick=()=>{ S=null; go('home'); };
@@ -5381,6 +5457,31 @@ function drawDone(s){
    העזר הזה מוגן בכוונה: הוא רץ בתוך בניית המשוב, ולכן כל שגיאה
    כאן הייתה מפילה את answer() כולו — כלומר גם את כפתור "הבא".
    פונקציית תצוגה לעולם לא צריכה להיות מסוגלת לתקוע את התרגול.  */
+/* ============================================================
+   קונפטי — פרץ צבעוני קצר לרגעי חגיגה: סיום סשן טוב, עלייה ברמה.
+   אלמנטים גולמיים שנופלים ומסתובבים ב-CSS, לא ספרייה חיצונית.
+   מוסרים את עצמם מה-DOM בתום האנימציה כדי לא להצטבר.          */
+function confetti(n){
+  n = n || 46;
+  const host = document.createElement('div');
+  host.className='confetti-host';
+  const colors=['#58cc02','#1cb0f6','#ffc800','#ff4b4b','#ce82ff'];
+  for(let i=0;i<n;i++){
+    const p = document.createElement('div');
+    p.className='confetti-piece';
+    p.style.left = (Math.random()*100)+'%';
+    p.style.background = colors[i%colors.length];
+    p.style.animationDelay = (Math.random()*.35)+'s';
+    p.style.animationDuration = (2+Math.random()*1.1)+'s';
+    p.style.setProperty('--rot', (Math.random()*720-360)+'deg');
+    p.style.setProperty('--x', (Math.random()*200-100)+'px');
+    if(Math.random()<.5) p.style.borderRadius='50%';
+    host.appendChild(p);
+  }
+  document.body.appendChild(host);
+  setTimeout(()=>host.remove(), 3600);
+}
+
 function mnemLine(en){
   try{
     if(typeof MNEM_BY_WORD==='undefined') return '';
