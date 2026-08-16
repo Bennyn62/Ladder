@@ -135,8 +135,8 @@ input,select,textarea{font-family:inherit;font-size:16px;color:inherit}
 }
 .chip.flame{color:var(--live);border-color:var(--live);background:var(--live-soft)}
 .avatar{
-  width:36px;height:36px;border-radius:11px;display:grid;place-items:center;
-  font-size:19px;background:var(--card);border:1px solid var(--line);flex:none
+  width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+  flex:none;overflow:hidden
 }
 
 /* ---------- nav ---------- */
@@ -414,10 +414,18 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .usercard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:13px;text-align:start;width:100%;transition:.14s}
 .usercard:active{transform:scale(.985)}
 .usercard.on{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft)}
-.usercard .av{width:48px;height:48px;border-radius:14px;display:grid;place-items:center;font-size:25px;background:var(--paper);flex:none}
-.emojipick{display:flex;flex-wrap:wrap;gap:7px}
-.emojipick button{width:44px;height:44px;border-radius:12px;background:var(--paper);border:1.5px solid transparent;font-size:23px}
-.emojipick button.on{border-color:var(--brand);background:var(--brand-soft)}
+.usercard .av{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;flex:none;overflow:hidden}
+.avpickgrid{display:flex;flex-wrap:wrap;gap:9px}
+.avpick{width:52px;height:52px;border-radius:50%;padding:0;background:none;border:3px solid transparent;
+  transition:transform .1s,border-color .1s}
+.avpick.on{border-color:var(--ink)}
+.avpick:active{transform:scale(.92)}
+/* תג עריכה קטן שמסמן שהאווטאר בגיליון הפרופיל ניתן ללחיצה לשינוי */
+.avedit{
+  position:absolute;bottom:-2px;inset-inline-end:-2px;width:20px;height:20px;border-radius:50%;
+  background:var(--ink);color:#fff;font-size:11px;display:grid;place-items:center;
+  border:2px solid var(--card)
+}
 .field{margin-bottom:13px}
 .field label{display:block;font-size:.8rem;font-weight:700;color:var(--ink2);margin-bottom:6px}
 .field input,.field select{width:100%;padding:13px;border:1.5px solid var(--line);border-radius:11px;background:var(--card);outline:none}
@@ -450,8 +458,8 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 /* ---------- מסך נעילה ומקלדת קוד ---------- */
 .lock{min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:30px 24px calc(env(safe-area-inset-bottom) + 30px);max-width:var(--shell);margin:0 auto}
-.lock .who{width:74px;height:74px;border-radius:22px;display:grid;place-items:center;font-size:38px;
-  background:var(--card);border:1px solid var(--line);margin-bottom:14px}
+.lock .who{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;
+  overflow:hidden;margin-bottom:14px}
 .dots{display:flex;gap:13px;justify-content:center;margin:20px 0 26px;direction:ltr}
 .dots i{width:13px;height:13px;border-radius:50%;background:var(--line);transition:.15s}
 .dots i.on{background:var(--brand);transform:scale(1.15)}
@@ -4494,6 +4502,17 @@ function normalise(u){
   u.ctrl = Object.assign({daily:0,cap:0,lockLevel:false,lockData:false,mic:true,modes:null}, u.ctrl||{});
   u.lv=u.lv||0; u.xp=u.xp||0; u.streak=u.streak||0;
   u.settings=Object.assign({tts:true,autoSpeak:true,speed:.95,pitch:1,voice:null,theme:'auto',size:'m',lang:'he'}, u.settings||{});
+  /* מיגרציה חד-פעמית מהאימוג'י הישן לסמל החדש. לא מייבאים כאן את
+     AVATARS המלא (מוגדר מאוחר יותר בקובץ, ולוקח id+bg+svg) — רק
+     רשימת המזהים, כדי ש-normalise יעבוד גם כשהוא רץ ראשון באתחול,
+     לפני שהקבוע ההוא בכלל אותחל. הבחירה יציבה לכל משתמש (מבוססת
+     על ה-id שלו), כדי שלא "תקפוץ" בכל רענון — רק פעם אחת, ואפשר
+     לשנות אותה בכל רגע דרך הפרופיל.                              */
+  if(!u.avatar){
+    const ids=['star','rocket','bolt','book','music','controller','trophy','gem','crown','heart','paw','planet','compass','flag','headphones','target'];
+    let hh=0; for(const c of u.id||'x') hh=(hh*31+c.charCodeAt(0))|0;
+    u.avatar = ids[Math.abs(hh)%ids.length];
+  }
   return u;
 }
 USERS.forEach(normalise);
@@ -4505,9 +4524,9 @@ let CUR   = Store.get(K_CUR, null);
 const saveUsers = ()=>{ Store.set(K_USERS, USERS); if(typeof cloudSoon==='function' && !SYNCING) cloudSoon(); };
 const me = ()=> USERS.find(u=>u.id===CUR);
 
-function newUser(name, emoji, role, lv){
+function newUser(name, avatar, role, lv){
   const u = {
-    id:uid(), name, emoji, role, created:today(),
+    id:uid(), name, avatar, role, created:today(),
     lv: lv||0,                 // רמה נוכחית
     xp:0, streak:0, lastDay:null,
     srs:{},                    // itemId -> {ef,iv,rep,due,seen,ok,ms}
@@ -5074,7 +5093,7 @@ function drawTop(){
    ? `<div class="wordmark">Be<i>E</i>nglish</div><div class="spacer"></div>
       ${u.streak?`<span class="chip flame">${u.streak}🔥</span>`:''}
       <span class="chip">L${u.lv}</span>
-      <button class="avatar" onclick="go('family')" aria-label="${T('משפחה')}">${u.emoji}</button>`
+      <button class="avatar" onclick="go('family')" aria-label="${T('משפחה')}">${avatarHTML(u.avatar,40)}</button>`
    : `<div class="wordmark">Be<i>E</i>nglish</div>`;
 }
 function drawNav(){
@@ -5108,7 +5127,62 @@ function vWelcome(){
 }
 
 /* ---------- בחירת לומד ---------- */
-const EMOJIS='🦊 🐼 🐧 🦁 🐨 🐢 🦉 🐝 🚀 ⚽ 🎸 🌻 🍀 ⭐ 🐙 🦄'.split(' ');
+/* ============================================================
+   סמלי פרופיל — סמלי SVG אחידים במקום אימוג'י.
+   הסיבה להחלפה: אימוג'י מצטייר אחרת בכל מכשיר ומערכת הפעלה
+   (אנדרואיד, iOS ישן/חדש, ווינדוס) — לא עקבי ולא באמת "מותאם".
+   כל סמל כאן מצויר פעם אחת, נראה זהה בכל מקום, ותואם את פלטת
+   הצבעים של האפליקציה. ניתן לשינוי בכל רגע — לא רק ביצירה.        */
+const AVATARS = [
+  {id:'star',    bg:'#ffc800', svg:'<path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.2 21 12 17.56 5.8 21 7 14.14 2 9.27l7.1-1.01z"/>'},
+  {id:'rocket',  bg:'#1cb0f6', svg:'<path d="M12 2c3 2 5 6 5 10 0 2-1 3.5-2 4.5l1 4.5-3.5-2.3L9 21l1-4.5C9 15.5 8 14 8 12 8 8 9.5 4 12 2z"/><circle cx="12" cy="10" r="2" fill="%BG%"/><path d="M8 16l-3 1 1.5-3M16 16l3 1-1.5-3" stroke="#fff" stroke-width="1.6" fill="none" stroke-linecap="round"/>'},
+  {id:'bolt',    bg:'#ce82ff', svg:'<path d="M13 2 4 14h6l-1 8 9-12h-6z"/>'},
+  {id:'book',    bg:'#58cc02', svg:'<path d="M4 5c2-1.3 5-1.3 8 0v14c-3-1.3-6-1.3-8 0zM20 5c-2-1.3-5-1.3-8 0v14c3-1.3 6-1.3 8 0z"/>'},
+  {id:'music',   bg:'#ff9500', svg:'<path d="M9 17V5l10-2v12" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="17" r="2.6"/><circle cx="17" cy="15" r="2.6"/>'},
+  {id:'controller', bg:'#1cb0f6', svg:'<rect x="2" y="8" width="20" height="10" rx="5"/><circle cx="8" cy="13" r="1.8" fill="%BG%"/><circle cx="16" cy="13" r="1.8" fill="%BG%"/><rect x="5.2" y="12.2" width="1.6" height="4" fill="%BG%"/><rect x="3.2" y="14.2" width="5.6" height="1.6" fill="%BG%"/>'},
+  {id:'trophy',  bg:'#ffc800', svg:'<path d="M6 3h12v6c0 3.3-2.7 6-6 6s-6-2.7-6-6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3M18 5h3v2a3 3 0 0 0-3 3" fill="none" stroke="#fff" stroke-width="1.6"/><rect x="10" y="15" width="4" height="3"/><rect x="7" y="18" width="10" height="2.4" rx="1.2"/>'},
+  {id:'gem',     bg:'#ce82ff', svg:'<path d="M12 2 5 9l7 13 7-13z"/>'},
+  {id:'crown',   bg:'#ffc800', svg:'<path d="M3 8l4 3 5-7 5 7 4-3-2 11H5z"/>'},
+  {id:'heart',   bg:'#ff4b4b', svg:'<path d="M12 21s-7-4.6-9.5-9C1 8.5 2.5 5 6 5c2 0 3.5 1.2 4.5 2.5C11.5 6.2 13 5 15 5c3.5 0 5 3.5 3.5 7-2.5 4.4-6.5 9-9 9z"/>'},
+  {id:'paw',     bg:'#58cc02', svg:'<ellipse cx="12" cy="16" rx="5" ry="4"/><circle cx="6.5" cy="9.5" r="2"/><circle cx="10.3" cy="6.6" r="2"/><circle cx="14.5" cy="6.6" r="2"/><circle cx="17.5" cy="9.5" r="2"/>'},
+  {id:'planet',  bg:'#1cb0f6', svg:'<circle cx="12" cy="12" r="7"/><ellipse cx="12" cy="12" rx="11" ry="3.2" fill="none" stroke="#fff" stroke-width="1.6" transform="rotate(-18 12 12)"/>'},
+  {id:'compass', bg:'#58cc02', svg:'<circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="1.8"/><path d="M15 9l-4.5 2.5L8 16l4.5-2.5z"/>'},
+  {id:'flag',    bg:'#ff4b4b', svg:'<rect x="4" y="3" width="2" height="18" rx="1"/><path d="M6 4l12 3-12 3z"/>'},
+  {id:'headphones', bg:'#ff4b4b', svg:'<path d="M4 13a8 8 0 0 1 16 0" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><rect x="2.5" y="12" width="5" height="7" rx="2"/><rect x="16.5" y="12" width="5" height="7" rx="2"/>'},
+  {id:'target',  bg:'#ff4b4b', svg:'<circle cx="12" cy="12" r="9" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="5" fill="none" stroke="#fff" stroke-width="1.8"/><circle cx="12" cy="12" r="1.4"/>'},
+];
+const AVATAR_BY_ID = {};
+AVATARS.forEach(a=>AVATAR_BY_ID[a.id]=a);
+const DEFAULT_AVATAR = 'star';
+
+/* ה-id ניתן ל-avatarHTML כדי לצייר עיגול צבעוני עם הסמל בפנים.
+   %BG% בתוך ה-svg מציין חלקים שצריכים "לחתוך חור" בצבע הרקע —
+   למשל חלון הרקטה — כדי שייראו כמו שכבה שקופה בלי SVG mask.       */
+function avatarHTML(id, size){
+  size = size || 44;
+  const a = AVATAR_BY_ID[id] || AVATAR_BY_ID[DEFAULT_AVATAR];
+  const svg = a.svg.split('%BG%').join(a.bg);
+  const isz = Math.round(size*0.56);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" style="border-radius:50%;flex:none">
+    <circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${a.bg}"/>
+    <g transform="translate(${(size-isz)/2},${(size-isz)/2}) scale(${isz/24})" fill="#fff">${svg}</g>
+  </svg>`;
+}
+
+/* גיליון בחירת סמל — משמש גם ביצירת פרופיל וגם לשינוי מאוחר יותר.
+   onPick נקרא עם ה-id שנבחר; לא סוגר את הגיליון בעצמו כדי שהקורא
+   יחליט (ביצירה ממשיכים לשלב הבא, בשינוי סוגרים מיד).            */
+function avatarPicker(host, current, onPick){
+  host.innerHTML = AVATARS.map(a=>`<button data-id="${a.id}" class="avpick ${a.id===current?'on':''}">${avatarHTML(a.id,52)}</button>`).join('');
+  host.querySelectorAll('button').forEach(b=>{
+    b.onclick=()=>{
+      host.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      onPick(b.dataset.id);
+    };
+  });
+}
+
 function vUsers(s){
   s.innerHTML=`<h1>${T('מי לומד עכשיו?')}</h1><p class="sub">${T('לכל אחד התקדמות, רמה ורצף משלו.')}</p>
     <div class="userpick" style="margin-top:18px" id="ul"></div>
@@ -5116,7 +5190,7 @@ function vUsers(s){
     <button class="btn ghost" style="margin-top:8px" onclick="cloudSheet()">${cloudReady()?T('הגדרות ענן'):T('התחברות למשפחה קיימת')}</button>`;
   const ul=$('#ul');
   USERS.forEach(u=>{
-    const b=el(`<button class="usercard"><div class="av">${u.emoji}</div>
+    const b=el(`<button class="usercard"><div class="av">${avatarHTML(u.avatar,48)}</div>
       <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(u.name)}</div>
       <div class="muted">${u.role==='parent'?T('הורה או מורה'):T('רמה ')+u.lv+' · '+T(LEVELS[u.lv].nm)}</div></div>
       ${u.code?'<span class="badge">🔒</span>':''}
@@ -5126,13 +5200,13 @@ function vUsers(s){
   });
 }
 function addUser(asParent){
-  let em=EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+  let av = AVATARS[Math.floor(Math.random()*AVATARS.length)].id;
   sheet(`<h2>${asParent?T('פרופיל הורה או מורה'):T('לומד חדש')}</h2>
     <div class="field"><label>${T('שם')}</label><input id="nm" placeholder="${asParent?T('למשל: אבא'):T('למשל: יעל')}"></div>
     <div class="field"><label>${T('תפקיד')}</label><div class="seg" id="rl">
       <button data-v="learner" class="${asParent?'':'on'}">${T('לומד')}</button>
       <button data-v="parent" class="${asParent?'on':''}">${T('הורה או מורה')}</button></div></div>
-    <div class="field"><label>${T('אווטאר')}</label><div class="emojipick" id="ep"></div></div>
+    <div class="field"><label>${T('סמל')}</label><div class="avpickgrid" id="ep"></div></div>
     <div class="field"><label>${T('גודל טקסט')}</label><div class="seg" id="sz">
       <button data-v="m" class="on">${T('רגיל')}</button><button data-v="l">${T('גדול')}</button><button data-v="xl">${T('ענק')}</button></div></div>
     <div class="field"><label>${T('רמת פתיחה')}</label><select id="lv">${LEVELS.map(l=>`<option value="${l.id}">${l.id} · ${T(l.nm)} (${l.cefr})</option>`).join('')}</select>
@@ -5141,9 +5215,7 @@ function addUser(asParent){
       <span>${T('ארבע ספרות. נדרש בכניסה לפרופיל ולפתיחת בקרת ההורים.')}</span></div>
       <button class="sw ${asParent?'on':''}" id="wantcode"></button></div>
     <button class="btn" id="ok">${T('יצירה')}</button>`, sh=>{
-    const ep=sh.querySelector('#ep');
-    EMOJIS.forEach(e=>{const b=el(`<button class="${e===em?'on':''}">${e}</button>`);
-      b.onclick=()=>{ep.querySelectorAll('button').forEach(x=>x.classList.remove('on'));b.classList.add('on');em=e;};ep.appendChild(b);});
+    avatarPicker(sh.querySelector('#ep'), av, id=>{ av=id; });
     let role = asParent?'parent':'learner', wantCode = !!asParent;
     sh.querySelectorAll('#rl button').forEach(b=>b.onclick=()=>{
       sh.querySelectorAll('#rl button').forEach(x=>x.classList.remove('on'));
@@ -5155,7 +5227,7 @@ function addUser(asParent){
       document.documentElement.dataset.size=size; });
     sh.querySelector('#ok').onclick=()=>{
       const n=sh.querySelector('#nm').value.trim(); if(!n){toast(T('צריך שם'));return;}
-      const u=newUser(n,em,role,+sh.querySelector('#lv').value);
+      const u=newUser(n,av,role,+sh.querySelector('#lv').value);
       u.settings.size=size; saveUsers();
       CUR=u.id; UNLOCKED[u.id]=1; Store.set(K_CUR,CUR); closeSheet(); TAB='home';
       $('#screen').style.padding=''; $('#topbar').classList.remove('hide');
@@ -6080,7 +6152,7 @@ function vLockScreen(u){
   $('#topbar').classList.add('hide'); $('#topbar').innerHTML='';
   $('#screen').style.padding='0';
   $('#screen').innerHTML=`<div class="lock">
-    <div class="who">${u.emoji}</div>
+    <div class="who">${avatarHTML(u.avatar,74)}</div>
     <h2 style="margin:0">${esc(u.name)}</h2>
     <p class="muted">${T('הזינו את קוד הכניסה')}</p>
     <div id="kpwrap" style="width:100%;display:flex;flex-direction:column;align-items:center"></div>
@@ -6224,7 +6296,7 @@ function vParent(){
     const pl=sh.querySelector('#pl');
     USERS.filter(x=>x.role!=='parent').forEach(x=>{
       const a=analyse(x), dn=doneToday(x);
-      const b=el(`<button class="usercard"><div class="av">${x.emoji}</div>
+      const b=el(`<button class="usercard"><div class="av">${avatarHTML(x.avatar,48)}</div>
         <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.code?T('<span class="pill">קוד</span>'):''}</div>
         <div class="muted">${T('רמה')} ${x.lv} · ${Math.round(a.accAll*100)||0}% ${T('דיוק')} · ${a.vocab} ${T('מילים')}${x.streak?' · 🔥'+x.streak:''}</div>
         <div class="muted" style="margin-top:2px">${T('היום')} ${dn}${x.ctrl.daily?'/'+x.ctrl.daily:''} ${T('פריטים')}
@@ -7330,7 +7402,7 @@ function vFamily(s){
   const ul=$('#ul');
   USERS.forEach(x=>{
     const a=analyse(x);
-    const b=el(`<button class="usercard ${x.id===CUR?'on':''}"><div class="av">${x.emoji}</div>
+    const b=el(`<button class="usercard ${x.id===CUR?'on':''}"><div class="av">${avatarHTML(x.avatar,48)}</div>
       <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.id===CUR?T('<span class="pill">פעיל</span>'):''}</div>
       <div class="muted">${T('רמה')} ${x.lv} · ${a.vocab} ${T('מילים')} · ${Math.round(a.accAll*100)||0}% ${T('דיוק')} · 🔥 ${x.streak}</div></div></button>`);
     b.onclick=()=>userSheet(x);
@@ -7364,9 +7436,22 @@ function vFamily(s){
   $('#sv').onclick =()=>{ apply(); u.lv=+$('#lv').value; saveUsers(); toast(T('נשמר')); render(); };
 }
 
+/* מסך שינוי סמל עצמאי — נגיש בכל רגע דרך גיליון הפרופיל, לא רק
+   בהקמה. שומר מיד עם הבחירה, בלי כפתור "שמירה" נפרד — זו בחירה
+   קלת דעת, ולא צריך טקס מיוחד סביבה.                            */
+function changeAvatarSheet(x){
+  sheet(`<h2>${T('סמל')} · ${esc(x.name)}</h2>
+    <p class="sub">${T('אפשר לשנות בכל רגע.')}</p>
+    <div class="avpickgrid" id="ap" style="margin-top:14px"></div>`, sh=>{
+    avatarPicker(sh.querySelector('#ap'), x.avatar, id=>{
+      x.avatar = id; saveUsers(); render();
+      setTimeout(()=>{ closeSheet(); userSheet(x); }, 180);
+    });
+  });
+}
 function userSheet(x){
   const a=analyse(x);
-  sheet(`<div style="display:flex;align-items:center;gap:12px"><div class="av" style="width:52px;height:52px;border-radius:16px;display:grid;place-items:center;font-size:27px;background:var(--brand-soft)">${x.emoji}</div>
+  sheet(`<div style="display:flex;align-items:center;gap:12px"><button class="av" id="avbtn" style="width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:none;border:none;padding:0;position:relative">${avatarHTML(x.avatar,52)}<span class="avedit">✎</span></button>
     <div><h2 style="margin:0">${esc(x.name)}</h2><div class="muted">${T('רמה')} ${x.lv} · ${T(LEVELS[x.lv].nm)} · ${LEVELS[x.lv].cefr}</div></div></div>
     <div class="grid2" style="margin-top:14px">
       <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה')}</div></div>
@@ -7379,6 +7464,9 @@ function userSheet(x){
     <button class="btn" style="margin-top:14px" id="sw">${T('מעבר ללומד הזה')}</button>
     <button class="btn ghost" style="margin-top:8px" id="ct">${T('בקרה והרשאות')}</button>
     ${x.ctrl.lockData?'':T('<button class="btn ghost" style="margin-top:8px" id="rm">מחיקת הלומד</button>')}`, sh=>{
+    /* שינוי סמל — ניתן בכל רגע, ולא רק ביצירת הפרופיל. פעולה קוסמטית
+       גרידא, ולכן בכוונה בלי שער הורה: אין כאן שום דבר רגיש.       */
+    sh.querySelector('#avbtn').onclick=()=>{ closeSheet(); changeAvatarSheet(x); };
     sh.querySelector('#ct').onclick=()=>{ closeSheet(); askParent(()=>ctrlSheet(x)); };
     sh.querySelector('#sw').onclick=()=>{ CUR=x.id; Store.set(K_CUR,CUR); closeSheet(); TAB='home'; render(); };
     /* מחיקה תמיד עוברת דרך שער הורה, גם אם לפרופיל הזה עצמו אין קוד —
