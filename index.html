@@ -1006,6 +1006,7 @@ const EN_UI = {
 'טעינת קולות':'Load voices',
 'טעינת קולות מהשרת':'Load voices from the server',
 'בחרו קול':'Choose a voice',
+'הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.':'The browser is not reporting any voices. Try refreshing, or open the app from the site itself rather than an embedded view.',
 'קודם בחרו קול.':'Choose a voice first.',
 'לא נבחר קול':'No voice selected',
 'מנגן…':'Playing…',
@@ -1269,7 +1270,9 @@ const LEVELS = [
  {id:6,nm:'קישור והרחבה',dsc:'מילות יחס, קישור, השוואה',                need:75, cefr:'A2'},
  {id:7,nm:'השלמת ההווה',dsc:'Present Perfect, מודאלים, תנאי ראשון',     need:75, cefr:'B1'},
  {id:8,nm:'מבנים מתקדמים',dsc:'תנאי שני, סביל, דיבור עקיף',             need:75, cefr:'B1'},
- {id:9,nm:'שטף ילידי',  dsc:'Phrasal verbs, ניבים, דיבור מהיר ושיחה',   need:75, cefr:'B1–B2'}
+ {id:9,nm:'שטף ילידי',  dsc:'Phrasal verbs, ניבים, דיבור מהיר ושיחה',   need:75, cefr:'B1–B2'},
+ {id:10,nm:'רהיטות אקדמית',dsc:'תנאים מעורבים, היפוך להדגשה, סביל מתקדם',need:75, cefr:'C1'},
+ {id:11,nm:'דיוק ילידי',dsc:'Subjunctive, היפוך מתקדם, ניסוח פורמלי, דיוק במילים',need:75, cefr:'C2'}
 ];
 
 const LETTERS = 'A,eɪ,apple,תפוח,æ|B,biː,ball,כדור,b|C,siː,cat,חתול,k|D,diː,dog,כלב,d|E,iː,egg,ביצה,ɛ|F,ɛf,fish,דג,f|G,dʒiː,goat,עז,ɡ|H,eɪtʃ,hat,כובע,h|I,aɪ,ink,דיו,ɪ|J,dʒeɪ,jam,ריבה,dʒ|K,keɪ,key,מפתח,k|L,ɛl,lion,אריה,l|M,ɛm,moon,ירח,m|N,ɛn,nose,אף,n|O,oʊ,orange,תפוז,ɒ|P,piː,pen,עט,p|Q,kjuː,queen,מלכה,kw|R,ɑːr,rain,גשם,r|S,ɛs,sun,שמש,s|T,tiː,tree,עץ,t|U,juː,umbrella,מטריה,ʌ|V,viː,van,טנדר,v|W,ˈdʌbəljuː,water,מים,w|X,ɛks,box,קופסה,ks|Y,waɪ,yellow,צהוב,j|Z,ziː,zebra,זברה,z'
@@ -1624,6 +1627,16 @@ const GRAMMAR = `
 9|תווית מרככת|באנגלית מדוברת מרככים אמירות ישירות. תרגום ישיר מעברית נשמע בוטה.|Could you possibly help me?~האם תוכל אולי לעזור לי;I'm not sure I agree~אני לא בטוח שאני מסכים
 9|Articles מתקדם|the למשהו ידוע ומסוים. בלי תווית להכללות ולמושגים מופשטים.|Music is important~מוזיקה חשובה;The music was loud~המוזיקה הייתה רועשת
 9|טעויות עבריות נפוצות|גיל: לא "I have 30 years" אלא I am 30. הסבר: לא "explain me" אלא explain to me. אלה תרגומים ישירים מעברית שלא קיימים באנגלית.|I am 30 years old~אני בן 30;Please explain it to me~תסביר לי את זה
+10|תנאי מעורב|תנאי שמערבב זמנים: תנאי בעבר עם תוצאה בהווה. If + had + צורה שלישית, would + בסיס.|If I had studied medicine, I would be a doctor now~אילו למדתי רפואה, הייתי רופא היום
+10|היפוך להדגשה|כשמדגישים, הופכים את סדר המילים כמו בשאלה. Not only, Rarely, Never בתחילת המשפט.|Not only did she finish first, but she also broke the record~היא לא רק סיימה ראשונה, היא גם שברה שיא;Rarely have I seen such dedication~לעיתים רחוקות ראיתי מסירות כזו
+10|משפטי הדגשה|It was...who/that מדגיש בדיוק מי או מה. What...is מדגיש פעולה.|It was Sarah who solved the problem~שרה היא זו שפתרה את הבעיה;What I need is more time~מה שאני צריך זה יותר זמן
+10|סביל מתקדם|It is said/believed that — לדיווח בלי לציין מקור. is supposed to — ציפייה או שמועה.|It is believed that the company will expand~מאמינים שהחברה תתרחב;The project is supposed to finish by June~הפרויקט אמור להיגמר עד יוני
+10|פסוקית בינוני|Having + צורה שלישית מקצר משפט שמתאר פעולה שקרתה קודם. חוסך "After I had..."|Having completed the training, she applied for the position~לאחר שסיימה את ההכשרה, היא הגישה מועמדות
+10|פעלי דיווח מתקדמים|suggest, insist, deny, admit — כל אחד דורש מבנה אחר: gerund, that, או שניהם.|She suggested postponing the meeting~היא הציעה לדחות את הפגישה;He denied having taken the file~הוא הכחיש שלקח את הקובץ
+11|Subjunctive|אחרי essential/suggest/demand ש..., הפועל נשאר בצורת הבסיס לכל הגופים — גם he/she.|It is essential that everyone be informed~חיוני שכולם יהיו מיודעים;I suggest that he arrive early~אני מציע שהוא יגיע מוקדם
+11|היפוך מתקדם|Little did / Only after / So...that — מבנים ספרותיים שהופכים סדר מילים לרושם דרמטי.|Little did he know what awaited him~הוא לא ידע מה מצפה לו;So confusing was the map that we got lost~המפה הייתה כה מבלבלת שהלכנו לאיבוד
+11|קישורים פורמיים|whereby, insofar as, notwithstanding — שפה כתובה גבוהה. לא משתמשים בהם בדיבור יומיומי.|a system whereby everyone benefits~מערכת שבאמצעותה כולם מרוויחים;insofar as it is possible~ככל שהדבר אפשרי
+11|דיוק במילים קרובות|מילים שנשמעות דומה בתרגום אבל שונות ברישום או בעוצמה. הבחירה הנכונה היא מה שמבדיל דובר שוטף.|meticulous, not just careful~קפדני, לא רק זהיר;notorious, not just famous~ידוע לשמצה, לא רק מפורסם
 `.trim().split('\n').map(l=>{
   const p=l.split('|');
   return {lv:+p[0], ti:p[1], he:p[2], ex:p[3].split(';').map(e=>{const[en,h]=e.split('~');return{en,he:h}})};
@@ -1679,6 +1692,11 @@ const SENTS = `
 9|As far as I know, the office is closed.|למיטב ידיעתי, המשרד סגור
 9|Let us make a decision and move on.|בוא נקבל החלטה ונתקדם
 9|It depends on what you are trying to achieve.|זה תלוי במה שאתה מנסה להשיג
+10|Not only did she finish the project early, but she also stayed under budget.|היא לא רק סיימה את הפרויקט מוקדם, היא גם נשארה בתקציב
+10|Had I known about the delay, I would have left earlier.|אילו ידעתי על העיכוב, הייתי יוצא מוקדם יותר
+10|It was the manager who ultimately approved the request.|המנהל הוא זה שאישר בסוף את הבקשה
+11|Little did they realize how much the decision would cost them.|הם כלל לא שיערו כמה ההחלטה תעלה להם
+11|Only after reading the contract twice did she notice the clause.|רק אחרי שקראה את החוזה פעמיים היא שמה לב לסעיף
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],en:p[1],he:p[2]}});
 
 /* ---------------- השלמת חסר ---------------- */
@@ -1714,6 +1732,11 @@ const CLOZE = `
 9|Let's ___ a decision.|make|do,take,have|collocation: make a decision
 9|We ran ___ of milk.|out|off,over,away|run out of = נגמר
 9|He gave ___ smoking last year.|up|on,in,off|give up = לוותר / להפסיק
+10|If I had left earlier, I ___ have missed the train.|would not|will not,do not,did not|תנאי מעורב — עבר+would
+10|___ did she suspect the truth.|Little|Small,Few,None|Little did — היפוך להדגשה
+10|It is ___ that the plan will succeed.|believed|believe,believing,believes|סביל מדווח: it is believed that
+11|It is essential that he ___ present at the meeting.|be|is,was,being|Subjunctive — צורת בסיס אחרי essential that
+11|___ after the vote did the truth emerge.|Only|Just,Even,So|Only after — היפוך מתקדם
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],s:p[1],a:p[2],d:p[3].split(','),he:p[4]}});
 
 /* ---------------- הגהה: מצא את הטעות ---------------- */
@@ -1744,6 +1767,10 @@ const PROOF = `
 9|I did a mistake.|did|made|collocation: make a mistake
 9|He said me the truth.|said me|told me|say something to me / tell me
 9|I have a good relation with him.|relation|relationship|relationship לקשר בין אנשים
+10|Not only she finished first, but she also won a prize.|she finished|did she finish|אחרי Not only בתחילת משפט — היפוך כמו בשאלה
+10|It was him who called the meeting.|him|he|אחרי It was...who, נושא ולא מושא: he
+11|It is essential that he is on time.|is|be|Subjunctive — צורת בסיס, לא is
+11|Little I knew what was coming.|I knew|did I know|אחרי Little בתחילת משפט — היפוך
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],s:p[1],bad:p[2],fix:p[3],he:p[4]}});
 
 /* ---------------- שיחה ---------------- */
@@ -1771,6 +1798,9 @@ const TALK = `
 9|What is one thing people often get wrong about your profession?|מה אנשים לרוב לא מבינים במקצוע שלך?|People tend to think ___, but actually ___|People tend to think it is only coding, but actually most of it is testing.
 9|Tell me about a time you had to change your mind about something.|ספר על פעם שהיית צריך לשנות את דעתך|I used to think ___, but then ___|I used to think speed mattered most, but then I saw the cost of bugs.
 9|How would you explain your job to a ten-year-old?|איך היית מסביר את עבודתך לילד בן עשר?|Imagine ___. That is basically what I do.|Imagine a plane that flies itself. I make sure it does not get lost.
+10|What would you have done differently if you had known the outcome in advance?|מה היית עושה אחרת אילו ידעת מראש את התוצאה?|If I had known, I ___|If I had known, I would have asked more questions before agreeing.
+10|What is a decision you made that turned out better than expected?|איזו החלטה קיבלת שיצאה טובה יותר מהצפוי?|It turned out that ___|It turned out that the risk paid off far more than I imagined.
+11|How would you persuade someone who strongly disagrees with you?|איך היית משכנע מישהו שחולק עליך בתוקף?|Rather than ___, I would ___|Rather than arguing directly, I would try to understand their reasoning first.
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],q:p[1],he:p[2],hint:p[3],ans:p[4]}});
 /* ---------------- זוגות מינימליים ---------------- */
 /* רמה | מילה א | מילה ב | ipa א | ipa ב | עברית א | עברית ב | הניגוד | טיפ הגייה */
@@ -4255,6 +4285,124 @@ as opposed to|בניגוד ל|æz əˈpoʊzd tuː|phr
 in contrast to|בשונה מ|ɪn ˈkɒntræst tuː|phr
 `;
 
+/* ---------- רמה 10 (C1): רהיטות אקדמית ומקצועית ---------- */
+WD[10] = `
+substantiate|לבסס בראיות|səbˈstænʃieɪt|v
+ambiguous|דו-משמעי|æmˈbɪɡjuəs|adj
+arbitrary|שרירותי|ˈɑːrbɪtrɛri|adj
+coherent|קוהרנטי|koʊˈhɪrənt|adj
+discrepancy|אי-התאמה|dɪˈskrɛpənsi|n
+feasible|בר-ביצוע|ˈfiːzəbəl|adj
+implicit|משתמע|ɪmˈplɪsɪt|adj
+inherent|טבוע|ɪnˈhɪrənt|adj
+mitigate|למתן|ˈmɪtɪɡeɪt|v
+paradox|פרדוקס|ˈpærədɒks|n
+plausible|סביר להיאמן|ˈplɔːzəbəl|adj
+redundant|מיותר|rɪˈdʌndənt|adj
+discern|להבחין|dɪˈsɜːrn|v
+entail|לגרור בעקבותיו|ɪnˈteɪl|v
+foster|לטפח|ˈfɒstər|v
+inevitable|בלתי נמנע|ɪˈnɛvɪtəbəl|adj
+notion|מושג|ˈnoʊʃən|n
+presumably|ככל הנראה|prɪˈzuːməbli|adv
+refute|להפריך|rɪˈfjuːt|v
+scrutinize|לבחון בקפדנות|ˈskruːtənaɪz|v
+undermine|לערער|ˌʌndərˈmaɪn|v
+underpin|לתמוך בבסיס|ˌʌndərˈpɪn|v
+advocate|לתמוך פומבית|ˈædvəkeɪt|v
+comprise|לכלול|kəmˈpraɪz|v
+constitute|להוות|ˈkɒnstɪtuːt|v
+contemplate|לשקול|ˈkɒntəmpleɪt|v
+denote|לציין|dɪˈnoʊt|v
+elicit|לחלץ תגובה|ɪˈlɪsɪt|v
+encompass|לכלול בתוכו|ɪnˈkʌmpəs|v
+exempt|פטור|ɪɡˈzɛmpt|adj
+integral|בלתי נפרד|ˈɪntɪɡrəl|adj
+intricate|מורכב|ˈɪntrɪkət|adj
+manifest|להתבטא בבירור|ˈmænɪfɛst|v
+pertinent|רלוונטי|ˈpɜːrtənənt|adj
+prevail|לשרור|prɪˈveɪl|v
+rigorous|קפדני|ˈrɪɡərəs|adj
+sustain|לקיים לאורך זמן|səˈsteɪn|v
+tangible|מוחשי|ˈtændʒəbəl|adj
+transparent|שקוף|trænsˈpɛrənt|adj
+unprecedented|חסר תקדים|ʌnˈprɛsɪdɛntɪd|adj
+cognitive|קוגניטיבי|ˈkɒɡnətɪv|adj
+empirical|אמפירי|ɪmˈpɪrɪkəl|adj
+hypothesis|השערה|haɪˈpɒθəsɪs|n
+methodology|מתודולוגיה|ˌmɛθəˈdɒlədʒi|n
+rationale|נימוק|ˌræʃəˈnæl|n
+synthesis|סינתזה|ˈsɪnθəsɪs|n
+anomaly|חריגה מהנורמה|əˈnɒməli|n
+catalyst|זרז|ˈkætəlɪst|n
+correlation|מתאם|ˌkɒrəˈleɪʃən|n
+deficiency|חוסר|dɪˈfɪʃənsi|n
+dimension|ממד|dɪˈmɛnʃən|n
+framework|מסגרת עבודה|ˈfreɪmwɜːrk|n
+holistic|הוליסטי|hoʊˈlɪstɪk|adj
+indicator|מדד|ˈɪndɪkeɪtər|n
+integrity|יושרה|ɪnˈtɛɡrəti|n
+momentum|תנופה|moʊˈmɛntəm|n
+phenomenon|תופעה|fɪˈnɒmɪnɒn|n
+premise|הנחת יסוד|ˈprɛmɪs|n
+proponent|תומך|prəˈpoʊnənt|n
+robust|חסין|roʊˈbʌst|adj
+spectrum|טווח|ˈspɛktrəm|n
+threshold|סף|ˈθrɛʃhoʊld|n
+trajectory|מסלול התפתחות|trəˈdʒɛktəri|n
+trigger|לחולל|ˈtrɪɡər|v
+versatile|רב-תכליתי|ˈvɜːrsətaɪl|adj
+albeit somewhat|אם כי במידת מה|ɔːlˈbiːɪt|adv
+by and large|בסך הכול|baɪ ənd lɑːrdʒ|phr
+a double-edged sword|חרב פיפיות|ə ˈdʌbəl ɛdʒd sɔːrd|idm
+to strike a balance|למצוא איזון|tuː straɪk ə ˈbæləns|idm
+a rule of thumb|כלל אצבע|ə ruːl əv θʌm|idm
+to shed light on|לשפוך אור על|tuː ʃɛd laɪt ɒn|idm
+a slippery slope|מדרון חלקלק|ə ˈslɪpəri sloʊp|idm
+to bridge the gap|לגשר על הפער|tuː brɪdʒ ðə ɡæp|idm
+`;
+
+/* ---------- רמה 11 (C2): דיוק ילידי ---------- */
+WD[11] = `
+meticulous|קפדני עד לפרט|məˈtɪkjələs|adj
+notorious|ידוע לשמצה|noʊˈtɔːriəs|adj
+tenuous|רופף|ˈtɛnjuəs|adj
+succinct|תמציתי|səkˈsɪŋkt|adj
+elaborate|לפרט בהרחבה|ɪˈlæbəreɪt|v
+prevalent|רווח ונפוץ|ˈprɛvələnt|adj
+profound|עמוק ורב-משמעות|prəˈfaʊnd|adj
+prudent|נבון וזהיר|ˈpruːdənt|adj
+resilient|חסין ובעל יכולת התאוששות|rɪˈzɪliənt|adj
+staunch|נאמן בעקביות|stɔːntʃ|adj
+subtle|עדין ולא בולט|ˈsʌtəl|adj
+tacit|מובן מאליו ולא נאמר|ˈtæsɪt|adj
+ubiquitous|נמצא בכל מקום|juːˈbɪkwɪtəs|adj
+vindicate|לזכות מאשמה|ˈvɪndɪkeɪt|v
+acquiesce|להיענות בהשלמה|ˌækwiˈɛs|v
+ascertain|לוודא בבירור|ˌæsərˈteɪn|v
+concede|להודות בוויתור|kənˈsiːd|v
+deprecate|לגנות|ˈdɛprɪkeɪt|v
+discern between|להבחין בדיוק בין|dɪˈsɜːrn bɪˈtwiːn|phr
+espouse|לאמץ עמדה|ɪˈspaʊz|v
+extrapolate|להסיק מתוך נתונים|ɪkˈstræpəleɪt|v
+galvanize|לעורר לפעולה|ˈɡælvənaɪz|v
+juxtapose|להציב זה לצד זה בניגוד|ˈdʒʌkstəpoʊz|v
+mitigate against|לפעול כנגד|ˈmɪtɪɡeɪt əˈɡɛnst|phr
+permeate|לחלחל לכל מקום|ˈpɜːrmieɪt|v
+reconcile|ליישב סתירה|ˈrɛkənsaɪl|v
+substantive|מהותי ולא שולי|ˈsʌbstəntɪv|adj
+supersede|לבוא במקום ולבטל|ˌsuːpərˈsiːd|v
+transcend|לחצות גבול ולעלות מעליו|trænˈsɛnd|v
+underscore|להדגיש בבירור|ˌʌndərˈskɔːr|v
+vested interest|אינטרס אישי מובהק|ˈvɛstɪd ˈɪntrəst|phr
+a foregone conclusion|מסקנה ידועה מראש|ə ˈfɔːrɡɒn kənˈkluːʒən|idm
+to play devil's advocate|לשחק עורך דין של השטן|tuː pleɪ ˈdɛvəlz ˈædvəkeɪt|idm
+the elephant in the room|הפיל בחדר|ði ˈɛlɪfənt ɪn ðə ruːm|idm
+to read between the lines|לקרוא בין השורות|tuː riːd bɪˈtwiːn ðə laɪnz|idm
+a moot point|נקודה שנויה במחלוקת שאינה חשובה עוד|ə muːt pɔɪnt|idm
+to take something with a grain of salt|לקחת דבר מה בערבון מוגבל|tuː teɪk ˈsʌmθɪŋ wɪð ə ɡreɪn əv sɔːlt|idm
+`;
+
 /* ---------- מיזוג לתוך WORDS, בלי כפילויות ---------- */
 Object.keys(WD).forEach(lv=>{
   WD[lv].trim().split('\n').forEach(line=>{
@@ -6204,7 +6352,7 @@ function setCode(u){
   sheet(`<h2>${T('קוד כניסה')} · ${esc(u.name)}</h2>
     <p class="sub" id="msg">${T('בחרו קוד בן ארבע ספרות.')}</p>
     <div id="kpwrap" style="display:flex;flex-direction:column;align-items:center;padding-top:10px"></div>
-    ${u.code?T('<button class="btn ghost" style="margin-top:14px" id="clr">הסרת הקוד</button>'):''}`, sh=>{
+    ${u.code?`<button class="btn ghost" style="margin-top:14px" id="clr">${T('הסרת הקוד')}</button>`:''}`, sh=>{
     const kp=keypad(sh.querySelector('#kpwrap'), 4, c=>{
       if(!first){ first=c; sh.querySelector('#msg').textContent=T('שוב, לאימות.'); kp.reset(); return; }
       if(first!==c){ first=null; sh.querySelector('#msg').textContent=T('הקודים לא תאמו. מתחילים מחדש.'); return false; }
@@ -6313,14 +6461,14 @@ function vParent(){
     USERS.filter(x=>x.role!=='parent').forEach(x=>{
       const a=analyse(x), dn=doneToday(x);
       const b=el(`<button class="usercard"><div class="av">${avatarHTML(x.avatar,48)}</div>
-        <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.code?T('<span class="pill">קוד</span>'):''}</div>
+        <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.code?`<span class="pill">${T('קוד')}</span>`:''}</div>
         <div class="muted">${T('רמה')} ${x.lv} · ${Math.round(a.accAll*100)||0}% ${T('דיוק')} · ${a.vocab} ${T('מילים')}${x.streak?' · 🔥'+x.streak:''}</div>
         <div class="muted" style="margin-top:2px">${T('היום')} ${dn}${x.ctrl.daily?'/'+x.ctrl.daily:''} ${T('פריטים')}
         ${x.task&&!x.task.done?T(' · משימה פעילה'):''}</div></div></button>`);
       b.onclick=()=>{ closeSheet(); ctrlSheet(x); };
       pl.appendChild(b);
     });
-    if(!pl.children.length) pl.innerHTML=T('<div class="card"><p class="sub">אין עדיין לומדים במשפחה.</p></div>');
+    if(!pl.children.length) pl.innerHTML=`<div class="card"><p class="sub">${T('אין עדיין לומדים במשפחה.')}</p></div>`;
   });
 }
 /* ============================================================
@@ -7199,7 +7347,7 @@ async function ttsSheet(){
     };
     sh.querySelector('#diag').onclick=async()=>{
       const out=sh.querySelector('#diagout');
-      out.innerHTML=T('<p class="muted">בודק…</p>');
+      out.innerHTML=`<p class="muted">${T('בודק…')}</p>`;
       const lines=[];
       const row=(label,val,good)=>`<div class="wordrow">
         <span class="dot" style="background:${good===null?'var(--line)':good?'var(--good)':'var(--bad)'}"></span>
@@ -7303,7 +7451,7 @@ function progressBlock(u, opts={}){
    ${a.weakTypes.length?`<div class="sec-title">${T('איפה כדאי להתמקד')}</div><div class="card">${
      a.weakTypes.map(w=>`<div class="wordrow"><span class="dot" style="background:${w.acc<.6?'var(--bad)':'var(--gold)'}"></span>
        <span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}
-     ${opts.self?T('<button class="btn sm" style="margin-top:12px;width:100%" onclick="startSession(\'weak\',12)">תרגול ממוקד חולשות</button>'):''}</div>`:''}
+     ${opts.self?`<button class="btn sm" style="margin-top:12px;width:100%" onclick="startSession('weak',12)">${T('תרגול ממוקד חולשות')}</button>`:''}</div>`:''}
    ${a.weakWords.length?`<div class="sec-title">${T('מילים שעדיין לא יושבות')}</div><div class="card">${
      a.weakWords.map(x=>{const w=WORDS.find(y=>y.en===x.w)||{he:''};
        return `<div class="wordrow"><span class="dot" style="background:var(--bad)"></span>
@@ -7414,12 +7562,12 @@ function vFamily(s){
         <button class="btn ghost sm" style="width:100%" onclick="importData()">${T('ייבוא')}</button>
       </div></div>`}
     <button class="btn ghost" style="margin-top:12px" onclick="UNLOCKED={};CUR=null;Store.set(K_CUR,null);TAB='users';render()">${T('החלפת לומד')}</button>
-    ${Store.persistent?'':T('<p class="muted" style="margin-top:16px">תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.</p>')}`;
+    ${Store.persistent?'':`<p class="muted" style="margin-top:16px">${T('תצוגה מקדימה — הנתונים לא נשמרים בין רענונים. אחרי העלאה לאתר השמירה תעבוד.')}</p>`}`;
   const ul=$('#ul');
   USERS.forEach(x=>{
     const a=analyse(x);
     const b=el(`<button class="usercard ${x.id===CUR?'on':''}"><div class="av">${avatarHTML(x.avatar,48)}</div>
-      <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.id===CUR?T('<span class="pill">פעיל</span>'):''}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:700">${esc(x.name)} ${x.id===CUR?`<span class="pill">${T('פעיל')}</span>`:''}</div>
       <div class="muted">${T('רמה')} ${x.lv} · ${a.vocab} ${T('מילים')} · ${Math.round(a.accAll*100)||0}% ${T('דיוק')} · 🔥 ${x.streak}</div></div></button>`);
     b.onclick=()=>userSheet(x);
     ul.appendChild(b);
@@ -7479,7 +7627,7 @@ function userSheet(x){
       `<div class="wordrow"><span style="flex:1">${TYPE_HE[w.t]||w.t}</span><span class="badge">${Math.round(w.acc*100)}%</span></div>`).join('')}</div>`:''}
     <button class="btn" style="margin-top:14px" id="sw">${T('מעבר ללומד הזה')}</button>
     <button class="btn ghost" style="margin-top:8px" id="ct">${T('בקרה והרשאות')}</button>
-    ${x.ctrl.lockData?'':T('<button class="btn ghost" style="margin-top:8px" id="rm">מחיקת הלומד</button>')}`, sh=>{
+    ${x.ctrl.lockData?'':`<button class="btn ghost" style="margin-top:8px" id="rm">${T('מחיקת הלומד')}</button>`}`, sh=>{
     /* שינוי סמל — ניתן בכל רגע, ולא רק ביצירת הפרופיל. פעולה קוסמטית
        גרידא, ולכן בכוונה בלי שער הורה: אין כאן שום דבר רגיש.       */
     sh.querySelector('#avbtn').onclick=()=>{ closeSheet(); changeAvatarSheet(x); };
@@ -7573,12 +7721,12 @@ function voiceDiag(){
       <div class="stat"><div class="n">${all.filter(v=>/premium|enhanced|neural/i.test(v.name)).length}</div><div class="l">${T('משודרגים')}</div></div>
     </div>
     ${all.some(v=>/\bava\b/i.test(v.name))
-      ? T('<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)"><b>Ava נמצאה</b><div class="sub" style="margin-top:3px">אפשר לבחור אותה ברשימת הקולות.</div></div>')
+      ? `<div class="card" style="margin-top:12px;border-color:var(--good);background:var(--good-soft)"><b>Ava ${T('נמצאה')}</b><div class="sub" style="margin-top:3px">${T('אפשר לבחור אותה ברשימת הקולות.')}</div></div>`
       : `<div class="card" style="margin-top:12px;border-color:var(--gold)"><b>Ava ${T('לא נחשפת לדפדפן')}</b>
          <div class="sub" style="margin-top:4px">${T('היא כנראה מותקנת במכשיר, אבל ספארי לא מעביר קולות')} Premium ${T('ו')}‑Enhanced ${T('לדפי אינטרנט — רק לאפליקציות מקוריות ול')}‑VoiceOver. ${T('זו מגבלה של הדפדפן ולא של האפליקציה, ואין דרך לעקוף אותה מהקוד.')}</div></div>`}
     <div class="sec-title">${T('כל הקולות שהמכשיר מדווח')}</div>
     <div class="card">${all.length?all.slice().sort((a,b)=>voiceScore(b)-voiceScore(a)).map(row).join('')
-      :T('<p class="sub">הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.</p>')}</div>
+      :`<p class="sub">${T('הדפדפן לא מדווח על אף קול. נסו לרענן, או לפתוח את האפליקציה מהאתר עצמו ולא מתוך תצוגה מוטמעת.')}</p>`}</div>
     <p class="muted" style="margin-top:12px">${T('אם הרשימה נראית שונה כשפותחים ישירות בספארי לעומת אפליקציה אחרת — זה סימן שהתצוגה המוטמעת מגבילה את הקולות.')}</p>`);
 }
 
