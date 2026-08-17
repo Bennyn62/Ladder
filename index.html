@@ -1424,7 +1424,6 @@ phone|טלפון|foʊn|n|Answer the phone.|תענה לטלפון
 street|רחוב|striːt|n|A quiet street.|רחוב שקט
 city|עיר|ˈsɪti|n|A big city.|עיר גדולה
 country|מדינה|ˈkʌntri|n|Which country?|איזו מדינה?
-food|אוכל|fuːd|n|Good food.|אוכל טוב
 shop|חנות|ʃɒp|n|The shop is closed.|החנות סגורה
 who|מי|huː|q|Who is that?|מי זה?
 what|מה|wɒt|q|What is this?|מה זה?
@@ -1791,7 +1790,7 @@ const TALK = `
 5|What are your plans for the weekend?|מה התוכניות שלך לסופ"ש?|I am going to ___|I am going to visit my parents.
 6|Which do you prefer, the city or the countryside? Why?|מה אתה מעדיף, עיר או כפר? למה?|I prefer ___ because ___|I prefer the city because there is more to do.
 6|What is the biggest difference between Israel and other countries you visited?|מה ההבדל הגדול ביותר?|The biggest difference is ___|The biggest difference is the pace of life.
-6|Describe your typical workday.|תאר יום עבודה טיפוסי|First ___, then ___, after that ___|First I check my email, then I run tests.
+6|What do you usually do on a workday?|מה אתה בדרך כלל עושה ביום עבודה?|First ___, then ___, after that ___|First I check my email, then I run tests.
 7|What have you learned in the last year?|מה למדת בשנה האחרונה?|I have learned ___|I have learned how to manage my time better.
 8|If you could live anywhere, where would you live?|אילו יכולת לגור בכל מקום, איפה?|If I could, I would live in ___|If I could, I would live near the sea.
 8|What would you do if you lost your job tomorrow?|מה היית עושה אילו איבדת את עבודתך מחר?|I would ___|I would start looking immediately and update my CV.
@@ -2055,7 +2054,16 @@ const IRREG = `
    ============================================================ */
 const WC = {};
 
+/* רמה 2 בכוונה — 'name' נחוץ כבר בשיחת ההיכרות הראשונה */
+WC[2] = `
+name|שם|neɪm|n
+`;
+
 WC[3] = `
+outside|בחוץ|aʊtˈsaɪd|prep
+teacher|מורה|ˈtiːtʃər|n
+student|תלמיד|ˈstuːdənt|n
+bank|בנק|bæŋk|n
 I|אני|aɪ|pron
 you|אתה / אתם|juː|pron
 he|הוא|hiː|pron
@@ -2145,7 +2153,6 @@ cook|לבשל|kʊk|v
 clean|לנקות|kliːn|v
 wash|לרחוץ|wɒʃ|v
 water|מים / להשקות|ˈwɔːtər|n
-name|שם|neɪm|n
 thing|דבר|θɪŋ|n
 place|מקום|pleɪs|n
 person|אדם|ˈpɜːrsən|n
@@ -2189,7 +2196,6 @@ next to|ליד|nɛkst tuː|prep
 behind|מאחורי|bɪˈhaɪnd|prep
 in front of|לפני|ɪn frʌnt ʌv|prep
 inside|בפנים|ɪnˈsaɪd|prep
-outside|בחוץ|aʊtˈsaɪd|prep
 left|שמאל|lɛft|n
 right|ימין / נכון|raɪt|n
 number|מספר|ˈnʌmbər|n
@@ -2225,12 +2231,9 @@ office|משרד|ˈɒfɪs|n
 company|חברה|ˈkʌmpəni|n
 team|צוות|tiːm|n
 class|כיתה / שיעור|klæs|n
-teacher|מורה|ˈtiːtʃər|n
-student|תלמיד|ˈstuːdənt|n
 doctor|רופא|ˈdɒktər|n
 police|משטרה|pəˈliːs|n
 hospital|בית חולים|ˈhɒspɪtəl|n
-bank|בנק|bæŋk|n
 road|כביש|roʊd|n
 train|רכבת|treɪn|n
 plane|מטוס|pleɪn|n
@@ -2327,7 +2330,6 @@ protect|להגן|prəˈtɛkt|v
 save|לשמור / להציל|seɪv|v
 spend|להוציא / לבלות|spɛnd|v
 earn|להרוויח|ɜːrn|v
-cost|לעלות|kɒst|v
 sell|למכור|sɛl|v
 order|להזמין|ˈɔːrdər|v
 book|להזמין מקום|bʊk|v
@@ -2686,6 +2688,8 @@ const WD = {};
 
 /* ---------- רמה 4: היום-יום המוחשי ---------- */
 WD[4] = `
+wake|להתעורר|weɪk|v
+cost|לעלות|kɒst|v
 breakfast|ארוחת בוקר|ˈbrɛkfəst|n
 lunch|ארוחת צהריים|lʌntʃ|n
 dinner|ארוחת ערב|ˈdɪnər|n
@@ -2927,7 +2931,6 @@ believe|להאמין|bɪˈliːv|v
 guess|לנחש|ɡɛs|v
 imagine|לדמיין|ɪˈmædʒɪn|v
 dream|לחלום|driːm|v
-wake|להתעורר|weɪk|v
 rise|לקום / לעלות|raɪz|v
 lie|לשכב|laɪ|v
 sit down|להתיישב|sɪt daʊn|phr
@@ -3010,6 +3013,7 @@ pattern|דוגמה / תבנית|ˈpætərn|n
 
 /* ---------- רמה 6: חיי יום-יום מורחבים, חברה, לימודים ---------- */
 WD[6] = `
+difference|הבדל|ˈdɪfrəns|n
 society|חברה|səˈsaɪəti|n
 community|קהילה|kəˈmjuːnəti|n
 population|אוכלוסייה|ˌpɒpjuˈleɪʃən|n
@@ -3196,7 +3200,6 @@ definition|הגדרה|ˌdɛfɪˈnɪʃən|n
 demand|דרישה / ביקוש|dɪˈmænd|n
 description|תיאור|dɪˈskrɪpʃən|n
 development|התפתחות|dɪˈvɛləpmənt|n
-difference|הבדל|ˈdɪfrəns|n
 direction|הנחיה|dɪˈrɛkʃən|n
 distinction|הבחנה|dɪˈstɪŋkʃən|n
 element|יסוד|ˈɛlɪmənt|n
@@ -4412,6 +4415,19 @@ Object.keys(WD).forEach(lv=>{
     WORDS.push({id, en:p[0], he:p[1], ipa:p[2], pos:p[3], ex:'', exhe:'', lv:+lv, core:1});
   });
 });
+
+/* ---------- יישור תוכן: מילים שכבר נלמדו כפונטיקה/אותיות ----------
+   PHONICS ו-LETTERS (רמות 0-1) משתמשות במילים פשוטות ומוכרות כדי
+   ללמד צלילים — cat, hat, dog, box וכו'. חלק מהמילים האלה הגיעו
+   מ-WD בתיוג רמה 3-5 בטעות, כאילו הן "מילה חדשה" שנפגשים בה שוב
+   הרבה אחרי שכבר פוענחה. אין סיבה שילד יפגוש "cat" בתרגול משמעות
+   ברמה 2 בזמן ש"hat" — בדיוק אותה רמת קושי, מאותה משפחת חריזה —
+   מופיעה כאילו היא חדשה רק ברמה 4. מיישרים את כולן לרמה 2, מיד
+   אחרי הפונטיקה — עקבי עם cat/dog/sun/apple שכבר שם.              */
+(function realignPhonicsOverlap(){
+  const already = new Set([...PHONICS.map(p=>p.w), ...LETTERS.map(l=>l.ex)].map(w=>w.toLowerCase()));
+  WORDS.forEach(w=>{ if(w.lv>2 && already.has(w.en.toLowerCase())) w.lv=2; });
+})();
 /* ============================================================
    חמשת הזמנים הליבתיים
    ------------------------------------------------------------
