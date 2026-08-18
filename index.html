@@ -988,6 +988,7 @@ const EN_UI = {
 'טבעי':'Natural',
 'גבוה':'High',
 'השמעה אוטומטית':'Auto-play',
+'גם קול העידוד בסיום סשן תלוי בהגדרה הזו.':'The end-of-session encouragement voice follows this setting too.',
 'מופעלת':'On',
 'כבויה':'Off',
 'מיקרופון':'Microphone',
@@ -5667,6 +5668,30 @@ addEventListener('keydown',e=>{
 });
 
 /* ---------- סיום ---------- */
+/* ============================================================
+   קול עידוד — משפט קצר שנאמר בקול בסיום סשן, בנוסף לטקסט על המסך.
+   שלוש דרגות, תואמות בדיוק לתנאי ה-celebrate/promoted שכבר קובע
+   מה מוצג ויזואלית — כדי שהקול לעולם לא יסתור את מה שכתוב:
+     promoted  — הכי נלהב, כי זה הישג מדיד (עליית רמה)
+     celebrate — נלהב, לדיוק גבוה בלי עלייה
+     רגיל      — חם ותומך, לא מוגזם, כי הביצוע לא היה יוצא דופן
+   כמה משפטים בכל דרגה כדי שלא יישמע אותו דבר בכל סיום.
+   באנגלית בכוונה — זו בדיוק החשיפה שהאפליקציה נועדה לתת, גם
+   ברגע החגיגה.                                                  */
+const ENCOURAGE = {
+  promoted: ["Amazing! You leveled up!", "Fantastic work! New level!", "Wow, you did it! Level up!"],
+  celebrate: ["Great job!", "You're on fire!", "Excellent work!", "Well done!"],
+  plain: ["Nice work today.", "Good effort! Keep it up.", "Well done, see you next time."]
+};
+function sayEncouragement(promoted, celebrate){
+  const u = me();
+  if(!u || !u.settings.autoSpeak) return;
+  const pool = promoted ? ENCOURAGE.promoted : celebrate ? ENCOURAGE.celebrate : ENCOURAGE.plain;
+  const line = pool[Math.floor(Math.random()*pool.length)];
+  stopAllAudio();
+  say(line, 1);
+}
+
 function drawDone(s){
   const u=me(), n=S.items.length, acc=Math.round(S.ok/n*100), avg=(S.msSum/n/1000).toFixed(1);
   const promoted=checkPromote(u); saveUsers();
@@ -5698,6 +5723,7 @@ function drawDone(s){
   cloudSoon();
   S.finished=true;
   if(celebrate) confetti(promoted?60:42);
+  sayEncouragement(promoted, celebrate);
   const m=S.mode, sz=S.size;
   setAction(`<button class="btn ghost" id="hm">${T('בית')}</button><button class="btn" id="ag">${T('עוד סשן')}</button>`);
   $('#hm').onclick=()=>{ S=null; go('home'); };
@@ -7558,7 +7584,8 @@ function vFamily(s){
         <select id="pt">${[['0.85',T('נמוך')],['1',T('טבעי')],['1.15',T('גבוה')]]
           .map(([v,n])=>`<option value="${v}" ${+v===(u.settings.pitch??1)?'selected':''}>${n}</option>`).join('')}</select></div>
       <div class="field"><label>${T('השמעה אוטומטית')}</label>
-        <select id="au"><option value="1" ${u.settings.autoSpeak?'selected':''}>${T('מופעלת')}</option><option value="0" ${!u.settings.autoSpeak?'selected':''}>${T('כבויה')}</option></select></div>
+        <select id="au"><option value="1" ${u.settings.autoSpeak?'selected':''}>${T('מופעלת')}</option><option value="0" ${!u.settings.autoSpeak?'selected':''}>${T('כבויה')}</option></select>
+        <p class="muted" style="margin-top:6px">${T('גם קול העידוד בסיום סשן תלוי בהגדרה הזו.')}</p></div>
     </div>
 
     ${u.ctrl.lockLevel?'':`<div class="sec-title">${T('רמה')}</div>
