@@ -665,8 +665,13 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
    לא יקפצו לצד הלא נכון. תרגומי המילים נשארים עבריים תמיד, ולכן
    הם מופיעים גם כשהממשק LTR.                                     */
 [dir="ltr"] .hetext,
-[dir="ltr"] .h,
-[dir="ltr"] .hint{ direction:rtl; unicode-bidi:isolate; display:inline-block }
+[dir="ltr"] .h{ direction:rtl; unicode-bidi:isolate; display:inline-block }
+/* ל-.hint אסור לקבל display כאן: הוא כבר block בתוך כפתור אפשרות
+   (השורה השנייה, מתחת למילה האנגלית). הכלל הזה מופיע מאוחר יותר
+   בקובץ ובאותה ספציפיות, ולכן inline-block היה גובר וגורם לתרגום
+   העברי להידבק לצד המילה במקום לרדת שורה — רק במצב ממשק אנגלי.
+   כאן מבודדים כיוון בלבד, בלי לגעת בפריסה.                      */
+[dir="ltr"] .hint{ direction:rtl; unicode-bidi:isolate }
 [dir="ltr"] .prompt .big.he,
 [dir="ltr"] .prompt .med.he{ direction:rtl; unicode-bidi:isolate }
 [dir="ltr"] .ruleblk{ direction:rtl; unicode-bidi:isolate; text-align:right }
@@ -4763,8 +4768,13 @@ function poolFor(lv){
     p.push({t:'letter-case', id:'L:'+x.u+'#c', d:x, lv:0});
     p.push({t:'letter-name', id:'L:'+x.u+'#n', d:x, lv:0});
   });
-  /* שיוך אות למילה דורש קריאה — ולכן שייך לרמה 1, לא ל-0 */
-  if(lv>=1) LETTERS.forEach(x=>p.push({t:'letter', id:'L:'+x.u, d:x, lv:1}));
+  /* שיוך אות למילה דורש קריאה — ולכן שייך לרמה 1, לא ל-0.
+     חייב גם גבול עליון: זו מיומנות הקריאה הבסיסית ביותר, ואין
+     סיבה שלומד שכבר בונה משפטים (רמה 3+) יתרגל "איזו מילה
+     מתחילה ב-W". שאר תרגילי היסוד כבר נגמרים מעצמם — letter-hear
+     ו-letter-case ב-lv<=1, phonics ב-lv<=3 — וזה היה היחיד בלי
+     תקרה, ולכן המשיך להופיע גם ברמה 4 ומעלה.                    */
+  if(lv>=1 && lv<=2) LETTERS.forEach(x=>p.push({t:'letter', id:'L:'+x.u, d:x, lv:1}));
   if(lv>=1 && lv<=3) PHONICS.forEach(x=>p.push({t:'phonics',id:'P:'+x.w, d:x, lv:1}));
   WORDS.filter(w=>w.lv<=lv).forEach(w=>{
     p.push({t:'w-recog', id:w.id+'#r', d:w, lv:w.lv});
