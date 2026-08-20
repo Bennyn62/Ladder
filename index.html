@@ -412,6 +412,15 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
 .stat{background:var(--card);border:2px solid var(--line);border-radius:var(--r-lg);padding:13px;text-align:center}
 .stat .n{font-family:var(--mono);font-size:1.6rem;font-weight:800;letter-spacing:-.02em;line-height:1.1;color:var(--brand2)}
 .stat .l{font-size:.72rem;color:var(--ink3);margin-top:4px;font-weight:700;line-height:1.3}
+/* אריח סטטיסטיקה שאפשר ללחוץ עליו. הצ'ברון מסמן שיש מה לפתוח —
+   בלי סימן, מספר בתוך אריח לא נראה לחיץ. הכיוון מתהפך עם השפה. */
+.stat.tap{width:100%;font:inherit;color:inherit;cursor:pointer;position:relative;
+  transition:transform .06s ease-out, border-color .1s}
+.stat.tap:active{transform:scale(.97)}
+.stat.tap:hover{border-color:var(--brand)}
+.stat.tap::after{content:'‹';position:absolute;top:7px;inset-inline-end:10px;
+  color:var(--ink4);font-size:16px;line-height:1;font-weight:700}
+[dir="ltr"] .stat.tap::after{content:'›'}
 .bars{display:flex;align-items:flex-end;gap:3px;height:76px;margin-top:8px}
 .bars>div{flex:1;background:var(--line);border-radius:3px 3px 0 0;min-height:3px}
 .bars>div.hot{background:var(--brand)}
@@ -733,6 +742,8 @@ const EN_UI = {
 'דיוק':'Accuracy',
 'זמן שליפה':'Recall time',
 'מילים בשליטה':'Words mastered',
+'מילים שנשלפות נכון ומהר באופן עקבי. מילה יורדת מהרשימה אם היא מתחילה להישכח.':'Words you recall correctly and quickly, consistently. A word drops off this list if it starts to fade.',
+'עדיין אין כאן מילים. אחרי כמה סבבי תרגול, מילים שנשלפות נכון ומהר יופיעו כאן.':'No words here yet. After a few rounds of practice, words you recall correctly and quickly will appear here.',
 
 /* --- מסך פתיחה --- */
 'אנגלית מאפס עד שטף, בקצב של כל אחד במשפחה בנפרד.':'English from zero to fluency, at each family member\'s own pace.',
@@ -4945,7 +4956,10 @@ function analyse(u){
   const msArr = items.filter(([,c])=>c.ms).map(([,c])=>c.ms);
   const avgMs = msArr.length? Math.round(msArr.reduce((a,b)=>a+b,0)/msArr.length) : 0;
   const wordCards = items.filter(([k])=>k.startsWith('w:'));
-  const vocab = new Set(wordCards.filter(([,c])=>strength(c)>=.7).map(([k])=>k.split('#')[0])).size;
+  /* מזהי המילים שנמצאות בשליטה, לא רק הספירה — כדי שאפשר יהיה
+     להציג את הרשימה עצמה בלחיצה על המספר.                      */
+  const vocabIds = [...new Set(wordCards.filter(([,c])=>strength(c)>=.7).map(([k])=>k.split('#')[0]))];
+  const vocab = vocabIds.length;
   // נקודות חולשה לפי סוג תרגיל
   const byType={};
   poolFor(u.lv).forEach(it=>{ const c=u.srs[it.id]; if(!c)return;
@@ -4957,7 +4971,7 @@ function analyse(u){
       .map(([k,c])=>({w:k.split(':')[1].split('#')[0], c}))
       .sort((a,b)=>strength(a.c)-strength(b.c)).slice(0,12);
   const dueNow = poolFor(u.lv).filter(it=>{const c=u.srs[it.id];return c&&c.due<=dayNum()}).length;
-  return {known, learning, accAll, avgMs, vocab, weakTypes, weakWords, dueNow, total:items.length};
+  return {known, learning, accAll, avgMs, vocab, vocabIds, weakTypes, weakWords, dueNow, total:items.length};
 }
 
 const TYPE_HE = {'letter-hear':'זיהוי אות בשמיעה','letter-case':'גדולה וקטנה','letter-name':'שם האות',letter:'אות ומילה',phonics:'פונטיקה','w-recog':'זיהוי מילים','w-recall':'שליפת מילים',
@@ -5456,7 +5470,7 @@ function vHome(s){
    </div>
 
    <div class="grid3" style="margin-top:14px">
-     <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה')}</div></div>
+     <button class="stat tap" onclick="masteredSheet(me())"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה')}</div></button>
      <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}<span style="font-size:.6em">%</span></div><div class="l">${T('דיוק')}</div></div>
      <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1):'—'}<span style="font-size:.6em">s</span></div><div class="l">${T('זמן שליפה')}</div></div>
    </div>
@@ -6212,6 +6226,35 @@ RENDER.conjug=(q,it,u,tg)=>{
 /* ---------------- גיליון חמשת הזמנים ----------------
    טבלת ייחוס אחת שמראה את כל המערכת יחד. הערך שלה הוא
    דווקא בהצגה המשותפת — ההבדלים נראים רק בהשוואה.      */
+/* ---------------- רשימת המילים שבשליטה ----------------
+   נפתחת בלחיצה על מונה "מילים בשליטה". המספר לבדו לא אומר ללומד
+   כלום — הרשימה היא מה שהופך אותו למשמעותי: רואים בדיוק אילו
+   מילים כבר יושבות, וזה גם מחזק את תחושת ההתקדמות.
+   מקובץ לפי רמה, כי זה מראה את ההתקדמות לאורך הסולם.          */
+function masteredSheet(x){
+  const a = analyse(x);
+  const words = a.vocabIds.map(id=>WORDS.find(w=>w.id===id)).filter(Boolean);
+  const byLv = {};
+  words.forEach(w=>{ (byLv[w.lv] = byLv[w.lv]||[]).push(w); });
+  Object.values(byLv).forEach(list=>list.sort((p,q)=>p.en.localeCompare(q.en)));
+  const levels = Object.keys(byLv).map(Number).sort((p,q)=>p-q);
+
+  sheet(`<h2>${T('מילים בשליטה')} · ${words.length}</h2>
+    <p class="sub">${T('מילים שנשלפות נכון ומהר באופן עקבי. מילה יורדת מהרשימה אם היא מתחילה להישכח.')}</p>
+    ${words.length===0
+      ? `<div class="card" style="margin-top:14px"><p class="sub">${T('עדיין אין כאן מילים. אחרי כמה סבבי תרגול, מילים שנשלפות נכון ומהר יופיעו כאן.')}</p></div>`
+      : levels.map(lv=>`
+        <div class="sec-title">${T('רמה')} ${lv} · ${T(LEVELS[lv].nm)} <span class="badge">${byLv[lv].length}</span></div>
+        <div class="card">
+          ${byLv[lv].map(w=>`<div class="wordrow">
+            <span class="w en">${esc(w.en)}</span>
+            <span class="ipa">/${esc(w.ipa)}/</span>
+            <span class="spacer"></span>
+            <span class="h">${esc(w.he)}</span>
+          </div>`).join('')}
+        </div>`).join('')}`);
+}
+
 function tenseSheet(){
   const u=me();
   sheet(`<h2>${T('חמשת הזמנים')}</h2>
@@ -7490,7 +7533,7 @@ function progressBlock(u, opts={}){
   const mx=Math.max(1,...days.map(d=>d.n));
   return `
    <div class="grid2" style="margin-top:14px">
-     <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה מלאה')}</div></div>
+     <button class="stat tap" onclick="masteredSheet(USERS.find(z=>z.id==='${u.id}'))"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה מלאה')}</div></button>
      <div class="stat"><div class="n">${a.learning}</div><div class="l">${T('בתהליך למידה')}</div></div>
      <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">${T('דיוק כולל')}</div></div>
      <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':'—'}</div><div class="l">${T('זמן שליפה ממוצע')}</div></div>
@@ -7671,7 +7714,7 @@ function userSheet(x){
   sheet(`<div style="display:flex;align-items:center;gap:12px"><button class="av" id="avbtn" style="width:52px;height:52px;border-radius:16px;display:grid;place-items:center;background:none;border:none;padding:0;position:relative">${avatarHTML(x.avatar,52)}<span class="avedit">✎</span></button>
     <div><h2 style="margin:0">${esc(x.name)}</h2><div class="muted">${T('רמה')} ${x.lv} · ${T(LEVELS[x.lv].nm)} · ${LEVELS[x.lv].cefr}</div></div></div>
     <div class="grid2" style="margin-top:14px">
-      <div class="stat"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה')}</div></div>
+      <button class="stat tap" onclick="closeSheet();masteredSheet(USERS.find(z=>z.id==='${x.id}'))"><div class="n">${a.vocab}</div><div class="l">${T('מילים בשליטה')}</div></button>
       <div class="stat"><div class="n">${Math.round(a.accAll*100)||0}%</div><div class="l">${T('דיוק')}</div></div>
       <div class="stat"><div class="n">${a.avgMs?(a.avgMs/1000).toFixed(1)+'s':'—'}</div><div class="l">${T('זמן שליפה')}</div></div>
       <div class="stat"><div class="n">${x.streak}</div><div class="l">${T('רצף ימים')}</div></div>
