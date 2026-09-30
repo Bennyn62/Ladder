@@ -1852,8 +1852,8 @@ const MINPAIRS = `
 5|price|prize|praɪs|praɪz|מחיר|פרס|s מול z|z מרעידה את המיתרים. שימו יד על הגרון
 5|leave|live|liːv|lɪv|לעזוב|לחיות|iː מול ɪ|שתי מילים שכיחות מאוד עם משמעות הפוכה לגמרי
 6|desert|dessert|ˈdɛzərt|dɪˈzɜːrt|מדבר|קינוח|הטעמה|ההבדל הוא ההברה המוטעמת בלבד — הראשונה מול השנייה
-6|present|present|ˈprɛzənt|prɪˈzɛnt|מתנה|להציג|הטעמה|שם עצם מוטעם בהתחלה, פועל מוטעם בסוף. כלל רחב באנגלית
-6|record|record|ˈrɛkərd|rɪˈkɔːrd|תקליט|להקליט|הטעמה|אותו כלל: שם עצם בהתחלה, פועל בסוף
+6|a present|to present|ə ˈprɛzənt|tə prɪˈzɛnt|מתנה|להציג|הטעמה|שם עצם מוטעם בהתחלה, פועל מוטעם בסוף. כלל רחב באנגלית — לכן הצורה המדוברת מגיעה עם a או to
+6|a record|to record|ə ˈrɛkərd|tə rɪˈkɔːrd|תקליט|להקליט|הטעמה|אותו כלל: שם עצם בהתחלה, פועל בסוף
 `.trim().split('\n').map(l=>{const p=l.split('|');
   return {lv:+p[0], a:p[1], b:p[2], ipaA:p[3], ipaB:p[4], heA:p[5], heB:p[6], contrast:p[7], tip:p[8]}});
 
@@ -4445,6 +4445,10 @@ Object.keys(WD).forEach(lv=>{
   const already = new Set([...PHONICS.map(p=>p.w), ...LETTERS.map(l=>l.ex)].map(w=>w.toLowerCase()));
   WORDS.forEach(w=>{ if(w.lv>2 && already.has(w.en.toLowerCase())) w.lv=2; });
 })();
+
+/* אינדקס מזהי המילים — נבנה פעם אחת אחרי שכל המיזוגים הסתיימו.
+   משמש לסינון רשומות SRS שמצביעות על מילים שכבר לא קיימות.      */
+const WORD_IDS = new Set(WORDS.map(w=>w.id));
 /* ============================================================
    חמשת הזמנים הליבתיים
    ------------------------------------------------------------
@@ -4698,7 +4702,7 @@ function normalise(u){
   u.code = u.code||null; u.role = u.role||'learner'; u.task = u.task||null;
   u.ctrl = Object.assign({daily:0,cap:0,lockLevel:false,lockData:false,mic:true,modes:null}, u.ctrl||{});
   u.lv=u.lv||0; u.xp=u.xp||0; u.streak=u.streak||0;
-  u.settings=Object.assign({tts:true,autoSpeak:true,speed:.95,pitch:1,voice:null,theme:'auto',size:'m',lang:'he'}, u.settings||{});
+  u.settings=Object.assign({autoSpeak:true,speed:.95,pitch:1,voice:null,theme:'auto',size:'m',lang:'he'}, u.settings||{});
   /* מיגרציה חד-פעמית מהאימוג'י הישן לסמל החדש. לא מייבאים כאן את
      AVATARS המלא (מוגדר מאוחר יותר בקובץ, ולוקח id+bg+svg) — רק
      רשימת המזהים, כדי ש-normalise יעבוד גם כשהוא רץ ראשון באתחול,
@@ -4733,7 +4737,7 @@ function newUser(name, avatar, role, lv){
     task:null,                 // משימה שהוקצתה על ידי הורה או מורה
     log:[],                    // {d, n, ok, ms, min}
     mastered:{},               // lvId -> אחוז
-    settings:{tts:true, autoSpeak:true, speed:.95, pitch:1, voice:null, theme:'auto', size:'m', lang:'he'}
+    settings:{autoSpeak:true, speed:.95, pitch:1, voice:null, theme:'auto', size:'m', lang:'he'}
   };
   USERS.push(normalise(u)); saveUsers(); return u;
 }
@@ -4957,8 +4961,15 @@ function analyse(u){
   const avgMs = msArr.length? Math.round(msArr.reduce((a,b)=>a+b,0)/msArr.length) : 0;
   const wordCards = items.filter(([k])=>k.startsWith('w:'));
   /* מזהי המילים שנמצאות בשליטה, לא רק הספירה — כדי שאפשר יהיה
-     להציג את הרשימה עצמה בלחיצה על המספר.                      */
-  const vocabIds = [...new Set(wordCards.filter(([,c])=>strength(c)>=.7).map(([k])=>k.split('#')[0]))];
+     להציג את הרשימה עצמה בלחיצה על המספר.
+
+     WORD_IDS מסנן "מילות רפאים": רשומות SRS למילים שכבר לא קיימות
+     באוצר המילים. זה קורה בפועל אחרי עדכון תוכן, או בסנכרון מענן
+     ממכשיר שעוד מריץ גרסה ישנה. בלי הסינון המונה סופר אותן אבל
+     הרשימה שנפתחת בלחיצה לא מציגה אותן — והמספר על המסך לא שווה
+     לאורך הרשימה. מסננים כאן, במקור אחד, כדי ששניהם תמיד יתאימו. */
+  const vocabIds = [...new Set(wordCards.filter(([,c])=>strength(c)>=.7).map(([k])=>k.split('#')[0]))]
+                     .filter(id=>WORD_IDS.has(id));
   const vocab = vocabIds.length;
   // נקודות חולשה לפי סוג תרגיל
   const byType={};
