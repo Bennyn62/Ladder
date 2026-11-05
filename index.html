@@ -1287,7 +1287,7 @@ const LEVELS = [
  {id:6,nm:'קישור והרחבה',dsc:'מילות יחס, קישור, השוואה',                need:75, cefr:'A2'},
  {id:7,nm:'השלמת ההווה',dsc:'Present Perfect, מודאלים, תנאי ראשון',     need:75, cefr:'B1'},
  {id:8,nm:'מבנים מתקדמים',dsc:'תנאי שני, סביל, דיבור עקיף',             need:75, cefr:'B1'},
- {id:9,nm:'שטף ילידי',  dsc:'Phrasal verbs, ניבים, דיבור מהיר ושיחה',   need:75, cefr:'B1–B2'},
+ {id:9,nm:'שטף ילידי',  dsc:'Phrasal verbs, ניבים, דיבור מהיר ושיחה',   need:75, cefr:'B2'},
  {id:10,nm:'רהיטות אקדמית',dsc:'תנאים מעורבים, היפוך להדגשה, סביל מתקדם',need:75, cefr:'C1'},
  {id:11,nm:'דיוק ילידי',dsc:'Subjunctive, היפוך מתקדם, ניסוח פורמלי, דיוק במילים',need:75, cefr:'C2'}
 ];
@@ -1635,14 +1635,20 @@ const GRAMMAR = `
 7|for / since|for = משך זמן. since = נקודת התחלה.|for two hours~במשך שעתיים;since 2019~מאז 2019
 7|Conditional 1|If + הווה פשוט , will + בסיס. מצב אמיתי ואפשרי.|If it rains, I will stay~אם ירד גשם, אשאר
 7|Modals|can=יכולת, must=חובה, should=המלצה, might=אולי. תמיד + פועל בסיס בלי to.|You should rest~כדאי שתנוח;It might work~זה אולי יעבוד
+7|used to|used to + פועל בסיס — הרגל או מצב בעבר שכבר לא קיים. בעברית אומרים "פעם הייתי...", ובאנגלית צריך את המבנה הזה.|I used to live in Haifa~פעם גרתי בחיפה;She didn't use to drink coffee~פעם היא לא שתתה קפה
 8|Conditional 2|If + עבר פשוט , would + בסיס. מצב דמיוני או לא סביר.|If I had time, I would help~אילו היה לי זמן, הייתי עוזר
 8|סביל — Passive|be + צורה שלישית. כשהפעולה חשובה יותר מהמבצע.|The report was sent~הדוח נשלח;English is spoken here~מדברים כאן אנגלית
 8|דיבור עקיף|כשמדווחים על דברי מישהו, הזמן "נסוג" צעד אחורה.|He said he was tired~הוא אמר שהוא עייף
+8|Past Perfect|had + צורה שלישית — פעולה שקרתה לפני פעולה אחרת בעבר. ה"כבר" של העבר.|The train had left when I arrived~הרכבת כבר יצאה כשהגעתי;She had never flown before~היא מעולם לא טסה לפני כן
+8|משפטי זיקה — who / which / that|who לאנשים, which לדברים, that לשניהם. הם מחליפים את ה"ש" העברית — ואחריהם לא חוזרים על הכינוי (the man who he called — שגוי).|The man who called is my boss~האיש שהתקשר הוא הבוס שלי;The car that I bought is red~המכונית שקניתי אדומה
+8|Gerund או Infinitive|אחרי enjoy, avoid, finish, mind — פועל + ing. אחרי want, decide, hope, plan — to + פועל. אין כלל לוגי: לומדים לפי הפועל.|I enjoy reading~אני נהנה לקרוא;I decided to leave~החלטתי לעזוב
 9|Phrasal verbs|פועל + מילית שמשנה את המשמעות לגמרי. אי אפשר לתרגם מילה במילה — צריך לזכור כיחידה אחת.|give up~לוותר;look after~לטפל ב;put up with~לסבול
 9|Collocations|צירופים קבועים. אנגלית "נשמעת נכון" בזכותם — make a decision ולא do a decision.|make a decision~לקבל החלטה;take a photo~לצלם;heavy rain~גשם כבד
 9|תווית מרככת|באנגלית מדוברת מרככים אמירות ישירות. תרגום ישיר מעברית נשמע בוטה.|Could you possibly help me?~האם תוכל אולי לעזור לי;I'm not sure I agree~אני לא בטוח שאני מסכים
 9|Articles מתקדם|the למשהו ידוע ומסוים. בלי תווית להכללות ולמושגים מופשטים.|Music is important~מוזיקה חשובה;The music was loud~המוזיקה הייתה רועשת
 9|טעויות עבריות נפוצות|גיל: לא "I have 30 years" אלא I am 30. הסבר: לא "explain me" אלא explain to me. אלה תרגומים ישירים מעברית שלא קיימים באנגלית.|I am 30 years old~אני בן 30;Please explain it to me~תסביר לי את זה
+9|Conditional 3|If + had + צורה שלישית , would have + צורה שלישית. חרטה או דמיון על העבר — משהו שכבר אי אפשר לשנות.|If I had known, I would have come~אילו ידעתי, הייתי בא;If we had left earlier, we would have caught the train~אילו יצאנו מוקדם יותר, היינו מספיקים לרכבת
+9|מודאלים של הסקה|must = כמעט בטוח שכן. can't = כמעט בטוח שלא. might = אולי. על העבר: must have / can't have + צורה שלישית.|She must be tired~היא בטח עייפה;He can't have finished already~לא ייתכן שהוא כבר סיים
 10|תנאי מעורב|תנאי שמערבב זמנים: תנאי בעבר עם תוצאה בהווה. If + had + צורה שלישית, would + בסיס.|If I had studied medicine, I would be a doctor now~אילו למדתי רפואה, הייתי רופא היום
 10|היפוך להדגשה|כשמדגישים, הופכים את סדר המילים כמו בשאלה. Not only, Rarely, Never בתחילת המשפט.|Not only did she finish first, but she also broke the record~היא לא רק סיימה ראשונה, היא גם שברה שיא;Rarely have I seen such dedication~לעיתים רחוקות ראיתי מסירות כזו
 10|משפטי הדגשה|It was...who/that מדגיש בדיוק מי או מה. What...is מדגיש פעולה.|It was Sarah who solved the problem~שרה היא זו שפתרה את הבעיה;What I need is more time~מה שאני צריך זה יותר זמן
@@ -1653,6 +1659,8 @@ const GRAMMAR = `
 11|היפוך מתקדם|Little did / Only after / So...that — מבנים ספרותיים שהופכים סדר מילים לרושם דרמטי.|Little did he know what awaited him~הוא לא ידע מה מצפה לו;So confusing was the map that we got lost~המפה הייתה כה מבלבלת שהלכנו לאיבוד
 11|קישורים פורמיים|whereby, insofar as, notwithstanding — שפה כתובה גבוהה. לא משתמשים בהם בדיבור יומיומי.|a system whereby everyone benefits~מערכת שבאמצעותה כולם מרוויחים;insofar as it is possible~ככל שהדבר אפשרי
 11|דיוק במילים קרובות|מילים שנשמעות דומה בתרגום אבל שונות ברישום או בעוצמה. הבחירה הנכונה היא מה שמבדיל דובר שוטף.|meticulous, not just careful~קפדני, לא רק זהיר;notorious, not just famous~ידוע לשמצה, לא רק מפורסם
+11|השמטה והחלפה|דובר רהוט לא חוזר על מה שכבר נאמר: so, not, do so מחליפים משפט שלם. "I think yes" שגוי — I think so.|I hope so~אני מקווה שכן;I'm afraid not~אני חושש שלא;If so, we will continue~אם כן, נמשיך
+11|נומינליזציה|בכתיבה פורמלית הופכים פעולה לשם עצם: decide ← decision, fail ← failure. כך המשפט נשמע אובייקטיבי ומקצועי.|The decision to expand was made in May~ההחלטה להתרחב התקבלה במאי;Their failure to respond caused a delay~אי־התגובה שלהם גרמה לעיכוב
 `.trim().split('\n').map(l=>{
   const p=l.split('|');
   return {lv:+p[0], ti:p[1], he:p[2], ex:p[3].split(';').map(e=>{const[en,h]=e.split('~');return{en,he:h}})};
@@ -1702,17 +1710,39 @@ const SENTS = `
 7|You should have told me earlier.|היית צריך לספר לי קודם
 8|He said that he would come later.|הוא אמר שהוא יבוא מאוחר יותר
 7|This might take longer than expected.|זה עלול לקחת יותר זמן מהצפוי
+7|I have never been to London.|מעולם לא הייתי בלונדון
+7|You should see a doctor.|כדאי שתלך לרופא
+7|If you hurry, you will catch the bus.|אם תמהר, תספיק לאוטובוס
+7|We used to play in this park.|פעם שיחקנו בפארק הזה
+8|If I were you, I would accept the offer.|במקומך, הייתי מקבל את ההצעה
+8|The bridge was built in 1990.|הגשר נבנה ב־1990
+8|She said that she had lost her keys.|היא אמרה שהיא איבדה את המפתחות שלה
+8|By the time we arrived, the film had started.|עד שהגענו, הסרט כבר התחיל
+8|The woman who lives next door is a pilot.|האישה שגרה בבית הסמוך היא טייסת
 9|To be honest, I would rather stay home.|למען האמת, אני מעדיף להישאר בבית
 9|We ran out of time before the meeting ended.|נגמר לנו הזמן לפני שהפגישה הסתיימה
 9|I cannot figure out what went wrong.|אני לא מצליח להבין מה השתבש
 9|As far as I know, the office is closed.|למיטב ידיעתי, המשרד סגור
 9|Let us make a decision and move on.|בוא נקבל החלטה ונתקדם
 9|It depends on what you are trying to achieve.|זה תלוי במה שאתה מנסה להשיג
+9|If I had known, I would have called you.|אילו ידעתי, הייתי מתקשר אליך
+9|She must have forgotten about the meeting.|היא בטח שכחה מהפגישה
 10|Not only did she finish the project early, but she also stayed under budget.|היא לא רק סיימה את הפרויקט מוקדם, היא גם נשארה בתקציב
 10|Had I known about the delay, I would have left earlier.|אילו ידעתי על העיכוב, הייתי יוצא מוקדם יותר
 10|It was the manager who ultimately approved the request.|המנהל הוא זה שאישר בסוף את הבקשה
+10|Never before have we seen such a strong response.|מעולם לא ראינו תגובה חזקה כל כך
+10|What surprised me most was how calm she remained.|מה שהפתיע אותי יותר מכול היה כמה רגועה היא נשארה
+10|It is widely believed that the policy will change.|רבים מאמינים שהמדיניות תשתנה
+10|Having finished the report, he went home.|לאחר שסיים את הדוח, הוא הלך הביתה
+10|If she had taken the job, she would be living abroad now.|אילו לקחה את התפקיד, היא הייתה גרה עכשיו בחוץ לארץ
 11|Little did they realize how much the decision would cost them.|הם כלל לא שיערו כמה ההחלטה תעלה להם
 11|Only after reading the contract twice did she notice the clause.|רק אחרי שקראה את החוזה פעמיים היא שמה לב לסעיף
+11|Were it not for her help, we would have failed.|אלמלא עזרתה, היינו נכשלים
+11|The committee recommended that the plan be postponed.|הוועדה המליצה לדחות את התוכנית
+11|So complex was the problem that nobody could solve it.|הבעיה הייתה כה מורכבת שאיש לא הצליח לפתור אותה
+11|Should you need further information, please contact us.|אם תזדקקו למידע נוסף, אנא פנו אלינו
+11|Not until the results came in did we realize the mistake.|רק כשהגיעו התוצאות הבנו את הטעות
+11|The proposal, albeit ambitious, deserves serious consideration.|ההצעה, אף שהיא שאפתנית, ראויה לשיקול רציני
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],en:p[1],he:p[2]}});
 
 /* ---------------- השלמת חסר ---------------- */
@@ -1744,15 +1774,30 @@ const CLOZE = `
 8|If I ___ rich, I would travel.|were|am,is,will be|תנאי שני → were לכל הגופים
 8|The car ___ repaired last week.|was|is,has,were|סביל בעבר יחיד → was
 7|You ___ see a doctor.|should|must to,will to,can to|should = המלצה, בלי to
+7|I have lived here ___ 2015.|since|for,from,ago|since + נקודת התחלה בזמן
+7|We ___ to live in Jerusalem.|used|use,were,did|used to — הרגל או מצב בעבר
+8|If I ___ more money, I would buy a house.|had|have,will have,would have|Conditional 2: If + עבר פשוט
+8|The letter ___ sent yesterday.|was|is,were,has|סביל בעבר ביחיד: was + צורה שלישית
+8|When we arrived, the show had already ___.|started|start,starting,starts|Past Perfect: had + צורה שלישית
+8|I enjoy ___ in the morning.|running|to run,run,ran|אחרי enjoy בא פועל + ing
 9|I am looking forward ___ meeting you.|to|for,at,with|look forward to + ing
 9|Let's ___ a decision.|make|do,take,have|collocation: make a decision
 9|We ran ___ of milk.|out|off,over,away|run out of = נגמר
 9|He gave ___ smoking last year.|up|on,in,off|give up = לוותר / להפסיק
+9|If you had asked, I ___ have helped.|would|will,did,had|Conditional 3: would have + צורה שלישית
+9|He can't ___ finished already — he only started at noon.|have|has,had,be|can't have + צורה שלישית: הסקה על העבר
 10|If I had left earlier, I ___ have missed the train.|would not|will not,do not,did not|תנאי מעורב — עבר+would
 10|___ did she suspect the truth.|Little|Small,Few,None|Little did — היפוך להדגשה
 10|It is ___ that the plan will succeed.|believed|believe,believing,believes|סביל מדווח: it is believed that
+10|Never ___ I seen such a mess.|have|did,was,am|Never בתחילת משפט — היפוך: have I seen
+10|___ the report, she sent it to the manager.|Having finished|Finished,Have finished,To finish|פסוקית בינוני: Having + צורה שלישית
+10|What I need ___ a few more days.|is|are,be,am|What... is — משפט הדגשה בא ביחיד
 11|It is essential that he ___ present at the meeting.|be|is,was,being|Subjunctive — צורת בסיס אחרי essential that
 11|___ after the vote did the truth emerge.|Only|Just,Even,So|Only after — היפוך מתקדם
+11|___ it not for the rain, we would have won.|Were|Was,Had,If|Were it not for — היפוך פורמלי במקום If it were not for
+11|The board insisted that the CEO ___ immediately.|resign|resigns,resigned,resigning|Subjunctive אחרי insist that — צורת בסיס
+11|___ you require assistance, please call us.|Should|Would,If,Will|Should בתחילת משפט = If, בניסוח פורמלי
+11|I think ___, but I'm not sure.|so|yes,it,that|השמטה: I think so — לא I think yes
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],s:p[1],a:p[2],d:p[3].split(','),he:p[4]}});
 
 /* ---------------- הגהה: מצא את הטעות ---------------- */
@@ -1778,15 +1823,33 @@ const PROOF = `
 7|I have seen him yesterday.|have seen|saw|עם yesterday משתמשים ב־Past Simple
 7|She is living here since 2019.|is living|has lived|since מחייב Present Perfect
 7|If I will have time, I will call.|will have|have|אחרי If בתנאי ראשון — הווה פשוט
+7|How long do you know her?|do you know|have you known|How long על משהו שנמשך עד היום — Present Perfect
+7|She lives here since 2010.|lives|has lived|since דורש Present Perfect
+7|You should to rest.|to|--|אחרי should בא פועל בסיס בלי to
 8|The letter was write by Dan.|write|written|סביל דורש צורה שלישית
+8|If I knew the answer, I will tell you.|will tell|would tell|Conditional 2: בתוצאה would, לא will
+8|The house was build in 1950.|build|built|סביל: was + צורה שלישית (built)
+8|The man which called is my uncle.|which|who|לאנשים — who, לא which
+8|I enjoy to swim in the sea.|to swim|swimming|אחרי enjoy בא פועל + ing
+8|When I arrived, the meeting already finished.|already finished|had already finished|פעולה שקרתה לפני פעולה אחרת בעבר — Past Perfect
 9|Please explain me the rule.|explain me|explain to me|explain דורש to לפני המושא
 9|I did a mistake.|did|made|collocation: make a mistake
 9|He said me the truth.|said me|told me|say something to me / tell me
 9|I have a good relation with him.|relation|relationship|relationship לקשר בין אנשים
+9|If I had known, I would come.|would come|would have come|Conditional 3: would have + צורה שלישית
+9|She must forgot the meeting.|forgot|have forgotten|הסקה על העבר: must have + צורה שלישית
 10|Not only she finished first, but she also won a prize.|she finished|did she finish|אחרי Not only בתחילת משפט — היפוך כמו בשאלה
 10|It was him who called the meeting.|him|he|אחרי It was...who, נושא ולא מושא: he
-11|It is essential that he is on time.|is|be|Subjunctive — צורת בסיס, לא is
+10|Rarely I have seen such talent.|I have|have I|אחרי Rarely בתחילת משפט — היפוך
+10|Having finish the work, she left.|finish|finished|Having + צורה שלישית
+10|What I need are more time.|are|is|What... is — משפט הדגשה בא ביחיד
+10|She suggested to postpone the meeting.|to postpone|postponing|suggest + ing, לא to
+11|It is essential that he is on time.|he is|he be|Subjunctive — צורת בסיס, לא is
 11|Little I knew what was coming.|I knew|did I know|אחרי Little בתחילת משפט — היפוך
+11|The doctor recommended that he takes a rest.|takes|take|Subjunctive אחרי recommend that — צורת בסיס
+11|Should you needed help, call me.|needed|need|Should בתחילת משפט + פועל בסיס
+11|So difficult the test was that many failed.|the test was|was the test|So + תואר בתחילת משפט — היפוך
+11|Not until he left I realized the truth.|I realized|did I realize|Not until... — היפוך בפסוקית הראשית
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],s:p[1],bad:p[2],fix:p[3],he:p[4]}});
 
 /* ---------------- שיחה ---------------- */
@@ -1809,14 +1872,25 @@ const TALK = `
 6|What is the biggest difference between Israel and other countries you visited?|מה ההבדל הגדול ביותר?|The biggest difference is ___|The biggest difference is the pace of life.
 6|What do you usually do on a workday?|מה אתה בדרך כלל עושה ביום עבודה?|First ___, then ___, after that ___|First I check my email, then I run tests.
 7|What have you learned in the last year?|מה למדת בשנה האחרונה?|I have learned ___|I have learned how to manage my time better.
+7|What did you use to do as a child that you no longer do?|מה נהגת לעשות כילד ואינך עושה עוד?|I used to ___, but now ___|I used to play football every day, but now I hardly have time.
+7|Have you ever done something you were afraid of?|האם פעם עשית משהו שפחדת ממנו?|Yes, I have ___|Yes, I have jumped from a plane once.
+7|What should a new employee know on the first day?|מה עובד חדש צריך לדעת ביום הראשון?|He should ___ and he must ___|He should ask questions and he must learn the safety rules.
 8|If you could live anywhere, where would you live?|אילו יכולת לגור בכל מקום, איפה?|If I could, I would live in ___|If I could, I would live near the sea.
 8|What would you do if you lost your job tomorrow?|מה היית עושה אילו איבדת את עבודתך מחר?|I would ___|I would start looking immediately and update my CV.
+8|What would you change about your city if you were mayor?|מה היית משנה בעיר שלך אילו היית ראש העיר?|If I were mayor, I would ___|If I were mayor, I would build more parks.
+8|What is something that was invented in your lifetime?|מה הומצא בימי חייך?|___ was invented ___|The smartphone was invented when I was young.
 9|What is one thing people often get wrong about your profession?|מה אנשים לרוב לא מבינים במקצוע שלך?|People tend to think ___, but actually ___|People tend to think it is only coding, but actually most of it is testing.
 9|Tell me about a time you had to change your mind about something.|ספר על פעם שהיית צריך לשנות את דעתך|I used to think ___, but then ___|I used to think speed mattered most, but then I saw the cost of bugs.
 9|How would you explain your job to a ten-year-old?|איך היית מסביר את עבודתך לילד בן עשר?|Imagine ___. That is basically what I do.|Imagine a plane that flies itself. I make sure it does not get lost.
+9|What would have happened if you had chosen a different career?|מה היה קורה אילו בחרת בקריירה אחרת?|If I had ___, I would have ___|If I had become a teacher, I would have had longer holidays.
 10|What would you have done differently if you had known the outcome in advance?|מה היית עושה אחרת אילו ידעת מראש את התוצאה?|If I had known, I ___|If I had known, I would have asked more questions before agreeing.
 10|What is a decision you made that turned out better than expected?|איזו החלטה קיבלת שיצאה טובה יותר מהצפוי?|It turned out that ___|It turned out that the risk paid off far more than I imagined.
+10|What is it that makes a good leader?|מה הופך מנהיג לטוב?|What makes a good leader is ___|What makes a good leader is the ability to listen.
+10|Having worked in your field, what advice would you give a beginner?|מניסיונך בתחום, איזו עצה היית נותן למתחיל?|Having ___, I would advise ___|Having worked in testing for years, I would advise beginners to document everything.
 11|How would you persuade someone who strongly disagrees with you?|איך היית משכנע מישהו שחולק עליך בתוקף?|Rather than ___, I would ___|Rather than arguing directly, I would try to understand their reasoning first.
+11|Should you be offered your dream job abroad, would you take it?|אילו הוצעה לך עבודת חלומותיך בחו״ל, היית לוקח אותה?|Should that happen, I would ___|Should that happen, I would accept it, provided my family agreed.
+11|Is it essential that everyone learn a second language? Why?|האם חיוני שכל אחד ילמד שפה שנייה? למה?|It is essential that everyone ___, since ___|It is essential that everyone learn one, since it broadens the mind.
+11|What is a widely held belief that you consider misguided?|איזו אמונה רווחת נראית לך שגויה?|It is widely held that ___; however, ___|It is widely held that talent matters most; however, persistence matters far more.
 `.trim().split('\n').map(l=>{const p=l.split('|');return{lv:+p[0],q:p[1],he:p[2],hint:p[3],ans:p[4]}});
 /* ---------------- זוגות מינימליים ---------------- */
 /* רמה | מילה א | מילה ב | ipa א | ipa ב | עברית א | עברית ב | הניגוד | טיפ הגייה */
@@ -4446,6 +4520,296 @@ Object.keys(WD).forEach(lv=>{
   WORDS.forEach(w=>{ if(w.lv>2 && already.has(w.en.toLowerCase())) w.lv=2; });
 })();
 
+/* ---------- תוכן מתקדם: C1 (רמה 10) ו-C2 (רמה 11) ----------
+   הרמות העליונות היו דלילות פי 10-15 מרמות הביניים. ב-CEFR זה
+   הפוך: כל רמה דורשת יותר מילים מקודמתה, לא פחות. כאן מילים
+   אקדמיות ופורמליות אמיתיות לרמות האלה — בלי לגנוב מהרמות
+   הנמוכות. פורמט: en|he|ipa|pos|ex|exhe                      */
+const WD_ADV = {
+10:`
+adverse|שלילי / מזיק|ˈædvɜːrs|adj|The drug had no adverse effects.|לתרופה לא היו תופעות לוואי שליליות
+allegedly|לכאורה|əˈlɛdʒɪdli|adv|He allegedly took the money.|הוא לקח לכאורה את הכסף
+alleviate|להקל|əˈliːvieɪt|v|The medicine alleviates the pain.|התרופה מקלה על הכאב
+amend|לתקן (מסמך או חוק)|əˈmɛnd|v|They amended the contract.|הם תיקנו את החוזה
+apprehensive|חושש|ˌæprɪˈhɛnsɪv|adj|I was apprehensive about the interview.|חששתי מהראיון
+arguably|ניתן לטעון ש|ˈɑːrɡjuəbli|adv|It is arguably the best solution.|ניתן לטעון שזה הפתרון הטוב ביותר
+bias|הטיה|ˈbaɪəs|n|The study shows a clear bias.|המחקר מראה הטיה ברורה
+candid|גלוי לב|ˈkændɪd|adj|Thank you for your candid feedback.|תודה על המשוב הכן
+coincide|לחפוף בזמן|ˌkoʊɪnˈsaɪd|v|The launch coincided with the holiday.|ההשקה חפפה לחג
+compile|לרכז / להרכיב|kəmˈpaɪl|v|She compiled a full report.|היא ריכזה דוח מלא
+complacent|שאנן|kəmˈpleɪsənt|adj|Success made them complacent.|ההצלחה הפכה אותם לשאננים
+concur|להסכים|kənˈkɜːr|v|I concur with your assessment.|אני מסכים עם הערכתך
+conducive|תורם ל / מסייע ל|kənˈduːsɪv|adj|Noise is not conducive to work.|רעש לא תורם לעבודה
+conversely|לעומת זאת|ˈkɑːnvɜːrsli|adv|Conversely, costs went down.|לעומת זאת, העלויות ירדו
+credible|אמין|ˈkrɛdəbəl|adj|We need a credible source.|אנחנו צריכים מקור אמין
+curb|לרסן|kɜːrb|v|The law aims to curb pollution.|החוק נועד לרסן את הזיהום
+deem|להחשיב כ|diːm|v|The test was deemed a success.|הניסוי נחשב להצלחה
+detrimental|מזיק|ˌdɛtrɪˈmɛntəl|adj|Stress is detrimental to health.|לחץ מזיק לבריאות
+dilemma|דילמה|dɪˈlɛmə|n|We faced a difficult dilemma.|עמדנו בפני דילמה קשה
+diligent|חרוץ / שקדן|ˈdɪlɪdʒənt|adj|She is a diligent worker.|היא עובדת חרוצה
+disclose|לחשוף|dɪsˈkloʊz|v|They refused to disclose the price.|הם סירבו לחשוף את המחיר
+discretion|שיקול דעת|dɪˈskrɛʃən|n|Use your own discretion.|הפעל את שיקול דעתך
+disrupt|לשבש|dɪsˈrʌpt|v|The strike disrupted flights.|השביתה שיבשה טיסות
+dubious|מפוקפק|ˈduːbiəs|adj|That is a dubious claim.|זו טענה מפוקפקת
+endeavour|מאמץ / מפעל|ɪnˈdɛvər|n|It was a costly endeavour.|זה היה מאמץ יקר
+endorse|לתמוך / לאשר|ɪnˈdɔːrs|v|The board endorsed the plan.|הדירקטוריון אישר את התוכנית
+fluctuate|להשתנות בתנודות|ˈflʌktʃueɪt|v|Prices fluctuate every day.|המחירים משתנים כל יום
+forthcoming|קרוב / מתקרב|fɔːrθˈkʌmɪŋ|adj|The forthcoming report will explain it.|הדוח הקרוב יסביר זאת
+hamper|לעכב / להפריע|ˈhæmpər|v|Bad weather hampered the search.|מזג אוויר גרוע עיכב את החיפושים
+incentive|תמריץ|ɪnˈsɛntɪv|n|Bonuses are a strong incentive.|בונוסים הם תמריץ חזק
+inclination|נטייה|ˌɪŋklɪˈneɪʃən|n|I have no inclination to argue.|אין לי שום נטייה להתווכח
+incur|לספוג (הוצאה או נזק)|ɪnˈkɜːr|v|We incurred extra costs.|ספגנו עלויות נוספות
+indispensable|הכרחי|ˌɪndɪˈspɛnsəbəl|adj|She is indispensable to the team.|היא הכרחית לצוות
+induce|לגרום / לעורר|ɪnˈduːs|v|The drug may induce sleep.|התרופה עלולה לגרום לשינה
+infer|להסיק|ɪnˈfɜːr|v|What can we infer from the data?|מה אפשר להסיק מהנתונים?
+intervene|להתערב|ˌɪntərˈviːn|v|The manager had to intervene.|המנהל נאלץ להתערב
+intrinsic|מהותי / פנימי|ɪnˈtrɪnzɪk|adj|Art has intrinsic value.|לאמנות יש ערך מהותי
+lucrative|רווחי|ˈluːkrətɪv|adj|It is a lucrative business.|זה עסק רווחי
+mandatory|חובה|ˈmændətɔːri|adj|Safety training is mandatory.|הדרכת בטיחות היא חובה
+obsolete|מיושן / שיצא משימוש|ˌɑːbsəˈliːt|adj|This software is obsolete.|התוכנה הזו מיושנת
+offset|לקזז|ˌɔːfˈsɛt|v|The gains offset the losses.|הרווחים קיזזו את ההפסדים
+outweigh|לעלות על (בחשיבות)|ˌaʊtˈweɪ|v|The benefits outweigh the risks.|התועלת עולה על הסיכונים
+persevere|להתמיד|ˌpɜːrsəˈvɪr|v|You must persevere to succeed.|צריך להתמיד כדי להצליח
+pivotal|מכריע|ˈpɪvətəl|adj|She played a pivotal role.|היא מילאה תפקיד מכריע
+preliminary|מקדמי|prɪˈlɪmɪnɛri|adj|These are preliminary results.|אלה תוצאות מקדמיות
+prerequisite|תנאי מוקדם|priːˈrɛkwəzɪt|n|Experience is a prerequisite.|ניסיון הוא תנאי מוקדם
+proficient|מיומן / שולט היטב|prəˈfɪʃənt|adj|He is proficient in English.|הוא שולט היטב באנגלית
+prolonged|ממושך|prəˈlɔːŋd|adj|After a prolonged delay, we left.|אחרי עיכוב ממושך, יצאנו
+prone|נוטה ל (משהו שלילי)|proʊn|adj|This part is prone to failure.|הרכיב הזה נוטה לכשל
+reciprocal|הדדי|rɪˈsɪprəkəl|adj|We signed a reciprocal agreement.|חתמנו על הסכם הדדי
+reiterate|לחזור ולהדגיש|riˈɪtəreɪt|v|Let me reiterate the main point.|הרשו לי לחזור על הנקודה העיקרית
+solely|אך ורק|ˈsoʊlli|adv|It depends solely on you.|זה תלוי אך ורק בך
+stringent|מחמיר|ˈstrɪndʒənt|adj|Stringent safety rules apply.|חלים כללי בטיחות מחמירים
+susceptible|פגיע / רגיש ל|səˈsɛptəbəl|adj|Old systems are susceptible to attack.|מערכות ישנות פגיעות למתקפות
+tedious|מייגע|ˈtiːdiəs|adj|The work was tedious.|העבודה הייתה מייגעת
+thereafter|לאחר מכן|ˌðɛrˈæftər|adv|Shortly thereafter, it stopped.|זמן קצר לאחר מכן, זה נעצר
+unanimous|פה אחד|juˈnænɪməs|adj|The decision was unanimous.|ההחלטה התקבלה פה אחד
+undergo|לעבור (תהליך)|ˌʌndərˈɡoʊ|v|The system underwent major changes.|המערכת עברה שינויים גדולים
+unforeseen|בלתי צפוי|ˌʌnfɔːrˈsiːn|adj|Unforeseen problems delayed us.|בעיות בלתי צפויות עיכבו אותנו
+volatile|תנודתי / הפכפך|ˈvɑːlətəl|adj|The market is volatile.|השוק תנודתי
+wary|זהיר / חשדן|ˈwɛri|adj|Be wary of cheap offers.|היזהר מהצעות זולות
+whatsoever|כלשהו (בשלילה)|ˌwʌtsoʊˈɛvər|adv|I have no doubt whatsoever.|אין לי שום ספק
+adhere to|לציית ל / לדבוק ב|ədˈhɪr tuː|phr|All staff must adhere to the rules.|כל העובדים חייבים לציית לכללים
+on the verge of|על סף|ɒn ðə vɜːrdʒ əv|phr|They are on the verge of a breakthrough.|הם על סף פריצת דרך
+in the wake of|בעקבות|ɪn ðə weɪk əv|phr|In the wake of the crisis, prices rose.|בעקבות המשבר, המחירים עלו
+to the extent that|במידה ש|tuː ði ɪkˈstɛnt ðæt|phr|To the extent that it helps, use it.|במידה שזה עוזר, השתמש בזה
+by no means|בשום אופן לא|baɪ noʊ miːnz|phr|It is by no means easy.|זה בשום אופן לא קל
+to cut both ways|לפעול לשני הכיוונים|tuː kʌt boʊθ weɪz|idm|That argument cuts both ways.|הטיעון הזה פועל לשני הכיוונים
+to have second thoughts|להתחיל להתלבט|tuː hæv ˈsɛkənd θɔːts|idm|I am having second thoughts about the trip.|אני מתחיל להתלבט לגבי הטיול
+to go the extra mile|להשקיע מעבר לנדרש|tuː ɡoʊ ði ˈɛkstrə maɪl|idm|She always goes the extra mile.|היא תמיד משקיעה מעבר לנדרש
+a grey area|תחום אפור|ə ɡreɪ ˈɛriə|idm|The law is a grey area here.|החוק כאן הוא תחום אפור
+to be on thin ice|להיות במצב רעוע|tuː biː ɒn θɪn aɪs|idm|After that mistake, he is on thin ice.|אחרי הטעות הזו, הוא במצב רעוע
+`,
+11:`
+aberration|חריגה / סטייה|ˌæbəˈreɪʃən|n|The bad result was an aberration.|התוצאה הגרועה הייתה חריגה
+abhor|לתעב|əbˈhɔːr|v|She abhors injustice.|היא מתעבת אי־צדק
+acumen|חוש חד (עסקי)|ˈækjəmən|n|He has real business acumen.|יש לו חוש עסקי אמיתי
+adamant|נחרץ / מתעקש|ˈædəmənt|adj|She was adamant that she was right.|היא התעקשה שהיא צודקת
+admonish|לנזוף / להתרות|ədˈmɑːnɪʃ|v|The teacher admonished him for being late.|המורה נזפה בו על האיחור
+ambivalent|מתלבט / בעל רגשות מעורבים|æmˈbɪvələnt|adj|I feel ambivalent about the offer.|יש לי רגשות מעורבים לגבי ההצעה
+ameliorate|לשפר|əˈmiːliəreɪt|v|Steps were taken to ameliorate conditions.|ננקטו צעדים לשיפור התנאים
+anathema|דבר שנוא / תועבה|əˈnæθəmə|n|Waste is anathema to him.|בזבוז הוא תועבה בעיניו
+antithesis|ההפך הגמור|ænˈtɪθəsɪs|n|Her style is the antithesis of his.|הסגנון שלה הוא ההפך הגמור משלו
+assiduous|שקדני / מתמיד|əˈsɪdʒuəs|adj|She is an assiduous researcher.|היא חוקרת שקדנית
+astute|ממולח / חד|əˈstuːt|adj|That is an astute observation.|זו הבחנה חדה
+austere|מחמיר / סגפני|ɔːˈstɪr|adj|The government passed an austere budget.|הממשלה העבירה תקציב צנע
+bolster|לחזק|ˈboʊlstər|v|The data bolsters our case.|הנתונים מחזקים את הטיעון שלנו
+capricious|הפכפך|kəˈprɪʃəs|adj|The weather here is capricious.|מזג האוויר כאן הפכפך
+circumvent|לעקוף (כלל או מגבלה)|ˌsɜːrkəmˈvɛnt|v|They tried to circumvent the rules.|הם ניסו לעקוף את הכללים
+cogent|משכנע ומבוסס|ˈkoʊdʒənt|adj|She made a cogent argument.|היא הציגה טיעון משכנע
+commensurate|הולם / תואם|kəˈmɛnsərət|adj|Pay is commensurate with experience.|השכר תואם את הניסיון
+conjecture|השערה|kənˈdʒɛktʃər|n|That is pure conjecture.|זו השערה בלבד
+connotation|משמעות נלווית|ˌkɑːnəˈteɪʃən|n|The word has a negative connotation.|למילה יש משמעות נלווית שלילית
+conundrum|בעיה סבוכה|kəˈnʌndrəm|n|Funding is a real conundrum.|המימון הוא בעיה סבוכה
+corroborate|לאשש|kəˈrɑːbəreɪt|v|No evidence corroborates his story.|אין ראיות שמאששות את הסיפור שלו
+culminate|להגיע לשיא|ˈkʌlmɪneɪt|v|The project culminated in a launch.|הפרויקט הגיע לשיאו בהשקה
+debacle|כישלון חרוץ|deɪˈbɑːkəl|n|The launch was a debacle.|ההשקה הייתה כישלון חרוץ
+deleterious|מזיק|ˌdɛlɪˈtɪriəs|adj|Smoking has deleterious effects.|לעישון יש השפעות מזיקות
+delineate|לתחום / להגדיר במדויק|dɪˈlɪnieɪt|v|The contract delineates each role.|החוזה מגדיר במדויק כל תפקיד
+demeanour|התנהלות / הופעה|dɪˈmiːnər|n|Her calm demeanour helped everyone.|ההתנהלות הרגועה שלה עזרה לכולם
+disparity|פער|dɪˈspærəti|n|There is a wide disparity in income.|יש פער גדול בהכנסות
+disseminate|להפיץ|dɪˈsɛmɪneɪt|v|We must disseminate the results.|עלינו להפיץ את התוצאות
+egregious|מחפיר / בוטה|ɪˈɡriːdʒəs|adj|It was an egregious error.|זו הייתה טעות מחפירה
+elusive|חמקמק|ɪˈluːsɪv|adj|Success remained elusive.|ההצלחה נותרה חמקמקה
+emulate|לחקות (כדי להשתוות)|ˈɛmjəleɪt|v|He tried to emulate his father.|הוא ניסה ללכת בדרכי אביו
+enigma|תעלומה|ɪˈnɪɡmə|n|He remains an enigma.|הוא נותר תעלומה
+ephemeral|חולף / קצר מועד|ɪˈfɛmərəl|adj|Fame is often ephemeral.|תהילה היא לעיתים קרובות חולפת
+equivocal|דו־משמעי|ɪˈkwɪvəkəl|adj|He gave an equivocal answer.|הוא נתן תשובה דו־משמעית
+erroneous|שגוי|ɪˈroʊniəs|adj|It was an erroneous assumption.|זו הייתה הנחה שגויה
+exacerbate|להחמיר|ɪɡˈzæsərbeɪt|v|The delay exacerbated the problem.|העיכוב החמיר את הבעיה
+exemplary|למופת|ɪɡˈzɛmpləri|adj|Her work is exemplary.|עבודתה למופת
+expedite|לזרז|ˈɛkspɪdaɪt|v|Can you expedite the order?|תוכל לזרז את ההזמנה?
+fastidious|קפדן / בררן|fæˈstɪdiəs|adj|He is fastidious about details.|הוא קפדן בפרטים
+fortuitous|מקרי (ומבורך)|fɔːrˈtuːɪtəs|adj|It was a fortuitous meeting.|זו הייתה פגישה מקרית ומבורכת
+futile|חסר תועלת|ˈfjuːtəl|adj|Further effort was futile.|מאמץ נוסף היה חסר תועלת
+gratuitous|מיותר / חסר הצדקה|ɡrəˈtuːɪtəs|adj|The insult was gratuitous.|העלבון היה מיותר לחלוטין
+hackneyed|נדוש|ˈhæknid|adj|That is a hackneyed phrase.|זה ביטוי נדוש
+idiosyncratic|ייחודי / משונה|ˌɪdioʊsɪŋˈkrætɪk|adj|He has an idiosyncratic style.|יש לו סגנון ייחודי
+impeccable|ללא רבב|ɪmˈpɛkəbəl|adj|Her timing was impeccable.|התזמון שלה היה ללא רבב
+impetus|תנופה / דחף|ˈɪmpɪtəs|n|The crisis gave new impetus to reform.|המשבר נתן תנופה חדשה לרפורמה
+incessant|בלתי פוסק|ɪnˈsɛsənt|adj|The incessant noise kept me awake.|הרעש הבלתי פוסק לא נתן לי לישון
+incongruous|לא הולם / חריג|ɪnˈkɑːŋɡruəs|adj|The modern sign looked incongruous.|השלט המודרני נראה חריג
+indiscriminate|ללא הבחנה|ˌɪndɪˈskrɪmɪnət|adj|Indiscriminate use of antibiotics is dangerous.|שימוש לא מבחין באנטיביוטיקה מסוכן
+ineffable|שאין לתארו|ɪnˈɛfəbəl|adj|She felt an ineffable joy.|היא חשה שמחה שאין לתאר
+innocuous|תמים / לא מזיק|ɪˈnɑːkjuəs|adj|It was an innocuous question.|זו הייתה שאלה תמימה
+insidious|ערמומי / מזיק בחשאי|ɪnˈsɪdiəs|adj|Corrosion is an insidious problem.|קורוזיה היא בעיה ערמומית
+intransigent|בלתי מתפשר|ɪnˈtrænzɪdʒənt|adj|Both sides remained intransigent.|שני הצדדים נותרו בלתי מתפשרים
+inundate|להציף|ˈɪnʌndeɪt|v|We were inundated with emails.|הוצפנו במיילים
+irrevocable|בלתי הפיך|ɪˈrɛvəkəbəl|adj|It was an irrevocable decision.|זו הייתה החלטה בלתי הפיכה
+laconic|לקוני / תמציתי|ləˈkɑːnɪk|adj|He gave a laconic reply.|הוא נתן תשובה לקונית
+languish|לדשדש / לדעוך|ˈlæŋɡwɪʃ|v|The project languished for years.|הפרויקט דשדש שנים
+latent|רדום / חבוי|ˈleɪtənt|adj|She has latent talent.|יש לה כישרון חבוי
+magnanimous|נדיב רוח|mæɡˈnænɪməs|adj|He was magnanimous in victory.|הוא היה נדיב רוח בניצחונו
+myriad|אין־ספור|ˈmɪriəd|n|There is a myriad of options.|יש אין־ספור אפשרויות
+nebulous|מעורפל|ˈnɛbjələs|adj|It is still a nebulous idea.|זה עדיין רעיון מעורפל
+nonchalant|אדיש / שליו|ˌnɑːnʃəˈlɑːnt|adj|He seemed nonchalant about the risk.|הוא נראה אדיש לסיכון
+obfuscate|לטשטש / לערפל|ˈɑːbfəskeɪt|v|Do not obfuscate the issue.|אל תטשטש את הסוגיה
+obstinate|עקשן|ˈɑːbstɪnət|adj|He is an obstinate child.|הוא ילד עקשן
+onerous|מכביד|ˈoʊnərəs|adj|It is an onerous task.|זו משימה מכבידה
+ostensibly|לכאורה / למראית עין|ɑːˈstɛnsəbli|adv|Ostensibly, it was a business trip.|לכאורה, זו הייתה נסיעת עסקים
+palpable|מורגש / מוחשי|ˈpælpəbəl|adj|The tension was palpable.|המתח היה מורגש
+paramount|חשוב מכול|ˈpærəmaʊnt|adj|Safety is paramount.|הבטיחות קודמת לכול
+perfunctory|שטחי / לצאת ידי חובה|pərˈfʌŋktəri|adj|He made a perfunctory check.|הוא עשה בדיקה שטחית
+pernicious|הרסני|pərˈnɪʃəs|adj|It has a pernicious influence.|יש לזה השפעה הרסנית
+placate|לפייס|ˈpleɪkeɪt|v|He tried to placate the client.|הוא ניסה לפייס את הלקוח
+precarious|רעוע|prɪˈkɛriəs|adj|We are in a precarious situation.|אנחנו במצב רעוע
+predicament|מצב ביש|prɪˈdɪkəmənt|n|We are in a difficult predicament.|אנחנו במצב ביש
+proliferate|להתרבות במהירות|prəˈlɪfəreɪt|v|Fake news proliferates online.|חדשות כזב מתרבות ברשת
+propensity|נטייה|prəˈpɛnsəti|n|He has a propensity for risk.|יש לו נטייה לסיכון
+quintessential|המובהק / המופתי|ˌkwɪntɪˈsɛnʃəl|adj|It is the quintessential English pub.|זה הפאב האנגלי המובהק
+rampant|משתולל / נפוץ מאוד|ˈræmpənt|adj|Inflation was rampant.|האינפלציה השתוללה
+recalcitrant|סרבן|rɪˈkælsɪtrənt|adj|He is a recalcitrant employee.|הוא עובד סרבן
+relinquish|לוותר על (שליטה)|rɪˈlɪŋkwɪʃ|v|He relinquished control of the company.|הוא ויתר על השליטה בחברה
+repudiate|לדחות / להתכחש ל|rɪˈpjuːdieɪt|v|She repudiated the claims.|היא דחתה את הטענות
+rescind|לבטל (החלטה)|rɪˈsɪnd|v|The offer was rescinded.|ההצעה בוטלה
+reticent|מסויג / שתקן|ˈrɛtɪsənt|adj|He was reticent about his past.|הוא היה מסויג לגבי עברו
+sanguine|אופטימי|ˈsæŋɡwɪn|adj|She is sanguine about the future.|היא אופטימית לגבי העתיד
+scrupulous|קפדני / ישר|ˈskruːpjələs|adj|He pays scrupulous attention to detail.|הוא מקפיד מאוד על פרטים
+spurious|מופרך / מזויף|ˈspjʊriəs|adj|That is a spurious correlation.|זה מתאם מופרך
+stipulate|לקבוע כתנאי|ˈstɪpjəleɪt|v|The contract stipulates a deadline.|החוזה קובע מועד אחרון
+superfluous|מיותר|suːˈpɜːrfluəs|adj|Remove superfluous words.|הסר מילים מיותרות
+surreptitious|חשאי|ˌsɜːrəpˈtɪʃəs|adj|She took a surreptitious glance.|היא העיפה מבט חשאי
+tantamount|שקול ל|ˈtæntəmaʊnt|adj|It is tantamount to a refusal.|זה שקול לסירוב
+tenacious|עיקש / נחוש|təˈneɪʃəs|adj|She is a tenacious negotiator.|היא מנהלת משא ומתן עיקשת
+trepidation|חשש / חרדה|ˌtrɛpɪˈdeɪʃən|n|With some trepidation, she agreed.|בחשש מה, היא הסכימה
+unequivocal|חד־משמעי|ˌʌnɪˈkwɪvəkəl|adj|The answer was unequivocal.|התשובה הייתה חד־משמעית
+vehement|נמרץ / תקיף|ˈviːəmənt|adj|He made a vehement denial.|הוא הכחיש בתוקף
+veracity|אמיתות|vəˈræsəti|n|We doubt the veracity of the report.|אנו מפקפקים באמיתות הדוח
+vicarious|דרך אחרים|vaɪˈkɛriəs|adj|Parents feel vicarious pride.|הורים חשים גאווה דרך ילדיהם
+wane|לדעוך|weɪn|v|Interest began to wane.|העניין התחיל לדעוך
+zealous|נלהב / קנאי|ˈzɛləs|adj|He is a zealous supporter.|הוא תומך נלהב
+de facto|בפועל|deɪ ˈfæktoʊ|adj|He is the de facto leader.|הוא המנהיג בפועל
+per se|כשלעצמו|pɜːr ˈseɪ|adv|The idea is not bad per se.|הרעיון אינו רע כשלעצמו
+inasmuch as|במידה ש / מאחר ש|ˌɪnəzˈmʌtʃ æz|phr|It matters inasmuch as it affects cost.|זה חשוב במידה שזה משפיע על העלות
+to beg the question|להעלות את השאלה|tuː bɛɡ ðə ˈkwɛstʃən|idm|This begs the question of who pays.|זה מעלה את השאלה מי משלם
+a Pyrrhic victory|ניצחון פירוס|ə ˈpɪrɪk ˈvɪktəri|idm|It was a Pyrrhic victory.|זה היה ניצחון פירוס
+to split hairs|לדקדק בקטנות|tuː splɪt hɛrz|idm|Let us not split hairs.|בואו לא נדקדק בקטנות
+to pay lip service to|לתמוך מהשפה ולחוץ|tuː peɪ lɪp ˈsɜːrvɪs tuː|idm|They only pay lip service to safety.|הם תומכים בבטיחות רק מהשפה ולחוץ
+to bite off more than you can chew|לקחת על עצמך יותר מדי|tuː baɪt ɔːf mɔːr ðæn juː kæn tʃuː|idm|I bit off more than I could chew.|לקחתי על עצמי יותר מדי
+par for the course|צפוי / שגרתי|pɑːr fɔːr ðə kɔːrs|idm|Delays are par for the course.|עיכובים הם עניין שגרתי
+a catch-22|מלכוד 22|ə ˌkætʃ ˌtwɛnti ˈtuː|idm|It is a catch-22 situation.|זה מצב של מלכוד 22
+to move the goalposts|לשנות את הכללים תוך כדי משחק|tuː muːv ðə ˈɡoʊlpoʊsts|idm|They keep moving the goalposts.|הם כל הזמן משנים את הכללים
+to err on the side of caution|לנקוט זהירות יתר|tuː ɜːr ɒn ðə saɪd əv ˈkɔːʃən|idm|Let us err on the side of caution.|בואו ננקוט זהירות יתר
+a non sequitur|מסקנה שאינה נובעת|ə ˌnɑːn ˈsɛkwɪtər|idm|That remark was a non sequitur.|ההערה ההיא לא נבעה מהדברים
+`};
+Object.keys(WD_ADV).forEach(lv=>{
+  WD_ADV[lv].trim().split('\n').forEach(line=>{
+    const p=line.split('|'); if(p.length<6) return;
+    const id='w:'+p[0];
+    if(WORDS.some(w=>w.id===id)) return;
+    WORDS.push({id, en:p[0], he:p[1], ipa:p[2], pos:p[3], ex:p[4], exhe:p[5], lv:+lv, core:1});
+  });
+});
+
+/* ---------- חלוקה מחדש לפי CEFR ----------
+   כל מילה עוברת לרמה שתואמת את דרגת ה-CEFR שלה. לפני התיקון רמה 7
+   (B1) הכילה מילים כמו utilize, withstand, deviate — שהן C1 — ורמה 6
+   (A2) הכילה whereas ו-in terms of. במקביל, מילים כמו listen, swim,
+   sing ישבו ברמה 5 למרות שהן מהראשונות שלומדים. רמה 2 (מילים
+   ראשונות לילדים) והצורות החריגות בעבר של רמה 5 לא נגעו.
+   כאן רק מה שזז — כל השאר נשאר ברמה שבה הוגדר.                     */
+const RELEVEL = {
+3:`toy,bear,mouse,snake,horse,animal,cake,banana,flower,star,sky,sea,shirt,shoes,phone,money,city,shop,
+   morning,evening,week,year,time,game,music,color,doctor,garden,party,birthday,coffee,tea,juice,
+   breakfast,lunch,dinner,kitchen,bedroom,bathroom,hotel`,
+4:`watch,listen,feel,sing,dance,swim,jump,smile,laugh,cry,sit down,stand up,body,heart,sick,funny,fly,
+   ride,draw,paint,understand,learn,teach,thank,kiss,travel,visit,meet,sell,remember,forget,try,angry,
+   afraid,different,same,simple,difficult,heavy,soft,thirsty,healthy,singer,farmer,worker,pilot,king,
+   waiter,artist,writer`,
+5:`envelope,stamp,hammer,screw,nail,needle,thread,chain,rope,steam,ceiling,drawer,cupboard,wardrobe,
+   curtain,carpet,necklace,suitcase,brother-in-law,passenger,silence,shadow,dust,mud,wallet,candle,
+   basket,scissors,quarter,double,tongue,skin,blood,bone,shelf,blanket,pillow,storm,forest,field,
+   village,smoke,spicy,sour,stomach,sweater,glove,belt,pocket,button,sign,puzzle`,
+6:`active,available,certain,clear,common,daily,direct,excellent,exact,famous,final,general,local,main,
+   natural,national,negative,positive,ordinary,personal,popular,private,public,recent,regular,similar,
+   social,total,traditional,typical,unusual,international,carefully,certainly,easily,definitely,
+   normally,perfectly,possibly,recently,seriously,simply,strongly,mainly,personally,regularly`,
+7:`occur,depart,forbid,owe,remain,doubt,ashamed,jealous,cruel,shallow,liquid,solid,swallow,whisper,
+   glow,defend,divorce,weigh,
+   moreover,besides,despite,though,somehow,anyway,gradually,hardly,rarely,partly,according to,due to,
+   apart from,develop,maintain,operate,perform,handle,identify,calculate,predict,argue,claim,prove,
+   confirm,reject,approve,influence,affect,contain,adjust,separate,value,range,limit,average,condition,
+   situation,effect,cause,benefit,failure,performance,knowledge,effort,attention,duty,freedom,
+   translation,degree,signature,document,device,material,schedule,solution,suggestion,complaint,
+   apology,emergency,injury,treatment,competition,instrument,character,confidence,courage,habit,
+   period,theory,variety,access,belief,content,demand,equipment,expert,figure,growth,image,
+   instruction,item,lack,movement,object,position,pressure,proof,respect,section,sense,series,spirit,
+   state,surface,target,register,retire`,
+8:`society,community,population,government,law,crime,court,judge,lawyer,prison,weapon,enemy,victory,
+   defeat,border,nation,tradition,custom,economy,environment,capital,trade,technology,industry,
+   employee,employer,staff,colleague,salary,income,tax,credit,debt,loan,budget,profit,loss,contract,
+   agreement,
+   persuade,estimate,region,version,percentage,policy,property,structure,function,conclude,
+   contribute,demonstrate,ensure,establish,indicate,monitor,negotiate,obtain,reveal,transfer,
+   concept,context,factor,outcome,priority,procedure,resource,strategy,accurate,appropriate,
+   relevant,aspect,category,contrast,element,impact,perspective,proposal,rapid,valid,vital,
+   apparently,approximately,relatively,ideally,effectively,increasingly,analyse,assume,determine`,
+9:`whereas,in terms of,exclude,justice,authority,existence,generation,principle,scale,manner,
+   impression,honour,address,assign,distinguish,emphasize,enable,interpret,justify,outline,pursue,
+   resolve,specify,accuracy,assumption,component,consequence,efficiency,maintenance,objective,
+   requirement,adequate,consistent,crucial,efficient,initial,overall,potential,precise,significant,
+   sufficient,basis,capacity,characteristic,circumstance,combination,distinction,emphasis,
+   evaluation,exception,extent,foundation,instance,interpretation,investigation,involvement,
+   judgement,limitation,minority,motivation,observation,opposition,origin,participation,perception,
+   phase,presence,proportion,recognition,reduction,relevance,reliability,restriction,sequence,
+   significance,similarity,tendency,adopt,assist,expand,extend,generate,illustrate,regard,tend,
+   transform,accompany,alter,classify,collapse,compensate,conduct,confront,consult,convert,
+   coordinate,correspond,detect,dispute,distribute,eliminate,encounter,evolve,exhibit,minimize,
+   maximize,overlook,persist,prioritize,reinforce,restore,substitute,highlight,inspect,abstract,
+   accessible,apparent,approximate,comprehensive,distinct,diverse,dominant,eventual,extensive,
+   fundamental,genuine,identical,intense,mutual,neutral,remarkable,severe,substantial,superior,
+   theoretical,universal,vast,widespread,subtle,reluctant,overwhelming,insight,trade-off,
+   consequently,essentially,initially,literally,potentially,precisely,primarily,roughly,
+   subsequently,substantially,thoroughly,ultimately,alternatively,adequately,sufficiently,broadly,
+   significantly,specifically,largely,widely,steadily,sharply,severely,remarkably,independently,
+   indirectly,loosely,trigger,indicator,dimension,transparent`,
+10:`acknowledge,anticipate,assess,attribute,clarify,comply,constitute,derive,evaluate,enhance,exceed,
+   implement,integrate,modify,retain,sustain,undertake,verify,imply,constraint,criteria,framework,
+   implication,initiative,parameter,specification,threshold,tolerance,validation,variable,feasible,
+   inherent,subsequent,scope,accumulate,allocate,comprise,deduce,delegate,depict,deviate,diminish,
+   facilitate,formulate,hinder,incorporate,initiate,precede,simulate,terminate,utilize,validate,
+   withstand,yield,
+   merely,presumably,inevitably,virtually,notably,readily,
+   ambiguous,arbitrary,counterintuitive,nuanced,pragmatic,caveat,discrepancy,premise,rationale,
+   coherent,contentious,implicit,inadvertent,meticulous,prevalent,profound,prudent,succinct,
+   tentative,paradigm,precedent,albeit,whereby,thereby,in accordance with,at odds with,
+   a far cry from,plausible,compelling`,
+11:`notwithstanding,henceforth,insofar as`
+};
+/* כפילויות שהצטברו: אותה משמעות בשתי רשומות, או צורה שגויה
+   ("mitigate against" נחשב שימוש לא תקני — mitigate לבדו נכון). */
+const DROP_WORDS = ['discern between','mitigate against','albeit somewhat',
+                    'to take something with a grain of salt'];
+(function relevelByCefr(){
+  const byEn = new Map(WORDS.map(w=>[w.en,w]));
+  Object.keys(RELEVEL).forEach(lv=>{
+    RELEVEL[lv].split(',').map(s=>s.trim()).filter(Boolean).forEach(en=>{
+      const w=byEn.get(en); if(w) w.lv=+lv;
+    });
+  });
+  for(let i=WORDS.length-1;i>=0;i--) if(DROP_WORDS.includes(WORDS[i].en)) WORDS.splice(i,1);
+})();
+
 /* אינדקס מזהי המילים — נבנה פעם אחת אחרי שכל המיזוגים הסתיימו.
    משמש לסינון רשומות SRS שמצביעות על מילים שכבר לא קיימות.      */
 const WORD_IDS = new Set(WORDS.map(w=>w.id));
@@ -4882,15 +5246,49 @@ function buildSession(u, size, mode){
 
 /* אף סוג תרגיל לא תופס יותר מ־35% מהסשן — כדי שלא ייצא סשן של מילים בלבד */
 }
+/* משפחות תרגיל — קיבוץ לפי *מיומנות*, לא לפי סוג טכני.
+   למה זה נחוץ: אוצר מילים מתפרס על ארבעה סוגים נפרדים (זיהוי,
+   שליפה, האזנה, הגייה). תקרה של 35% לכל *סוג* נותנת להם יחד עד
+   140% — כלומר אפס הגבלה בפועל. בלי התקרה המשפחתית סשן טיפוסי
+   יצא 85-89% כרטיסיות מילים, ודקדוק/בניית משפט/שיחה קיבלו 0-1%.
+   זה סותר את מטרת האפליקציה: לבנות דיבור, לא רק לשנן מילון.    */
+const FAMILY = {
+  'w-recog':'vocab','w-recall':'vocab','w-listen':'vocab','w-speak':'vocab',
+  rule:'grammar', cloze:'grammar', proof:'grammar', build:'grammar', contract:'grammar',
+  'mp-hear':'sound','mp-say':'sound', spoken:'sound', phonics:'sound', dictate:'sound',
+  'irr-past':'verbs','irr-pp':'verbs', conjug:'verbs',
+  talk:'talk',
+  letter:'letters','letter-hear':'letters','letter-case':'letters','letter-name':'letters'
+};
+/* תקרת אוצר המילים. 60% משאיר כ-40% לשאר המיומנויות — עדיין רוב
+   למילים (הן גם רוב התוכן), אבל כבר לא סשן של מילים בלבד.      */
+const VOCAB_SHARE = .6;
+
 function capTypes(cands, size){
-  const cap=Math.max(2,Math.ceil(size*.35)), cnt={}, out=[], seen=new Set();
+  const cap=Math.max(2,Math.ceil(size*.35));
+  const vocabCap=Math.max(2,Math.round(size*VOCAB_SHARE));
+  const cnt={}, fam={}, out=[], seen=new Set();
+  const take=x=>{ cnt[x.t]=(cnt[x.t]||0)+1; const f=FAMILY[x.t]; if(f) fam[f]=(fam[f]||0)+1;
+                  seen.add(x.id); out.push(x); };
+  /* מעבר ראשון — מכבד גם תקרת סוג וגם תקרת משפחה */
   for(const x of cands){
     if(out.length>=size) break;
     if(seen.has(x.id)) continue;
     if((cnt[x.t]||0)>=cap) continue;
-    cnt[x.t]=(cnt[x.t]||0)+1; seen.add(x.id); out.push(x);
+    if(FAMILY[x.t]==='vocab' && (fam.vocab||0)>=vocabCap) continue;
+    take(x);
   }
-  for(const x of cands){ if(out.length>=size) break; if(seen.has(x.id)) continue; seen.add(x.id); out.push(x); }
+  /* מעבר שני — מכבד עדיין את תקרת המילים, כדי שהמילוי לא יבטל
+     את כל האיזון. מאפשר חריגה מתקרת הסוג הבודד בלבד.           */
+  for(const x of cands){
+    if(out.length>=size) break;
+    if(seen.has(x.id)) continue;
+    if(FAMILY[x.t]==='vocab' && (fam.vocab||0)>=vocabCap) continue;
+    take(x);
+  }
+  /* מעבר אחרון — ברמות שבהן באמת אין מספיק תוכן אחר (רמה 2),
+     עדיף סשן מלא במילים מאשר סשן קצר מהמבוקש.                  */
+  for(const x of cands){ if(out.length>=size) break; if(seen.has(x.id)) continue; take(x); }
   return out;
 }
 
@@ -5987,12 +6385,16 @@ RENDER.proof=(q,it,u,tg)=>{
   S.reveal=()=>{ const fixed=d.s.replace(d.bad, d.fix==='--'?'':d.fix).replace(/\s+/g,' ').trim();
     say(fixed); answer(it,false,tg,
     `<span style="text-decoration:line-through;opacity:.6" class="en">${esc(d.s)}</span><br><b class="en">${esc(fixed)}</b><br>${esc(d.he)}`); };
-  const badWords=d.bad.split(' ');
+  /* מזהים את הטעות לפי המיקום שלה במשפט, לא לפי המילה עצמה: ב־"It is
+     essential that he is on time" רק ה־is השני שגוי, והשוואת מילים
+     קיבלה גם הקשה על הראשון כתשובה נכונה.                            */
+  const cl=s=>s.replace(/[.,?]/g,'');
+  const badWords=d.bad.split(' ').map(cl);
+  const badAt=parts.findIndex((_,i)=>badWords.every((bw,j)=>cl(parts[i+j]||'')===bw));
   parts.forEach((w,i)=>{
     const b=el(`<button class="pw">${esc(w)}</button>`);
     b.onclick=()=>{
-      const clean=w.replace(/[.,?]/g,'');
-      const ok=badWords.some(bw=>bw.replace(/[.,?]/g,'')===clean);
+      const ok = badAt>=0 ? (i>=badAt && i<badAt+badWords.length) : badWords.includes(cl(w));
       b.classList.add(ok?'ok':'no');
       const fixed=d.s.replace(d.bad, d.fix==='--'?'':d.fix).replace(/\s+/g,' ').trim();
       say(fixed);
