@@ -709,6 +709,9 @@ h2{font-size:1.18rem;font-weight:700;margin:0 0 5px;letter-spacing:-.02em}
    ואסוציאציות. זה חומר הלימוד — הוא נשאר עברי בשתי השפות.
    ============================================================ */
 const EN_UI = {
+'יומן השמעות':'Playback log',
+'אם הקראה לא נשמעה או נשמעה חלש — צלמו את המסך הזה מיד אחרי ושלחו. כל שורה מראה איך ההקראה נוגנה.':'If a word was silent or too quiet, take a screenshot of this right afterwards and send it. Each line shows how the audio was played.',
+'עדיין אין השמעות בסשן הזה.':'No playback yet in this session.',
 
 /* --- ניווט ומסכים ראשיים --- */
 'בית':'Home',
@@ -5490,6 +5493,7 @@ function sayDevice(text, rate){
     const seq = (typeof SAY_SEQ!=='undefined') ? SAY_SEQ : 0;
     if(busy) setTimeout(()=>{ if(typeof SAY_SEQ==='undefined' || seq===SAY_SEQ) speechSynthesis.speak(u2); }, 90);
     else speechSynthesis.speak(u2);
+    try{ alog('device', text); }catch(e){}
     return true;
   }catch(e){ return false; }
 }
@@ -5542,6 +5546,7 @@ const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let ACTIVE_REC = null;
 function stopListening(){
   if(ACTIVE_REC){ try{ ACTIVE_REC.abort(); }catch(e){} ACTIVE_REC=null; }
+  if(typeof micClosed==='function') micClosed();
 }
 function listen(onResult, onEnd){
   if(!SR) return null;
@@ -5549,9 +5554,12 @@ function listen(onResult, onEnd){
   const r=new SR();
   r.lang='en-US'; r.interimResults=false; r.maxAlternatives=3;
   r.onresult=e=>{ onResult([...e.results[0]].map(a=>a.transcript)); };
-  r.onerror=()=>{ if(ACTIVE_REC===r) ACTIVE_REC=null; onEnd&&onEnd(); };
-  r.onend =()=>{ if(ACTIVE_REC===r) ACTIVE_REC=null; onEnd&&onEnd(); };
-  try{ r.start(); }catch(e){ return null; }
+  /* micClosed לפני onEnd: הקריאה הבאה (בדרך כלל הקראת התשובה הנכונה)
+     צריכה כבר לנגן ברמקול הרגיל, לא באפרכסת של מצב ההקלטה.          */
+  r.onerror=()=>{ if(ACTIVE_REC===r) ACTIVE_REC=null; micClosed(); onEnd&&onEnd(); };
+  r.onend =()=>{ if(ACTIVE_REC===r) ACTIVE_REC=null; micClosed(); onEnd&&onEnd(); };
+  micOpened();
+  try{ r.start(); }catch(e){ micClosed(); return null; }
   ACTIVE_REC=r;
   return r;
 }
@@ -7761,9 +7769,39 @@ async function ttsSynth(text, voice){
   return dataURL;
 }
 
-let curAudio=null;
+/* ---------- יומן שמע ----------
+   אי אפשר לשחזר כאן התנהגות של אייפון אמיתי, ולכן כל השמעה נרשמת:
+   באיזה מסלול ניגנה (Web Audio / נגן / קול המכשיר), מה היה מצב
+   ההקשר וסוג סשן השמע, ואם נכשלה — למה. היומן מוצג בהגדרות הקול. */
+const AUDIO_LOG=[];
+function alog(ev, text, extra){
+  AUDIO_LOG.push({t:new Date().toTimeString().slice(0,8), ev, text:String(text||'').slice(0,40),
+    ctx:(typeof AC!=='undefined'&&AC)?AC.state:'—',
+    ses:(navigator.audioSession&&navigator.audioSession.type)||'—', x:extra||''});
+  if(AUDIO_LOG.length>40) AUDIO_LOG.shift();
+}
+
+/* ---------- נגן קבוע ----------
+   iOS דורש מגע לכל אלמנט <audio> חדש. new Audio() מחוץ למגע (השמעה
+   אוטומטית בתחילת שאלה, או אחרי תשובה) נדחה — וזה בדיוק המקום שבו
+   ההקראה נעלמה. נגן אחד שמשוחרר פעם אחת במגע, ואז רק מחליפים לו
+   מקור — מותר לנגן בו גם אחר כך, בלי מגע.                         */
+const SILENT_WAV='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+let AUDIO_EL=null, AUDIO_EL_OK=false;
+function audioEl(){
+  if(!AUDIO_EL){ AUDIO_EL=new Audio(); AUDIO_EL.preload='auto'; AUDIO_EL.setAttribute('playsinline',''); }
+  return AUDIO_EL;
+}
+function unlockEl(){
+  if(AUDIO_EL_OK) return;
+  const a=audioEl();
+  if(a.src && !a.paused) return;
+  try{ a.src=SILENT_WAV; const p=a.play();
+       if(p&&p.then) p.then(()=>{ AUDIO_EL_OK=true; }).catch(()=>{}); }catch(e){}
+}
+
 function stopAudio(){
-  if(curAudio){ try{ curAudio.pause(); curAudio.src=''; }catch(e){} curAudio=null; }
+  if(AUDIO_EL){ try{ AUDIO_EL.pause(); }catch(e){} }
   if(typeof stopNode==='function') stopNode();
 }
 
@@ -7782,24 +7820,24 @@ async function sayCloud(text, rate, tok){
      כל זמן שהבקשה החדשה בדרך.                                    */
   stopAudio();
   if(tok===undefined) tok=sayToken();
-  const clip=await ttsSynth(text, TTS.voice);
+  let clip;
+  try{ clip=await ttsSynth(text, TTS.voice); }
+  catch(e){ alog('cloud-fail', text, e.message); throw e; }
   if(!sayCurrent(tok)) return false;   /* השאלה כבר התחלפה — נוטשים */
   stopAudio();
   const rr = Math.max(.5, Math.min(2, (rate||1)/( .95 )));
 
-  /* מנגנים דרך Web Audio ולא דרך <audio>.
-     הסיבה: iOS רושם כל אלמנט <audio> כ"מתנגן כעת" במערכת — הוא
-     משתלט על פקדי המדיה במרכז הבקרה ובמסך הנעילה, ועוצר מוזיקה
-     שהמשתמש שומע ברקע. קליפ הקראה של שנייה אחת לא אמור לעשות
-     את זה. Web Audio מנגן בלי לגעת ב-media session בכלל, וגם
-     מגיב מהר יותר כי אין יצירת אלמנט חדש בכל השמעה.            */
-  if(await playViaWebAudio(clip, rr, tok)) return true;
+  /* מסלול ראשון: Web Audio — לא נוגע בפקדי המדיה של המערכת.
+     מסלול שני: הנגן הקבוע — עובד גם כשההקשר תקוע.
+     מסלול שלישי (ב-say): קול המכשיר.                          */
+  if(!LISTENING && await playViaWebAudio(clip, rr, tok)){ alog('webaudio', text); return true; }
+  if(!sayCurrent(tok)) return false;
 
-  /* גיבוי לדפדפן ללא Web Audio */
-  const a=new Audio(clip);
-  a.playbackRate = rr;
-  curAudio=a;
-  await a.play();
+  const a=audioEl();
+  a.src=clip; a.playbackRate=rr;
+  try{ await a.play(); }
+  catch(e){ alog('element-fail', text, e.name||e.message); throw e; }
+  alog('element', text);
   if(!sayCurrent(tok)){ stopAudio(); return false; }
   return true;
 }
@@ -7812,6 +7850,15 @@ function audioCtx(){
   if(!C) return null;
   try{ AC=new C(); }catch(e){ return null; }
   return AC;
+}
+/* אחרי שימוש במיקרופון iOS מעביר את הפלט לרמקול השיחה (האפרכסת) —
+   ולכן הקול נשמע חלש מאוד. הקשר Web Audio שנוצר לפני כן נשאר תקוע
+   על האפרכסת גם אחרי שהמיקרופון נסגר. סוגרים אותו, והבא ייווצר
+   מחדש ויתנגן ברמקול הרגיל.                                      */
+function resetAudioCtx(){
+  stopNode();
+  if(AC){ try{ AC.close(); }catch(e){} }
+  AC=null; DECODED={};
 }
 function stopNode(){
   if(curNode){ try{ curNode.onended=null; curNode.stop(); }catch(e){} curNode=null; }
@@ -7826,13 +7873,11 @@ async function playViaWebAudio(dataURL, rate, tok){
   if(!ctx) return false;
   try{
     /* ב-iOS ההקשר יכול להיות suspended וגם interrupted (אחרי מעבר
-       לאפליקציה אחרת, נעילת מסך, שיחה או אודיו של אפליקציה אחרת).
-       resume() מחוץ למגע של המשתמש לא נכשל — הוא פשוט נתקע ולא חוזר
-       לעולם. בעבר חיכינו לו בלי גבול, ואז כל ההשמעות נבלעו בשקט
-       בלי שום גיבוי. עכשיו: ניסיון קצר, ואם ההקשר עדיין לא רץ —
-       מחזירים false כדי שהקוד ייפול לנגן הרגיל או לקול המכשיר.   */
+       לאפליקציה אחרת, נעילת מסך, שיחה או מיקרופון). resume() מחוץ
+       למגע לא נכשל — הוא נתקע. ניסיון קצר, ואם ההקשר לא רץ —
+       עוברים לנגן הקבוע.                                          */
     if(ctx.state!=='running'){
-      try{ await Promise.race([ctx.resume(), new Promise(r=>setTimeout(r,300))]); }catch(e){}
+      try{ await Promise.race([ctx.resume(), new Promise(r=>setTimeout(r,250))]); }catch(e){}
     }
     if(ctx.state!=='running') return false;
     let buf=DECODED[dataURL];
@@ -7854,24 +7899,31 @@ async function playViaWebAudio(dataURL, rate, tok){
     src.start(0);
     curNode=src;
     return true;
-  }catch(e){ return false; }
+  }catch(e){ alog('webaudio-fail', '', e.message); return false; }
 }
 
-/* ---------- שחרור אודיו ב-iOS ----------
-   אותה מגבלה כמו speechSynthesis: הנגינה הראשונה חייבת לבוא
-   מתוך מחווה של המשתמש. משחררים בשקט במגע הראשון.            */
-/* שלוש תקלות שגרמו להקראות "להיעלם" באייפון:
-   1. השחרור רץ פעם אחת בלבד. אבל iOS משהה את ההקשר שוב בכל מעבר
-      לאפליקציה אחרת או נעילת מסך — ואז לא היה שום דבר שיעיר אותו.
-      עכשיו זה רץ בכל מגע, וזול מאוד כשההקשר כבר פעיל.
-   2. touchstart לא נחשב ב-iOS כמחווה שמשחררת אודיו — רק touchend
-      ו-click. השחרור הראשון יכול היה פשוט לא לעבוד.
-   3. Web Audio באייפון מושתק כשמתג הצלצול במצב שקט, בניגוד לנגן
-      הרגיל. audioSession='playback' מבקש מהמערכת לנגן גם אז, כמו
-      כל אפליקציית לימוד שבה השמע הוא חלק מהתרגיל.                */
+/* ---------- סשן השמע של iOS ----------
+   'playback'        — רמקול רגיל, מנגן גם כשמתג הצלצול במצב שקט.
+   'play-and-record' — רק בזמן שהמיקרופון פתוח.
+   קודם כל מגע קבע 'playback' — גם המגע על כפתור המיקרופון עצמו, וגם
+   מגעים בזמן ההקלטה. עכשיו הסשן עובר ל-play-and-record רק כשמקשיבים,
+   וחוזר ל-playback כשההקלטה נגמרת, יחד עם הקשר שמע חדש.            */
+let LISTENING=false;
+function setSession(type){
+  try{ if(navigator.audioSession && navigator.audioSession.type!==type) navigator.audioSession.type=type; }catch(e){}
+}
+function micOpened(){ LISTENING=true; stopAudio(); setSession('play-and-record'); alog('mic-on',''); }
+function micClosed(){
+  if(!LISTENING) return;
+  LISTENING=false; setSession('playback'); resetAudioCtx(); alog('mic-off','');
+}
+
+/* שחרור בכל מגע (touchend/click — iOS לא מחשיב touchstart):
+   מעירים את ההקשר, ומשחררים פעם אחת את הנגן הקבוע.             */
 function unlockAudio(){
-  try{ if(navigator.audioSession && navigator.audioSession.type!=='playback')
-         navigator.audioSession.type='playback'; }catch(e){}
+  if(LISTENING) return;
+  setSession('playback');
+  unlockEl();
   const c=audioCtx(); if(!c || c.state==='running') return;
   try{ c.resume(); }catch(e){}
   /* ניגון דגימה שקטה אחת בתוך המגע — הדרך האמינה לשחרר ב-iOS */
@@ -7918,6 +7970,15 @@ async function ttsSheet(){
       <p class="sub">${T('לוחצים, והבדיקה מדווחת בדיוק מה נכשל — כולל ההודעה המקורית של')} Google, ${T('שלרוב אומרת מה חסר ואיך לתקן.')}</p>
       <button class="btn sm" style="width:100%;margin-top:10px" id="diag">${T('הרצת אבחון')}</button>
       <div id="diagout" style="margin-top:11px"></div>
+    </div>
+
+    <div class="sec-title">${T('יומן השמעות')}</div>
+    <div class="card">
+      <p class="sub">${T('אם הקראה לא נשמעה או נשמעה חלש — צלמו את המסך הזה מיד אחרי ושלחו. כל שורה מראה איך ההקראה נוגנה.')}</p>
+      <div class="ruleblk" style="direction:ltr;text-align:left;margin-top:8px"><span class="ex" style="white-space:pre-wrap;font-size:.72rem;line-height:1.6;font-family:ui-monospace,monospace">${
+        AUDIO_LOG.length ? AUDIO_LOG.slice(-20).reverse().map(r=>esc(`${r.t} ${r.ev} ctx:${r.ctx} ses:${r.ses} "${r.text}"${r.x?' '+r.x:''}`)).join('\n')
+                         : esc(T('עדיין אין השמעות בסשן הזה.'))
+      }</span></div>
     </div>
 
     <div class="sec-title">${T('הפעלה חד-פעמית בקונסולה')}</div>
