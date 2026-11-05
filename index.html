@@ -1243,7 +1243,21 @@ const EN_UI = {
    ============================================================ */
 
 const K_LANG='ladder.lang';
-let UI_LANG = 'he';   /* נקבע מחדש מהמשתמש הפעיל בכל render */
+/* השפה נקבעת כבר בטעינה, מהמשתמש הפעיל השמור. סיבה: הרבה קבועים
+   (שמות מצבי התרגול, כרטיסי ההיכרות של סוגי התרגילים, דירוגי הקולות)
+   קוראים ל-T() פעם אחת בזמן טעינת הקובץ. כשהשפה התחילה תמיד כ'he',
+   כל אלה נשארו בעברית גם בממשק אנגלי.                              */
+let UI_LANG = (function bootLang(){
+  try{
+    const js=k=>{ const v=localStorage.getItem(k); return v?JSON.parse(v):null; };
+    const cur=js('ladder.current'), users=js('ladder.users');
+    const u=Array.isArray(users) ? users.find(x=>x && x.id===cur) : null;
+    if(u) return (u.settings && u.settings.lang) || 'he';
+    return js(K_LANG) || 'he';
+  }catch(e){ return 'he'; }
+})();
+const BOOT_LANG = UI_LANG;
+let LANG_BOOTED = false;   /* נדלק אחרי הציור הראשון */
 
 function T(s){
   if(UI_LANG!=='en') return s;
@@ -1263,6 +1277,10 @@ function applyLang(){
   html.setAttribute('lang', UI_LANG==='en' ? 'en' : 'he');
   html.setAttribute('dir',  UI_LANG==='en' ? 'ltr' : 'rtl');
   html.dataset.uilang = UI_LANG;
+  /* השפה השתנתה (בהגדרות, או מעבר למשתמש עם שפה אחרת) — הקבועים
+     שתורגמו בטעינה כבר לא נכונים. טעינה מחדש בונה אותם בשפה הנכונה;
+     כל המצב שמור ב-localStorage, כך ששום דבר לא הולך לאיבוד.        */
+  if(LANG_BOOTED && UI_LANG!==BOOT_LANG){ LANG_BOOTED=false; location.reload(); }
 }
 
 /* עוזר לתוכן עברי כשהממשק באנגלית: מבודד את הכיוון כדי שפיסוק
@@ -5447,15 +5465,20 @@ function warmUp(){
   try{ const w=new SpeechSynthesisUtterance(' '); w.volume=0; speechSynthesis.speak(w); }catch(e){}
   if(!VOICES.length) loadVoices();
 }
-addEventListener('touchstart', warmUp, {once:true, passive:true});
-addEventListener('mousedown',  warmUp, {once:true});
+/* touchend ולא touchstart — iOS לא מחשיב touchstart כמחווה שמשחררת דיבור */
+addEventListener('touchend', warmUp, {once:true, passive:true, capture:true});
+addEventListener('click',    warmUp, {once:true, capture:true});
 
 /* קול המכשיר — נשאר כברירת מחדל וכגיבוי לקול הענן */
 function sayDevice(text, rate){
   if(!window.speechSynthesis || !text) return false;
   try{
     warmUp();
-    speechSynthesis.cancel();
+    /* באג ידוע בספארי: speak() מיד אחרי cancel() נבלע לפעמים בשקט.
+       מבטלים רק אם באמת משהו מדבר, וממתינים רגע לפני ההקראה החדשה. */
+    const busy = speechSynthesis.speaking || speechSynthesis.pending;
+    if(busy) speechSynthesis.cancel();
+    try{ speechSynthesis.resume(); }catch(e){}
     const s=me()?.settings||{};
     const u2=new SpeechSynthesisUtterance(String(text));
     const v=pickVoice();
@@ -5463,7 +5486,10 @@ function sayDevice(text, rate){
     u2.rate  = rate || s.speed || .95;
     u2.pitch = s.pitch != null ? s.pitch : 1;
     u2.volume= 1;
-    speechSynthesis.speak(u2);
+    /* ההמתנה לא תשמיע משפט ישן אם בינתיים עברו לשאלה הבאה */
+    const seq = (typeof SAY_SEQ!=='undefined') ? SAY_SEQ : 0;
+    if(busy) setTimeout(()=>{ if(typeof SAY_SEQ==='undefined' || seq===SAY_SEQ) speechSynthesis.speak(u2); }, 90);
+    else speechSynthesis.speak(u2);
     return true;
   }catch(e){ return false; }
 }
@@ -5546,12 +5572,41 @@ const norm = s => (s||'')
   .toLowerCase()
   .replace(/[.,!?;:'"()\-]/g,'')
   .replace(/\s+/g,' ').trim();
+/* קיצור וצורה מלאה הם אותה תשובה: "he does not work" נכון בדיוק כמו
+   "He doesn't work". בלי זה תשובה נכונה נפסלה רק כי נכתבה בצורה המלאה.
+   's ו-'d דו־משמעיים (he's = he is / he has, I'd = I would / I had),
+   ולכן מהם נוצרות כמה גרסאות וההשוואה מקבלת כל אחת מהן.               */
+function contractionForms(s){
+  const raw=String(s||'').replace(/[‘’ʼ´]/g,"'").toLowerCase();
+  /* גם בלי גרש — במקלדת הטלפון הרבה פעמים מדלגים עליו: doesnt, dont */
+  let t=raw.replace(/\b(do|does|did|is|are|was|were|has|have|had|would|could|should|must|need)nt\b/g,"$1n't")
+     .replace(/\bcan't\b/g,'can not').replace(/\bcannot\b/g,'can not')
+     .replace(/\bwon't\b/g,'will not').replace(/\bshan't\b/g,'shall not')
+     .replace(/\blet's\b/g,'let us')
+     .replace(/n't\b/g,' not').replace(/'m\b/g,' am').replace(/'re\b/g,' are')
+     .replace(/'ve\b/g,' have').replace(/'ll\b/g,' will');
+  let out=[t];
+  if(raw!==t) out.push(raw);
+  const amb=[[/\b(i|you|he|she|it|we|they|there|that|who)'d\b/, [' would',' had']],
+             [/\b(he|she|it|there|that|what|who|where|here|how)'s\b/, [' is',' has']]];
+  for(const [re,alts] of amb){
+    for(let k=0;k<3;k++){
+      let changed=false; const nx=[];
+      out.forEach(x=>{ const m=x.match(re); if(!m){ nx.push(x); return; }
+        changed=true; alts.forEach(a=>nx.push(x.replace(re, m[1]+a))); });
+      out=nx; if(!changed) break;
+    }
+  }
+  return out.slice(0,16);
+}
 function near(a,b){
   /* בלי שום סובלנות לטעויות — התאמה מדויקת בלבד, אחרי נורמליזציה.
      norm() רק מנטרל הבדלים טכניים שהם לא באמת טעות: אותיות גדולות/קטנות,
      גרשיים חכמים של iOS, מקף ארוך, רווח לא שובר, רווחים כפולים, וסימני
-     פיסוק בסוף. כל הבדל אחר במילה — נדחה.                              */
-  return norm(a)===norm(b) && !!norm(a);
+     פיסוק בסוף. contractionForms() מוסיף רק שקילות קיצור/צורה מלאה.
+     כל הבדל אחר במילה — נדחה.                                         */
+  const B=new Set(contractionForms(b).map(norm));
+  return contractionForms(a).map(norm).some(x=>!!x && B.has(x));
 }
 /* ============================================================
    UI — מעטפת
@@ -5561,6 +5616,32 @@ const el = h => {const d=document.createElement('div');d.innerHTML=h.trim();retu
 const esc = s => (s+'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const jq  = s => esc(s).replace(/'/g,"\\'").replace(/`/g,'');
 let TAB='home', S=null, TICK=null;
+
+/* ---------- כיווניות של הסברים בעברית בממשק האנגלי ----------
+   ההסברים (חוקי דקדוק, הגהה, השלמה) כתובים בעברית עם מילים באנגלית
+   בתוכם. בממשק אנגלי (dir=ltr) הדפדפן פורש שורה כזו משמאל לימין,
+   והתוצאה נקראת הפוך: "doesn't ־לhe/she/it". כאן מזהים כל אלמנט
+   קטן שרוב האותיות בו עבריות ויש בו גם אנגלית, ומסמנים אותו RTL.
+   רץ רק בממשק האנגלי — בממשק העברי הכיוון כבר נכון.              */
+const BIDI_INLINE = new Set(['B','I','EM','STRONG','BDI','SMALL','CODE']);
+function fixBidi(root){
+  if(document.documentElement.getAttribute('dir')!=='ltr' || !root || !root.querySelectorAll) return;
+  root.querySelectorAll('span,div,p,small,li').forEach(e=>{
+    if(e.closest('input,textarea,button,.ruleblk,.en')) return;
+    if([...e.children].some(c=>!BIDI_INLINE.has(c.tagName) && !(c.tagName==='SPAN' && c.classList.contains('en')))) return;
+    const t=e.textContent||'';
+    const he=(t.match(/[֐-׿]/g)||[]).length, la=(t.match(/[A-Za-z]/g)||[]).length;
+    if(he>la && la>0){
+      e.setAttribute('dir','rtl');
+      if(getComputedStyle(e).display==='inline') e.style.display='block';
+    }
+  });
+}
+let BIDI_RAF=0;
+if(typeof MutationObserver!=='undefined') new MutationObserver(()=>{
+  if(BIDI_RAF) return;
+  BIDI_RAF=requestAnimationFrame(()=>{ BIDI_RAF=0; fixBidi(document.body); });
+}).observe(document.documentElement, {childList:true, subtree:true});
 
 const ICONS={
  home:'<path d="M3 10.6 12 3.4l9 7.2"/><path d="M5.4 9.3V20.6h13.2V9.3"/><path d="M9.8 20.6v-6h4.4v6"/>',
@@ -5671,6 +5752,7 @@ function pinFixedBars(){
 /* ---------- ניתוב ---------- */
 function render(){
   applyLang();
+  LANG_BOOTED = true;
   applyTheme();
   if(!USERS.length){ return vWelcome(); }
   const cu=me();
@@ -5947,23 +6029,25 @@ function levelSheet(l){
 }
 
 /* ---------- מסך תרגול ---------- */
+/* המחרוזות נשמרות בעברית ומתורגמות בזמן הציור. T() כאן, בטעינת הקובץ,
+   רץ לפני שנקבעת שפת המשתמש — ולכן בממשק האנגלי כל המצבים הוצגו בעברית. */
 const MODES=[
- ['mix',  14,T('תרגול מעורב'),T('חזרות שהגיע זמנן יחד עם חומר חדש, בשזירה בין סוגי תרגיל. המצב היעיל ביותר לזיכרון ארוך טווח.')],
- ['weak', 12,T('חיזוק חולשות'),T('רק הפריטים שנכשלת בהם או ששולף אותם לאט מדי.')],
- ['sound',12,T('אוזן והגייה'),T('זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. השריר שחסר לרוב דוברי העברית.')],
- ['letters',12,T('אותיות'),T('זיהוי האותיות בלבד — בשמיעה, בהתאמת גדולה־קטנה ובשם. בלי קריאת מילים, מתאים מגיל 4.')],
- ['tenses',12,T('חמשת הזמנים'),T('הטיית פעלים בחמשת הזמנים שמכסים כמעט את כל האנגלית המדוברת. זה מה שנשבר בדיבור — לא הידיעה, אלא המהירות.')],
- ['irregular',12,T('פעלים חריגים'),T('מאה פעלים בשלוש צורות, מקובצים ל‑12 תבניות הטיה. התבנית היא הקיצור.')],
- ['rules',12,T('דקדוק ותחביר'),T('חוקים, השלמת חסר, בניית משפט, הגהה וקיצורים.')],
- ['talk', 8, T('אימון שיחה'),T('שאלות פתוחות. עונים בקול או בכתב ומשווים לתשובת מודל.')],
- ['mix',  30,T('מרתון'),T('שלושים פריטים ברצף, לתרגול עומק.')]
+ ['mix',  14,'תרגול מעורב','חזרות שהגיע זמנן יחד עם חומר חדש, בשזירה בין סוגי תרגיל. המצב היעיל ביותר לזיכרון ארוך טווח.'],
+ ['weak', 12,'חיזוק חולשות','רק הפריטים שנכשלת בהם או ששולף אותם לאט מדי.'],
+ ['sound',12,'אוזן והגייה','זוגות מינימליים כמו ship/sheep ו‑think/sink, קיצורים ודיבור מהיר. השריר שחסר לרוב דוברי העברית.'],
+ ['letters',12,'אותיות','זיהוי האותיות בלבד — בשמיעה, בהתאמת גדולה־קטנה ובשם. בלי קריאת מילים, מתאים מגיל 4.'],
+ ['tenses',12,'חמשת הזמנים','הטיית פעלים בחמשת הזמנים שמכסים כמעט את כל האנגלית המדוברת. זה מה שנשבר בדיבור — לא הידיעה, אלא המהירות.'],
+ ['irregular',12,'פעלים חריגים','מאה פעלים בשלוש צורות, מקובצים ל‑12 תבניות הטיה. התבנית היא הקיצור.'],
+ ['rules',12,'דקדוק ותחביר','חוקים, השלמת חסר, בניית משפט, הגהה וקיצורים.'],
+ ['talk', 8, 'אימון שיחה','שאלות פתוחות. עונים בקול או בכתב ומשווים לתשובת מודל.'],
+ ['mix',  30,'מרתון','שלושים פריטים ברצף, לתרגול עומק.']
 ];
 function vPractice(s){
   if(S) return drawQ(s);
   const allowed=MODES.filter(([m])=>modeAllowed(me(),m));
   s.innerHTML=`<h1>${T('תרגול')}</h1><p class="sub">${allowed.length<MODES.length?T('חלק מהמצבים נעולים על ידי ההורה.'):T('כל מצב מאמן שריר אחר.')}</p>
     <div class="modegrid" style="margin-top:16px">${allowed.map(([m,n,ti,d],i)=>
-      `<div class="card"><b style="font-size:1rem">${ti}</b><div class="sub" style="margin-top:4px">${d}</div>
+      `<div class="card"><b style="font-size:1rem">${T(ti)}</b><div class="sub" style="margin-top:4px">${T(d)}</div>
        <button class="btn ${i?'ghost ':''}sm" style="margin-top:11px;width:100%" onclick="startSession('${m}',${n})">${T('התחלה')} · ${n} ${T('פריטים')}</button></div>`).join('')}</div>`;
 }
 
@@ -6902,7 +6986,7 @@ function ctrlSheet(u){
     <div class="card" id="modes">
       ${MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>{
         const on = !c.modes || c.modes.includes(m);
-        return `<div class="ctrl"><div class="tx"><b>${ti}</b></div>
+        return `<div class="ctrl"><div class="tx"><b>${T(ti)}</b></div>
           <button class="sw ${on?'on':''}" data-mode="${m}"></button></div>`}).join('')}
       <p class="muted" style="margin-top:8px">${T('אם הכול פתוח, הלומד רואה את כל המצבים.')}</p>
     </div>
@@ -6914,7 +6998,7 @@ function ctrlSheet(u){
         <div class="progline" style="margin-top:9px"><i style="width:${Math.min(100,(u.task.prog/u.task.size)*100)}%"></i></div></div>
         <button class="btn ghost sm" style="width:100%;margin-top:10px" id="cleartask">${T('ביטול המשימה')}</button>`
       : `<div class="field"><label>${T('סוג התרגול')}</label><select id="tmode">${
-          MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>`<option value="${m}">${ti}</option>`).join('')}</select></div>
+          MODES.filter((m,i,a)=>a.findIndex(x=>x[0]===m[0])===i).map(([m,,ti])=>`<option value="${m}">${T(ti)}</option>`).join('')}</select></div>
          <div class="field"><label>${T('מספר פריטים')}</label><select id="tsize">${[10,15,20,25,30,40].map(n=>`<option${n===20?' selected':''}>${n}</option>`).join('')}</select></div>
          <div class="field"><label>${T('הערה ללומד')}</label><input id="tnote" placeholder="${T('למשל: לקראת המבחן ביום שלישי')}"></div>
          <button class="btn sm" style="width:100%" id="settask">${T('הקצאת משימה')}</button>`}
@@ -6947,7 +7031,7 @@ function ctrlSheet(u){
       b.classList.toggle('on', list.includes(m)); u.ctrlAt=Date.now(); saveUsers(); });
     if(sh.querySelector('#settask')) sh.querySelector('#settask').onclick=()=>{
       const m=sh.querySelector('#tmode').value, sz=+sh.querySelector('#tsize').value;
-      const label=(MODES.find(x=>x[0]===m)||[])[2]||m;
+      const label=T((MODES.find(x=>x[0]===m)||[])[2]||m);
       u.task={mode:m,size:sz,label,note:sh.querySelector('#tnote').value.trim(),prog:0,done:0,day:today()};
       u.ctrlAt=Date.now(); saveUsers(); closeSheet(); toast(T('המשימה הוקצתה')); render(); };
     if(sh.querySelector('#cleartask')) sh.querySelector('#cleartask').onclick=()=>{
@@ -7741,7 +7825,16 @@ async function playViaWebAudio(dataURL, rate, tok){
   const ctx=audioCtx();
   if(!ctx) return false;
   try{
-    if(ctx.state==='suspended') await ctx.resume();
+    /* ב-iOS ההקשר יכול להיות suspended וגם interrupted (אחרי מעבר
+       לאפליקציה אחרת, נעילת מסך, שיחה או אודיו של אפליקציה אחרת).
+       resume() מחוץ למגע של המשתמש לא נכשל — הוא פשוט נתקע ולא חוזר
+       לעולם. בעבר חיכינו לו בלי גבול, ואז כל ההשמעות נבלעו בשקט
+       בלי שום גיבוי. עכשיו: ניסיון קצר, ואם ההקשר עדיין לא רץ —
+       מחזירים false כדי שהקוד ייפול לנגן הרגיל או לקול המכשיר.   */
+    if(ctx.state!=='running'){
+      try{ await Promise.race([ctx.resume(), new Promise(r=>setTimeout(r,300))]); }catch(e){}
+    }
+    if(ctx.state!=='running') return false;
     let buf=DECODED[dataURL];
     if(!buf){
       const raw=b64ToBuf(String(dataURL).split(',')[1]||'');
@@ -7767,16 +7860,26 @@ async function playViaWebAudio(dataURL, rate, tok){
 /* ---------- שחרור אודיו ב-iOS ----------
    אותה מגבלה כמו speechSynthesis: הנגינה הראשונה חייבת לבוא
    מתוך מחווה של המשתמש. משחררים בשקט במגע הראשון.            */
-let AUDIO_UNLOCKED=false;
+/* שלוש תקלות שגרמו להקראות "להיעלם" באייפון:
+   1. השחרור רץ פעם אחת בלבד. אבל iOS משהה את ההקשר שוב בכל מעבר
+      לאפליקציה אחרת או נעילת מסך — ואז לא היה שום דבר שיעיר אותו.
+      עכשיו זה רץ בכל מגע, וזול מאוד כשההקשר כבר פעיל.
+   2. touchstart לא נחשב ב-iOS כמחווה שמשחררת אודיו — רק touchend
+      ו-click. השחרור הראשון יכול היה פשוט לא לעבוד.
+   3. Web Audio באייפון מושתק כשמתג הצלצול במצב שקט, בניגוד לנגן
+      הרגיל. audioSession='playback' מבקש מהמערכת לנגן גם אז, כמו
+      כל אפליקציית לימוד שבה השמע הוא חלק מהתרגיל.                */
 function unlockAudio(){
-  if(AUDIO_UNLOCKED) return;
-  AUDIO_UNLOCKED=true;
-  /* Web Audio דורש גם הוא מחווה ראשונה — מעירים את ההקשר כאן,
-     כדי שההשמעה הראשונה בתרגול לא תתעכב או תיחסם.            */
-  try{ const c=audioCtx(); if(c && c.state==='suspended') c.resume(); }catch(e){}
+  try{ if(navigator.audioSession && navigator.audioSession.type!=='playback')
+         navigator.audioSession.type='playback'; }catch(e){}
+  const c=audioCtx(); if(!c || c.state==='running') return;
+  try{ c.resume(); }catch(e){}
+  /* ניגון דגימה שקטה אחת בתוך המגע — הדרך האמינה לשחרר ב-iOS */
+  try{ const b=c.createBuffer(1,1,22050), s=c.createBufferSource();
+       s.buffer=b; s.connect(c.destination); s.start(0); }catch(e){}
 }
-addEventListener('touchstart', unlockAudio, {once:true, passive:true});
-addEventListener('mousedown',  unlockAudio, {once:true});
+['touchend','click','keydown'].forEach(ev=>
+  addEventListener(ev, unlockAudio, {capture:true, passive:true}));
 
 /* ---------- ניהול המטמון בהגדרות ---------- */
 async function ttsSheet(){
